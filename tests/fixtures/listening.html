@@ -1,0 +1,22 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><title>Listening – voicemail</title>
+<style>body{font:18px Arial;margin:40px;max-width:820px} .row{margin:14px 0} button.play{font-size:16px;padding:8px 16px}</style></head>
+<body>
+<h2>Unit 4 – Listening</h2>
+<p>Listen to Anna's voicemail and complete the notes. Write ONE word or a time.</p>
+<!-- Player without an <audio> tag: audio is only requested when Play is pressed (like many LMS players). -->
+<button class="play" id="play" onclick="new Audio('listening.wav').play().catch(()=>{}); this.textContent='▶ Playing...'">▶ Play</button>
+<div class="row">1. Day of the meeting: <input id="a1" size="12"></div>
+<div class="row">2. Time: <input id="a2" size="12"></div>
+<div class="row">3. Room number: <input id="a3" size="12"></div>
+<div class="row">4. Bring your: <input id="a4" size="12"></div>
+<p><button id="check" onclick="grade()">Check</button> <span id="result"></span></p>
+<script>
+function grade() {
+  const v = id => document.getElementById(id).value.trim().toLowerCase();
+  const ok = [v('a1') === 'friday', /^(3[.:]30|half past three|three thirty)( ?pm)?$/.test(v('a2')),
+              /^(12|twelve)$/.test(v('a3')), v('a4') === 'dictionary'];
+  document.getElementById('result').textContent = 'Score: ' + ok.filter(Boolean).length + '/4';
+}
+window.__result = () => document.getElementById('result').textContent;
+</script>
+</body></html>

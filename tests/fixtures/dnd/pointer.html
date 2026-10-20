@@ -1,0 +1,30 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><title>DnD: pointer events (dnd-kit style)</title><link rel="stylesheet" href="common.css"></head>
+<body>
+<p>Pointer sensor with 8px activation distance and pointer capture; ignores untrusted events (like dnd-kit / modern React apps).</p>
+<div class="sentence">5. I <span id="gap" class="droppable"></span> my homework last night.</div>
+<div class="bank"><span class="word" tabindex="0" role="button" aria-roledescription="draggable">did</span><span class="word" tabindex="0" role="button" aria-roledescription="draggable">done</span></div>
+<script>
+let st = null;
+document.querySelectorAll('.word').forEach(w => w.addEventListener('pointerdown', e => {
+  if (!e.isTrusted) return;
+  st = { el: w, x: e.clientX, y: e.clientY, active: false };
+  w.setPointerCapture(e.pointerId);
+}));
+document.addEventListener('pointermove', e => {
+  if (!st || !e.isTrusted) return;
+  if (!st.active && Math.hypot(e.clientX - st.x, e.clientY - st.y) >= 8) st.active = true;
+  if (st.active) st.el.style.transform = `translate(${e.clientX - st.x}px, ${e.clientY - st.y}px)`;
+});
+document.addEventListener('pointerup', e => {
+  if (!st || !e.isTrusted) return;
+  st.el.style.transform = '';
+  if (st.active) {
+    const r = document.getElementById('gap').getBoundingClientRect();
+    if (e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom)
+      document.getElementById('gap').textContent = st.el.textContent;
+  }
+  st = null;
+});
+window.__result = () => document.getElementById('gap').textContent.trim() === 'did';
+</script>
+</body></html>

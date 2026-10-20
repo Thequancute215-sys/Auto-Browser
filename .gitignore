@@ -1,0 +1,23 @@
+# Secrets — Gemini API key lives here, never commit it
+ai_config.json
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+
+# Test artifacts (the drag & drop matrix report is kept)
+tests/reports/*.png
+
+# Local browser profiles
+.ai_browser_profile/
+run_*/
+
+# OS / editor
+Thumbs.db
+.DS_Store
+.vscode/
+.idea/

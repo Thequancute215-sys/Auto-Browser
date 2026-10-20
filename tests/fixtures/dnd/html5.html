@@ -1,0 +1,10 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><title>DnD: native HTML5</title><link rel="stylesheet" href="common.css"></head>
+<body>
+<p>Drag the correct word into the gap.</p>
+<div class="sentence">5. I <span id="gap" class="gap" ondragover="event.preventDefault()" ondrop="event.preventDefault(); this.textContent = event.dataTransfer.getData('text/plain')"></span> my homework last night.</div>
+<div class="bank">
+  <span class="word" draggable="true" ondragstart="event.dataTransfer.setData('text/plain', this.textContent)">did</span>
+  <span class="word" draggable="true" ondragstart="event.dataTransfer.setData('text/plain', this.textContent)">done</span>
+</div>
+<script>window.__result = () => document.getElementById('gap').textContent.trim() === 'did';</script>
+</body></html>

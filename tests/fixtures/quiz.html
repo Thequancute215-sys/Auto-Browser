@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Test Quiz</title>
+<style>body{font-family:Arial;margin:30px;max-width:900px} .q{margin:14px 0} .drop{display:inline-block;min-width:90px;border-bottom:2px dashed #888;padding:2px 6px} .chip{display:inline-block;border:1px solid #369;padding:4px 10px;margin:4px;border-radius:12px;cursor:grab} .opt{display:block;margin:4px 0}</style>
+</head><body>
+<h2>Unit 3 – Past simple</h2>
+<p><b>A.</b> Complete the sentences with the past simple form of the verb in brackets.</p>
+<div class="q">1. Yesterday she <input id="g1" size="10"> (go) to the cinema.</div>
+<div class="q">2. We <input id="g2" size="10"> (not / see) the film last week.</div>
+<p><b>B.</b> Choose the correct answer.</p>
+<div class="q">3. Where ___ you born?
+  <label class="opt"><input type="radio" name="q3" value="a"> was</label>
+  <label class="opt"><input type="radio" name="q3" value="b"> were</label>
+  <label class="opt"><input type="radio" name="q3" value="c"> did</label>
+</div>
+<div class="q">4. They <select id="s4"><option>--</option><option>buyed</option><option>bought</option><option>buy</option></select> a new car in 2020.</div>
+<p><b>C.</b> Drag the correct word into the gap.</p>
+<div class="q">5. I <span class="drop" id="d5" ondragover="event.preventDefault()" ondrop="event.preventDefault(); this.textContent=event.dataTransfer.getData('text')"></span> my homework last night.</div>
+<div><span class="chip" draggable="true" ondragstart="event.dataTransfer.setData('text','did')">did</span><span class="chip" draggable="true" ondragstart="event.dataTransfer.setData('text','done')">done</span></div>
+<iframe id="fr" style="width:600px;height:120px;border:1px solid #ccc" srcdoc="<body style='font-family:Arial'><p>6. Write one sentence about your last holiday:</p><textarea id='t6' rows='2' cols='50'></textarea></body>"></iframe>
+<p><button id="check" onclick="grade()">Check answers</button> <span id="result"></span></p>
+<script>
+function grade(){
+  const t6 = document.getElementById('fr').contentDocument.getElementById('t6').value.trim();
+  const ok = [
+    document.getElementById('g1').value.trim().toLowerCase()==='went',
+    /^(did not|didn't) see$/.test(document.getElementById('g2').value.trim().toLowerCase()),
+    (document.querySelector('input[name=q3]:checked')||{}).value==='b',
+    document.getElementById('s4').value==='bought',
+    document.getElementById('d5').textContent.trim()==='did',
+    t6.length>5
+  ];
+  document.getElementById('result').textContent = 'Score: ' + ok.filter(Boolean).length + '/6 ' + JSON.stringify(ok);
+}
+</script>
+</body></html>

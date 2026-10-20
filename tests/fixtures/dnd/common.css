@@ -1,0 +1,7 @@
+body { font: 18px Arial, sans-serif; margin: 40px; }
+.sentence { margin: 30px 0; }
+.bank { display: flex; gap: 14px; margin-top: 140px; }
+.word { display: inline-block; padding: 6px 16px; border: 1px solid #369; border-radius: 14px; background: #eef5ff; user-select: none; cursor: grab; }
+.word.selected { outline: 3px solid orange; }
+.gap, .slot, .blank, .target, .dropzone, .drop-zone, .droppable { display: inline-block; min-width: 110px; min-height: 30px; vertical-align: middle; border-bottom: 2px dashed #888; padding: 2px 6px; }
+.ghost { position: fixed; pointer-events: none; opacity: .7; z-index: 10; }

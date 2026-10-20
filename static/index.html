@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="vi" data-color-mode="auto" data-light-theme="light" data-dark-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <title>Auto Browser</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='4' fill='%230969da'/%3E%3Cpath d='M4 11.5 8 4l4 7.5H9.6L8 8.4 6.4 11.5z' fill='white'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/vendor/primer.css?v=22.3.2">
+  <link rel="stylesheet" href="/style.css?v=6.0">
+  <script src="/vendor/octicons.js?v=19.41.0"></script>
+</head>
+<body>
+<div class="app" id="app">
+
+  <!-- Tabs -->
+  <nav class="tabbar" id="tabBar" aria-label="Tab trình duyệt"></nav>
+
+  <!-- Toolbar -->
+  <header class="toolbar">
+    <div class="BtnGroup">
+      <button class="btn btn-sm BtnGroup-item" data-nav="back" aria-label="Quay lại" title="Quay lại"><svg data-oi="arrow-left"></svg></button>
+      <button class="btn btn-sm BtnGroup-item" data-nav="forward" aria-label="Tiến tới" title="Tiến tới"><svg data-oi="arrow-right"></svg></button>
+      <button class="btn btn-sm BtnGroup-item" id="btnReload" aria-label="Tải lại" title="Tải lại"><svg data-oi="sync"></svg></button>
+    </div>
+
+    <form class="urlbar" id="urlForm" autocomplete="off" role="search">
+      <svg data-oi="globe" class="url-icon" id="urlIcon"></svg>
+      <input type="text" id="urlInput" class="urlbar-input" placeholder="Nhập địa chỉ hoặc từ khóa tìm kiếm..." spellcheck="false" aria-label="Địa chỉ">
+      <div class="url-progress" id="urlProgress"></div>
+    </form>
+
+    <div class="SegmentedControl" id="pointerMode" role="radiogroup" aria-label="Chế độ chuột">
+      <button data-mode="control" class="SegmentedControl-item selected" role="radio" aria-checked="true" title="Click, kéo thả, bôi đen như trình duyệt thật"><svg data-oi="cursor"></svg><span class="hide-sm">Chuột</span></button>
+      <button data-mode="select" class="SegmentedControl-item" role="radio" aria-checked="false" title="Kéo qua chữ để bôi đen và tự sao chép"><svg data-oi="copy"></svg><span class="hide-sm">Bôi đen &amp; Copy</span></button>
+    </div>
+
+    <button class="btn btn-sm" id="btnText" title="Xem & sao chép toàn bộ chữ trên trang (kể cả iframe)"><svg data-oi="file"></svg><span class="hide-md">Trích xuất chữ</span></button>
+    <div class="BtnGroup hide-sm">
+      <button class="btn btn-sm BtnGroup-item" data-site="rikkei" title="Mở Rikkei LMS"><svg data-oi="mortar-board" class="site-rikkei"></svg><span class="hide-md">Rikkei</span></button>
+      <button class="btn btn-sm BtnGroup-item" data-site="cambridge" title="Mở Cambridge One"><svg data-oi="book" class="site-cambridge"></svg><span class="hide-md">Cambridge</span></button>
+    </div>
+    <button class="btn btn-sm" id="btnSettings" title="Cài đặt Gemini & AI"><svg data-oi="gear"></svg><span id="settingsLabel" class="hide-md">Cài đặt</span><span class="status-dot danger" id="keyDot"></span></button>
+    <button class="btn btn-sm btn-octicon-only" id="btnTheme" title="Giao diện: theo hệ thống" aria-label="Đổi giao diện sáng/tối"><svg data-oi="device-desktop" id="themeIcon"></svg></button>
+    <button class="btn btn-sm btn-octicon-only" id="btnSidebar" title="Ẩn/hiện bảng AI" aria-label="Ẩn/hiện bảng AI"><svg data-oi="sidebar-expand"></svg></button>
+  </header>
+
+  <main class="workspace" id="workspace">
+    <!-- Live browser view -->
+    <section class="stage" id="stage">
+      <div class="screen" id="screen">
+        <canvas id="screenCanvas" width="1280" height="800"></canvas>
+        <textarea id="kbSink" class="kb-sink" aria-label="Bàn phím điều khiển trang" autocapitalize="off" autocomplete="off" spellcheck="false"></textarea>
+
+        <div class="ai-cursor" id="aiCursor" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M5.5 3.21V20.8c0 .45.54.67.85.35l4.86-4.86a.5.5 0 0 1 .35-.15h6.87a.5.5 0 0 0 .35-.85L6.35 2.85a.5.5 0 0 0-.85.36z"/></svg>
+          <span class="ai-cursor-tag">AI</span>
+        </div>
+
+        <div class="hud idle" id="hud"><span class="hud-dot"></span><span id="hudText">Trực tiếp</span></div>
+        <div class="kb-hint" id="kbHint"><svg data-oi="terminal"></svg> Bàn phím đang điều khiển trang · click ra ngoài để thoát</div>
+
+        <div class="vscroll" id="vscroll" title="Kéo để cuộn trang"><div class="vscroll-thumb" id="vscrollThumb"></div></div>
+
+        <div class="screen-overlay" id="screenOverlay">
+          <div class="spinner" aria-hidden="true"></div>
+          <div id="overlayText">Đang kết nối tới trình duyệt...</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- AI sidebar -->
+    <aside class="sidebar" id="sidebar" aria-label="Trợ lý AI">
+      <div class="sidebar-head">
+        <div class="sidebar-title"><svg data-oi="copilot"></svg> Trợ lý AI</div>
+        <span class="Label Label--success" id="aiBadge"><span class="Label-dot"></span><span id="aiBadgeText">Sẵn sàng</span></span>
+      </div>
+
+      <div class="ai-progress" id="aiProgress" hidden>
+        <div class="progress-row"><span id="aiStepText" class="text-semibold">Bước 0/0</span><span id="aiPhaseText" class="color-fg-muted"></span></div>
+        <span class="ProgressBar"><span class="ProgressBar-item" id="aiProgressFill"></span></span>
+        <div class="progress-detail" id="aiDetailText"></div>
+      </div>
+
+      <div class="ai-controls">
+        <button class="btn btn-primary btn-block" id="btnRun"><svg data-oi="play"></svg> Chạy</button>
+        <button class="btn btn-danger btn-block" id="btnStop" disabled><svg data-oi="square-fill"></svg> Dừng</button>
+      </div>
+
+      <div class="ai-options">
+        <div class="SegmentedControl SegmentedControl--small" id="aiMode" role="radiogroup" aria-label="Cách AI làm bài">
+          <button data-mode="auto" class="SegmentedControl-item selected" role="radio" title="AI tự điền / chọn / kéo thả đáp án"><svg data-oi="sparkle-fill"></svg> Tự làm</button>
+          <button data-mode="suggest" class="SegmentedControl-item" role="radio" title="AI chỉ hiện đáp án kèm giải thích"><svg data-oi="light-bulb"></svg> Gợi ý</button>
+        </div>
+        <label class="check" title="Bấm Check/Submit sau khi điền xong, sửa câu sai nếu trang cho phép"><input type="checkbox" id="optSubmit"> Tự nộp</label>
+        <label class="check" title="Tự chuyển sang bài tiếp theo sau khi hoàn thành"><input type="checkbox" id="optNext"> Tự qua bài</label>
+      </div>
+
+      <div class="chat" id="chat" aria-live="polite"></div>
+
+      <div class="chips" id="chips">
+        <button class="chip" data-cmd="Đọc kỹ đề và giải toàn bộ bài tập trên trang này"><svg data-oi="tasklist"></svg> Giải bài này</button>
+        <button class="chip" data-cmd="Giải bài này rồi tự chuyển qua các bài tiếp theo cho đến hết" data-continuous="1" title="Bật Tự nộp + Tự qua bài cho lần chạy này"><svg data-oi="rocket"></svg> Làm liên tục</button>
+        <button class="chip" data-cmd="Tóm tắt nội dung bài học trên trang bằng tiếng Việt, không thao tác gì"><svg data-oi="note"></svg> Tóm tắt trang</button>
+        <button class="chip" data-clear="1" title="Xóa lịch sử chat"><svg data-oi="trash"></svg> Xóa chat</button>
+      </div>
+
+      <form class="composer" id="composer">
+        <textarea id="aiInput" rows="1" placeholder="Ra lệnh cho AI... (Enter gửi · Shift+Enter xuống dòng)" aria-label="Lệnh cho AI"></textarea>
+        <button type="submit" class="btn btn-primary btn-sm btn-octicon-only" title="Gửi" aria-label="Gửi"><svg data-oi="paper-airplane"></svg></button>
+      </form>
+
+      <details class="tools" id="toolsPanel">
+        <summary><svg data-oi="chevron-right" class="tools-caret"></svg> Phím đặc biệt, gõ văn bản &amp; nhật ký</summary>
+        <div class="tools-body">
+          <div class="keys" id="specialKeys">
+            <button class="btn btn-sm" data-key="Escape">Esc</button>
+            <button class="btn btn-sm" data-key="Tab">Tab</button>
+            <button class="btn btn-sm" data-key="Shift+Tab">⇧Tab</button>
+            <button class="btn btn-sm" data-key="Enter">Enter</button>
+            <button class="btn btn-sm" data-key="Backspace">⌫</button>
+            <button class="btn btn-sm" data-key="Delete">Del</button>
+            <button class="btn btn-sm" data-key="ArrowLeft">←</button>
+            <button class="btn btn-sm" data-key="ArrowUp">↑</button>
+            <button class="btn btn-sm" data-key="ArrowDown">↓</button>
+            <button class="btn btn-sm" data-key="ArrowRight">→</button>
+            <button class="btn btn-sm" data-key="Home">Home</button>
+            <button class="btn btn-sm" data-key="End">End</button>
+            <button class="btn btn-sm" data-key="PageUp">PgUp</button>
+            <button class="btn btn-sm" data-key="PageDown">PgDn</button>
+            <button class="btn btn-sm" data-key="Control+a">Ctrl+A</button>
+            <button class="btn btn-sm" data-key="Control+z">Ctrl+Z</button>
+          </div>
+          <form class="send-text" id="sendTextForm">
+            <textarea id="sendTextInput" class="form-control input-sm" rows="2" placeholder="Gõ đoạn văn dài rồi gửi vào ô đang chọn trên trang..."></textarea>
+            <div class="send-text-actions">
+              <button type="button" class="btn btn-sm" id="btnPasteClipboard"><svg data-oi="paste"></svg> Dán clipboard</button>
+              <button type="submit" class="btn btn-sm"><svg data-oi="typography"></svg> Gửi vào trang</button>
+            </div>
+          </form>
+          <div class="log" id="logBox"></div>
+        </div>
+      </details>
+    </aside>
+  </main>
+
+  <footer class="statusbar">
+    <span class="sb-item" id="sbConn"><span class="status-dot attention"></span><span id="sbConnText">Đang kết nối</span></span>
+    <span class="sb-item" id="sbFps">0 FPS</span>
+    <span class="sb-item hide-sm" id="sbMode">—</span>
+    <span class="sb-item hide-sm" id="sbViewport">1280×800</span>
+    <span class="sb-item hide-sm" id="sbCoords">x: –, y: –</span>
+    <span class="sb-item grow"></span>
+    <span class="sb-item" id="sbScroll">Cuộn: –</span>
+    <span class="sb-item" id="sbUsage" title="Số lượt gọi Gemini trong phiên"></span>
+  </footer>
+</div>
+
+<!-- Toasts (Primer Toast) -->
+<div class="toasts" id="toasts" aria-live="polite"></div>
+
+<!-- Settings dialog -->
+<div class="Overlay-backdrop" id="settingsModal" hidden>
+  <div class="Overlay" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+    <div class="Overlay-header">
+      <h1 class="Overlay-title" id="settingsTitle"><svg data-oi="gear"></svg> Cài đặt</h1>
+      <button class="btn-octicon" data-close-modal aria-label="Đóng"><svg data-oi="x"></svg></button>
+    </div>
+    <div class="Overlay-body">
+      <section class="form-section">
+        <h2 class="form-section-title">Google Gemini</h2>
+        <div class="form-group">
+          <label class="form-label" for="apiKeyInput">API Key</label>
+          <div class="input-group">
+            <input type="password" id="apiKeyInput" class="form-control input-block" placeholder="Dán khóa API (AIza...)" autocomplete="off" spellcheck="false">
+            <button type="button" class="btn" id="btnToggleKey" aria-label="Hiện/ẩn khóa"><svg data-oi="eye"></svg></button>
+          </div>
+          <p class="note">Chưa có? <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener">Lấy miễn phí tại Google AI Studio</a>. Khóa chỉ lưu trên máy bạn (<code>ai_config.json</code>, đã loại khỏi Git).</p>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="modelInput">Mô hình</label>
+          <div class="input-group">
+            <input type="text" id="modelInput" class="form-control input-block" list="modelList" placeholder="vd: gemini-flash-latest" spellcheck="false">
+            <button type="button" class="btn" id="btnLoadModels"><svg data-oi="list-unordered"></svg> Tải danh sách</button>
+          </div>
+          <datalist id="modelList"></datalist>
+          <p class="note" id="modelHint">Bấm "Tải danh sách" để xem các mô hình API Key của bạn dùng được.</p>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="fallbackInput">Mô hình dự phòng <span class="color-fg-muted text-normal">— dùng khi hết quota / quá tải, cách nhau bằng dấu phẩy</span></label>
+          <input type="text" id="fallbackInput" class="form-control input-block" placeholder="gemini-flash-latest, gemini-3.5-flash" spellcheck="false">
+        </div>
+      </section>
+
+      <section class="form-section">
+        <h2 class="form-section-title">Cách AI làm bài</h2>
+        <div class="radio-cards" id="modeCards">
+          <label class="radio-card"><input type="radio" name="mode" value="auto"><span class="radio-card-title"><svg data-oi="sparkle-fill"></svg> Tự làm</span><span class="radio-card-desc">Đọc đề → điền / chọn / kéo thả → kiểm tra lại màn hình.</span></label>
+          <label class="radio-card"><input type="radio" name="mode" value="suggest"><span class="radio-card-title"><svg data-oi="light-bulb"></svg> Chỉ gợi ý</span><span class="radio-card-desc">Hiện đáp án kèm giải thích, không đụng vào bài.</span></label>
+        </div>
+        <label class="check"><input type="checkbox" id="setSubmit"> Tự bấm Check / Nộp bài sau khi điền xong (và sửa câu sai nếu được)</label>
+        <label class="check"><input type="checkbox" id="setNext"> Tự chuyển sang bài tiếp theo sau khi hoàn thành</label>
+        <label class="check"><input type="checkbox" id="setListen"> Bài nghe: tải audio của trang, nhờ Gemini chép lời rồi làm bài</label>
+        <div class="field-row">
+          <div class="form-group">
+            <label class="form-label" for="maxStepsInput">Số bước tối đa mỗi lần chạy</label>
+            <input type="number" id="maxStepsInput" class="form-control input-block" min="1" max="100" value="30">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="viewportSelect">Kích thước màn hình trình duyệt</label>
+            <select id="viewportSelect" class="form-select input-block">
+              <option value="1280x800">1280 × 800 (mặc định)</option>
+              <option value="1366x768">1366 × 768</option>
+              <option value="1440x900">1440 × 900</option>
+              <option value="1600x900">1600 × 900</option>
+              <option value="1024x768">1024 × 768</option>
+              <option value="fit">Vừa khung hiện tại</option>
+            </select>
+          </div>
+        </div>
+      </section>
+      <div class="flash" id="settingsStatus" hidden></div>
+    </div>
+    <div class="Overlay-footer">
+      <button class="btn btn-danger" id="btnClearKey"><svg data-oi="trash"></svg> Xóa khóa</button>
+      <span class="grow"></span>
+      <button class="btn" id="btnSaveSettings">Lưu</button>
+      <button class="btn btn-primary" id="btnTestSettings"><svg data-oi="plug"></svg> Lưu &amp; kiểm tra kết nối</button>
+    </div>
+  </div>
+</div>
+
+<!-- Text drawer -->
+<div class="drawer" id="textDrawer" hidden role="dialog" aria-labelledby="drawerTitle">
+  <div class="drawer-head">
+    <h2 class="drawer-title" id="drawerTitle"><svg data-oi="file"></svg> Văn bản trên trang</h2>
+    <div class="drawer-actions">
+      <button class="btn btn-sm btn-octicon-only" id="btnRefreshText" title="Đọc lại" aria-label="Đọc lại"><svg data-oi="sync"></svg></button>
+      <button class="btn btn-sm btn-primary" id="btnCopyAll"><svg data-oi="copy"></svg> Sao chép tất cả</button>
+      <button class="btn-octicon" id="btnCloseDrawer" aria-label="Đóng"><svg data-oi="x"></svg></button>
+    </div>
+  </div>
+  <div class="drawer-search"><svg data-oi="search"></svg><input type="search" id="textSearch" class="form-control input-sm input-block" placeholder="Lọc đoạn văn..."></div>
+  <div class="drawer-body" id="textDrawerBody"></div>
+</div>
+
+<script src="/app.js?v=6.0"></script>
+</body>
+</html>

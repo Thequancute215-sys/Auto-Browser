@@ -1,0 +1,141 @@
+# Tài liệu bàn giao: Auto Browser (v6)
+
+Dành cho người dùng và công cụ phát triển kế thừa (Claude Code / Cursor / VSCode).
+
+## 1. Tổng quan
+
+Python điều khiển một Chromium headless (Playwright) có profile lưu đăng nhập. Giao diện web tại `http://localhost:8000` hiển thị màn hình trực tiếp, nhận chuột/bàn phím thật của bạn, và có một **AI agent dùng Gemini** tự đọc đề, làm bài, rồi kiểm tra lại kết quả trên màn hình.
+
+```
+Trình duyệt của bạn (static/)                 server.py (ThreadingHTTPServer, 127.0.0.1)
+  canvas  ◄── /api/stream  (JPEG đẩy khi trang vẽ lại) ──┐
+  SSE     ◄── /api/events  (tab, url, cuộn, chat, log) ──┤◄── EventBus (events.py)
+  input   ──► /api/input   (lô sự kiện, đúng thứ tự)  ───┤
+                                                         ▼
+                                  BrowserManager (browser_manager.py, 1 luồng Playwright)
+                                    ├─ CDP Page.startScreencast → frame
+                                    ├─ chuột/bàn phím thật (page.mouse / keyboard)
+                                    └─ ai_observe / ai_act (đánh số phần tử mọi iframe)
+                                                         ▲
+                                  AIController (ai_controller.py) ── llm.py ── Gemini API
+```
+
+## 2. Các thay đổi so với bản cũ, và lý do
+
+| Vấn đề cũ | Bản mới |
+|---|---|
+| Ảnh màn hình chụp liên tục (mỗi 0.8s) và frontend hỏi lại mỗi 30ms | **CDP screencast**: Chrome chỉ gửi khung hình khi trang thực sự vẽ lại; server đẩy xuống qua một luồng HTTP. Trang đứng yên thì 0 khung hình, 0 băng thông. |
+| Trạng thái/chat được hỏi lại 6 lần/giây | **Server-Sent Events**: chỉ gửi khi có thay đổi. |
+| Click/phím gửi rời rạc, có thể đến sai thứ tự; phím mũi tên bị chiếm để cuộn trang | **Hàng đợi input có thứ tự** (gộp mousemove/wheel/chữ). Mọi phím, tổ hợp phím (Ctrl+A, Shift+Tab...), gõ tiếng Việt (Unikey/IME) và dán (Ctrl+V) đều được chuyển vào trang. |
+| Kéo chuột = cuộn trang, nên không kéo thả hay bôi đen được | Chuột gửi **down/move/up thật**: kéo thả, bôi đen, double-click chọn từ đều chạy như trình duyệt thật. Ctrl+C sao chép vùng đang bôi đen về clipboard máy bạn. Chế độ "Bôi đen & Copy" thì tự sao chép luôn. |
+| Cuộn bằng JS tự viết, không cuộn được nội dung trong iframe | `mouse.wheel` gốc: cuộn đúng vùng dưới con trỏ, kể cả iframe. |
+| AI giải một lần duy nhất, không nhìn được iframe (Cambridge One chạy bài trong iframe), điền bằng `el.value=` (React/ProseMirror bỏ qua) | **Agent lặp nhiều bước: Quan sát → Suy luận → Thao tác → Kiểm tra lại** (chi tiết ở mục 3). |
+| Chọn tên model cố định, gọi lỗi là treo | Danh sách model lấy trực tiếp từ API; có chuỗi model dự phòng, thử lại có giãn cách, giới hạn 90s mỗi lần gọi, nút Dừng có hiệu lực ngay. |
+| Server mở `0.0.0.0` + CORS `*` + endpoint `eval`: máy khác trong mạng LAN, hoặc trang web độc hại, có thể chạy JS trong trình duyệt đã đăng nhập của bạn | Chỉ nghe `127.0.0.1`; chặn request khác origin và DNS-rebinding; `/api/ai_command` chỉ cho phép một danh sách lệnh trắng. Muốn mở LAN thì đặt `ALLOW_LAN=1` (tự chịu rủi ro). |
+| Chat render HTML thô (tiêu đề trang web có thể chèn mã) | Mọi nội dung đều được escape. |
+
+## 3. Cách AI làm bài (ai_controller.py)
+
+Mỗi bước gồm:
+1. **Quan sát** (`ai_observe`): duyệt mọi frame đang hiển thị, gắn `data-aid` cho các phần tử tương tác (input, radio/label, select, contenteditable, nút, phần tử `cursor:pointer`, phần tử kéo được, ô thả), đọc giá trị hiện tại, trạng thái checked, ngữ cảnh trước/sau mỗi ô trống (`She ___ to school`). Vẽ ô số lên trang (**Set-of-Marks**), chụp ảnh rồi xóa ngay; luồng hình của bạn tạm giữ khung cũ nên không bị nháy.
+2. **Nghe audio** (bài nghe): audio của trang được ghi nhận theo hai đường, thẻ `<audio>/<video>` và mọi response có kiểu `audio/*` (nhiều player không dùng thẻ audio mà chỉ tải file khi bấm Play). File được tải bằng chính cookie của phiên đăng nhập, Gemini chép lời **một lần**, và lời chép được đưa vào mọi bước sau (mục `AUDIO TRANSCRIPTS` trong prompt). Nếu trang có audio nhưng chưa tải, agent được dặn bấm Play rồi chờ. Danh sách audio của tab được xóa mỗi khi trang điều hướng sang tài liệu khác.
+3. **Suy luận**: gửi ảnh, danh sách phần tử, chữ trên trang (gồm iframe), lời audio và lịch sử các bước trước cho Gemini (chế độ JSON). Mô hình trả về `observation / plan / answers / actions / status / message`.
+4. **Thao tác** (`ai_act`): dùng locator của Playwright với chuột/bàn phím thật: `click`, `type` (fill, hoặc Ctrl+A + gõ với contenteditable), `select`, `drag` (engine 7 chiến lược, xem mục 3b), `hover`, `scroll`, `press`, `navigate`, `wait`.
+5. **Kiểm tra lại**: bước sau quan sát lại. Agent chỉ báo "hoàn thành" khi màn hình chứng minh điều đó. Nếu màn hình không đổi sau 3 lần, agent dừng để tránh lặp vô ích.
+
+### 3b. Engine kéo thả
+
+Mỗi trang web dùng một cơ chế kéo thả khác nhau, nên engine thử lần lượt 7 chiến lược và **kiểm tra DOM sau mỗi lần thử**: nguồn có biến mất, đổi cha hay đổi vị trí không, nội dung đích có đổi không. Sau 500ms engine kiểm tra lại để loại hiệu ứng trả về vị trí cũ (kiểu jQuery UI revert).
+
+| Chiến lược | Dành cho |
+|---|---|
+| `playwright` | HTML5 DnD gốc (Playwright chặn drag của Chromium) |
+| `mouse_steps` | Thư viện chuột/pointer có ngưỡng kéo (jQuery UI, interact.js, Sortable fallback, dnd-kit) |
+| `mouse_hold` | Cảm biến "nhấn giữ" (delay 300–600ms) |
+| `touch` | Thư viện chỉ nghe touch events (CDP `Input.dispatchTouchEvent`) |
+| `html5_events` | Trang mà drag thật không kích hoạt: DragEvent tổng hợp có DataTransfer |
+| `pointer_events` | PointerEvent/MouseEvent tổng hợp theo đường đi |
+| `click_place` | Chế độ "bấm từ rồi bấm chỗ trống" (chế độ trợ năng của nhiều player) |
+
+Chiến lược thành công được ghi nhớ theo từng website và thử đầu tiên ở lần sau. Nếu không cách nào có tác dụng, agent nhận lỗi kèm danh sách các cách đã thử. Phát hiện ô thả: `ondrop/ondragover`, `aria-dropeffect`, các class `drop|droppable|dropzone|blank|slot|gap|target`; phát hiện phần tử kéo được: `draggable`, `cursor: grab/move`, các class `drag|sortable|token`.
+
+Tùy chọn (thanh bên hoặc ⚙️ Cài đặt, lưu trong `ai_config.json`):
+- **Tự làm / Gợi ý**: chế độ Gợi ý chỉ hiện thẻ đáp án kèm giải thích, không đụng vào bài.
+- **Tự nộp**: bấm Check/Submit sau khi điền xong, đọc phản hồi và sửa câu sai nếu trang cho phép.
+- **Tự qua bài**: hoàn thành xong thì sang bài tiếp theo.
+- Số bước tối đa, model chính và chuỗi model dự phòng.
+- Chip "🚀 Làm liên tục" bật Tự nộp + Tự qua bài **chỉ cho lần chạy đó**.
+
+Lệnh đơn giản không tốn lượt gọi AI: một URL bất kỳ, `mở youtube|cambridge|rikkei|<tên miền>`, `cuộn xuống 600`, `tìm kiếm <từ khóa>`, `tab mới`, `đóng tab`, `quay lại`, `tải lại`.
+
+## 4. Cấu trúc file
+
+```
+server.py               HTTP + SSE + luồng hình, kiểm tra origin, Windows Job Object
+browser_manager.py      Luồng Playwright: screencast, tab/popup, input, trích chữ, audio, kéo thả, ai_observe / ai_act
+page_scripts.py         Các đoạn JS chạy trong trang
+ai_controller.py        Agent loop, prompt, chép lời audio, lệnh nhanh, cài đặt
+llm.py                  Gemini client: timeout, thử lại, model dự phòng, liệt kê model, file đính kèm
+events.py               EventBus (pub/sub cho SSE)
+config.py               Cổng, viewport, chất lượng JPEG, cờ Chromium, URL mặc định, biến môi trường
+ai_browser.py           CLI điều khiển từ dòng lệnh
+static/                 index.html, style.css, app.js
+static/vendor/          primer.css (GitHub Primer CSS v22) + octicons.js (Primer Octicons v19)
+tests/                  pytest: test_dnd, test_browser, test_agent, test_server, test_ui, test_llm_e2e
+tests/fixtures/         Trang thử: quiz.html, listening.html (+ .wav), dnd/*.html (11 cơ chế kéo thả)
+tests/reports/          dnd_matrix.md (ma trận chiến lược × cơ chế) + ảnh chụp UI (không commit)
+tools/build_icons.py    Sinh lại tập icon Octicons
+scripts/debug/          Các script gỡ lỗi cũ (gọi API cổng 8000)
+```
+
+### Giao diện (GitHub Primer)
+
+Giao diện dùng **Primer CSS v22** và **Primer Octicons**, lưu sẵn trong `static/vendor`. Màu sắc, khoảng cách, bo góc và bóng đổ lấy từ token Primer, nên chế độ sáng/tối/theo hệ thống (nút ☀/☾ trên thanh công cụ) luôn đúng. Primer CSS 22 không còn SegmentedControl, Label, ProgressBar, Overlay và flash (đã chuyển sang Primer React), nên các component này được dựng lại trong `style.css` theo spec của Primer.
+
+## 5. API
+
+| Phương thức | Endpoint | Mô tả |
+|---|---|---|
+| GET | `/api/stream` | Luồng nhị phân `[u32 độ dài][u16 rộng][u16 cao][jpeg]`…; độ dài 0 = giữ kết nối |
+| GET | `/api/events` | SSE: `hello`, `state`, `log`, `message`, `ai_status`, `ai_pointer`, `config`, `toast`, `messages_cleared` |
+| GET | `/api/screenshot` | Một ảnh JPEG (hỗ trợ ETag/304) |
+| GET | `/api/state` | Tab, URL, cuộn, viewport, log |
+| GET | `/api/selection` | Chữ đang bôi đen (tìm trong mọi frame) |
+| GET | `/api/page/text` | Các đoạn văn bản trên trang (mọi frame) |
+| GET | `/api/ai/status` · `/api/ai/config` · `/api/ai/models` | Trạng thái và lịch sử chat · cài đặt · danh sách model |
+| POST | `/api/input` | `{"events":[{"t":"down|up|move|click|wheel|key|text", ...}]}` |
+| POST | `/api/goto` · `/api/action` | `{"url"}` · `{"action":"back|forward|reload|stop_loading"}` |
+| POST | `/api/tab/new|switch|close` · `/api/viewport` · `/api/scroll_ratio` | Tab · kích thước màn hình · kéo thanh cuộn |
+| POST | `/api/ai/command` | `{"command": "...", "overrides": {...}}` |
+| POST | `/api/ai/stop` · `/api/ai/clear` · `/api/ai/config` | Dừng · xóa chat · lưu cài đặt (`"test": true` để kiểm tra kết nối) |
+| POST | `/api/ai_command` | Chỉ các lệnh `eval`, `extract_text`, `page_text`, `get_selection` (dành cho CLI/script) |
+| POST | `/api/click` · `/api/type` · `/api/scroll` · `/api/select_text` | Giữ lại để tương thích với script cũ |
+
+## 6. Vận hành
+
+- Chạy `start.bat` (tự cài thư viện nếu thiếu) hoặc `python server.py`, rồi mở `http://localhost:8000`.
+- Biến môi trường: `PORT`, `ALLOW_LAN=1`, `AIB_PROFILE_DIR` (thư mục profile khác), `AIB_AI_CONFIG` (file cài đặt AI khác), `AIB_KILL_STALE=0` (không dọn tiến trình chrome-headless-shell cũ khi khởi động), `GEMINI_API_KEY`.
+- Test: `pip install -r requirements-dev.txt`, sau đó `python -m pytest` (nhanh) hoặc `python -m pytest -m llm` (Gemini thật).
+- Đăng nhập Cambridge/Rikkei một lần trong màn hình trực tiếp; phiên đăng nhập được lưu ở `~/.ai_browser_profile`.
+
+## 7. Kiểm thử (21/10/2026)
+
+`python -m pytest`: **49 passed** trong khoảng 4,5 phút, không cần mạng hay API key.
+
+| File | Nội dung |
+|---|---|
+| `test_dnd.py` (14) | 11 trang kéo thả (HTML5, chuột + ngưỡng, pointer + isTrusted, jQuery UI, SortableJS native/fallback, interact.js, chỉ touch, bấm-rồi-bấm, nhấn giữ, iframe khác origin) đều đặt đúng từ qua chuỗi tự động; ghi nhớ chiến lược; báo lỗi trung thực khi thả sai chỗ; ma trận 7×11 |
+| `test_browser.py` (10) | Gõ phím + tiếng Việt, double-click chọn chữ, trích chữ trong div/iframe, mô tả phần tử bài tập, điền/chọn/click (kể cả trong iframe), id cũ bị báo lỗi, bắt audio từ mạng + tải về, chặn đọc file không phải audio, tab/popup, đổi viewport |
+| `test_agent.py` (12) | Vòng lặp agent với Gemini giả lập: giải bài trộn 6 dạng rồi xác minh điểm, dừng khi màn hình không đổi, chế độ Gợi ý không đụng vào bài, override theo lần chạy, báo kéo thả thất bại cho mô hình, lệnh nhanh không gọi LLM, thiếu key, lỗi LLM không bị giấu, parse JSON |
+| `test_server.py` (8) | Phục vụ UI/Primer, chặn path traversal, luồng hình JPEG, SSE hello, input, chặn cross-origin + DNS rebinding, danh sách lệnh trắng, không bao giờ trả API key |
+| `test_ui.py` (5) | UI thật trong Chromium riêng: không lỗi JS, icon Primer, click + gõ qua canvas, Ctrl+C về clipboard, hộp Cài đặt, đổi theme sáng/tối, ngăn kéo chữ có lọc, cảnh báo khi thiếu key |
+
+`python -m pytest -m llm` (Gemini thật): **2 passed** trong khoảng 5 phút. Bài trộn 6 dạng đạt **6/6**; bài nghe (giọng đọc SAPI, player chỉ tải audio khi bấm Play) đạt **4/4** sau khi tự bấm Play, chép lời và điền.
+
+## 8. Giới hạn đã biết
+
+- Quota miễn phí của Gemini tính riêng cho từng model. Khi model chính hết lượt (429), agent tự chuyển sang model dự phòng và giữ model đó 5 phút, nhưng lần chuyển đầu tiên mất thêm vài giây. Phần lớn thời gian chạy test LLM là thời gian chờ quota.
+- Bài nghe: audio phát qua MediaSource/`blob:` (stream từng mảnh) không tải lại được nên không chép lời được; file mp3/m4a/wav/ogg thông thường thì được.
+- Kéo thả: đã thử 11 cơ chế phổ biến nhưng **chưa thử trên Cambridge One/Rikkei thật** (cần tài khoản của bạn). Nếu không cách nào có tác dụng, agent nhận lỗi kèm danh sách các cách đã thử và được dặn đổi cách tiếp cận.
+- `config.DEFAULT_URL` và nút Cambridge chứa đường dẫn lớp học cụ thể của bạn (org/class id). Nếu đặt repo GitHub ở chế độ công khai, hãy cân nhắc thay đường dẫn này.
+- Hộp thoại `alert/confirm` của trang được tự động chấp nhận và báo bằng thông báo nổi.

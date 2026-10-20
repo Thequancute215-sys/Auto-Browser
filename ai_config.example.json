@@ -1,0 +1,10 @@
+{
+  "api_key": "",
+  "model": "gemini-flash-latest",
+  "fallback_models": ["gemini-flash-latest", "gemini-3.5-flash", "gemini-2.5-flash", "gemini-flash-lite-latest"],
+  "mode": "auto",
+  "auto_submit": true,
+  "auto_next": false,
+  "listen_audio": true,
+  "max_steps": 30
+}
