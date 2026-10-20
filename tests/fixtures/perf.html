@@ -1,0 +1,16 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><title>Perf probe</title>
+<style>
+  html, body { margin: 0; }
+  body { background: rgb(255, 0, 0); height: 6000px;
+         background-image: repeating-linear-gradient(180deg, transparent 0 380px, rgba(0,0,0,.25) 380px 400px); }
+  #box { position: fixed; width: 40px; height: 40px; margin: -20px 0 0 -20px; background: #000; left: -100px; top: -100px; }
+</style></head>
+<body>
+<div id="box"></div>
+<script>
+// Click toggles the page colour red <-> blue; moving the mouse moves a black square under the cursor.
+let blue = false;
+addEventListener('pointerdown', () => { blue = !blue; document.body.style.backgroundColor = blue ? 'rgb(0,0,255)' : 'rgb(255,0,0)'; });
+addEventListener('pointermove', e => { const b = document.getElementById('box'); b.style.left = e.clientX + 'px'; b.style.top = e.clientY + 'px'; });
+</script>
+</body></html>

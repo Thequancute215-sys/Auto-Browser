@@ -13,6 +13,7 @@ from playwright.sync_api import sync_playwright
 
 import config
 import page_scripts as js
+from cdp_fast import FastCDP
 
 MOUSE_BUTTONS = {"left", "right", "middle"}
 ELEMENT_ACTIONS = {"click", "type", "select", "drag", "hover"}
@@ -45,8 +46,14 @@ class BrowserManager:
         self.frame_bytes = None
         self.frame_id = 0
         self.frame_size = (config.VIEWPORT_WIDTH, config.VIEWPORT_HEIGHT)
-        self._suppress_frames = False
+        self._suppress = False
         self.screencast_ok = False
+        # Low-latency side channel for frames + user input (see cdp_fast.py)
+        self.fast = FastCDP(on_frame=self._set_frame, log=self.log)
+        self._devtools_port = None
+        # "window" mode: the user works in a real Chromium window; nothing is streamed.
+        self.window_mode = config.BROWSER_MODE == "window"
+        self.window_closed = False
 
         # Published state
         self.viewport = dict(config.VIEWPORT)
@@ -97,6 +104,36 @@ class BrowserManager:
             return res_queue.get(timeout=timeout)
         except queue.Empty:
             return {"status": "error", "message": f"Hết thời gian chờ lệnh '{action}' ({int(timeout)}s)."}
+
+    @property
+    def _suppress_frames(self):
+        return self._suppress
+
+    @_suppress_frames.setter
+    def _suppress_frames(self, value):
+        # While the AI draws Set-of-Marks labels, viewers keep seeing the previous clean frame.
+        self._suppress = value
+        self.fast.suppress_frames = value
+
+    def input_events(self, events) -> dict:
+        """User input from the UI (any thread). Goes straight to Chrome when the fast channel is up."""
+        events = events or []
+        if self.fast.connected:
+            try:
+                last = self.fast.dispatch(events)
+                if last:
+                    self.mouse = {"x": int(last[0]), "y": int(last[1])}
+                for ev in events:
+                    if ev.get("t") == "up" and ev.get("button", "left") == "left" and int(ev.get("count", 1)) == 1:
+                        self.log(f"Click ({int(ev.get('x', 0))}, {int(ev.get('y', 0))})")
+                    elif ev.get("t") == "key":
+                        self.log(f"Phím: {ev.get('key')}")
+                return {"status": "ok", "path": "fast"}
+            except ValueError as e:
+                return {"status": "error", "message": str(e)}
+            except Exception:
+                pass  # channel dropped mid-batch: fall back to the Playwright worker
+        return self.execute("input", {"events": events})
 
     def wait_frame(self, last_id: int, timeout: float = 10.0):
         """Blocks until a frame newer than last_id exists. Returns (frame_id, jpeg_bytes, (w, h))."""
@@ -151,24 +188,53 @@ class BrowserManager:
             "viewport": self.viewport,
             "user_agent": config.USER_AGENT,
             "locale": "vi-VN",
-            "args": config.CHROMIUM_ARGS,
+            # Random local port for the fast CDP channel (cdp_fast.py); read back from DevToolsActivePort.
+            "args": config.CHROMIUM_ARGS + ["--remote-debugging-port=0"],
         }
+        if self.window_mode:
+            # A real browser window: GPU on, sound on, the page follows the window size.
+            args = [a for a in config.CHROMIUM_ARGS if a not in ("--disable-gpu", "--disable-software-rasterizer", "--mute-audio")]
+            if config.WINDOW_RECT:
+                x, y, w, h = (int(v) for v in config.WINDOW_RECT.split(","))
+                args += [f"--window-position={x},{y}", f"--window-size={w},{h}"]
+            kwargs.update(headless=False, no_viewport=True, args=args)
+            kwargs.pop("viewport")
+            kwargs.pop("user_agent")  # the real Chromium UA matches the real browser
         try:
-            return p.chromium.launch_persistent_context(**kwargs)
+            ctx = p.chromium.launch_persistent_context(**kwargs)
         except Exception as e:
             self.log(f"Profile chính đang bị khóa ({_short_err(e)}), dùng profile tạm...")
             kwargs["user_data_dir"] = os.path.join(config.PROFILE_DIR, f"run_{int(time.time())}")
-            return p.chromium.launch_persistent_context(**kwargs)
+            ctx = p.chromium.launch_persistent_context(**kwargs)
+        if not self.window_mode:  # window mode has no fast stream channel, hence no debugging port
+            self._devtools_port = self._read_devtools_port(kwargs["user_data_dir"])
+        return ctx
+
+    @staticmethod
+    def _read_devtools_port(user_data_dir):
+        path = os.path.join(user_data_dir, "DevToolsActivePort")
+        deadline = time.time() + 5
+        while time.time() < deadline:
+            try:
+                with open(path, "r", encoding="utf-8") as f:
+                    return int(f.readline().strip())
+            except (OSError, ValueError):
+                time.sleep(0.05)
+        return None
 
     def _run(self):
         self.log("Khởi động Chromium (profile lưu đăng nhập lâu dài)...")
+        t_start = time.time()
         with sync_playwright() as p:
+            print(f"[timing] playwright driver up: {time.time() - t_start:.1f}s", flush=True)
             self.context = self._launch(p)
+            print(f"[timing] chromium launched: {time.time() - t_start:.1f}s", flush=True)
             self.context.on("page", self._on_context_page)
             first = self.context.pages[0] if self.context.pages else self.context.new_page()
             self._register_page(first)
             self._attach(first)
             self.ready.set()
+            print(f"[timing] browser ready: {time.time() - t_start:.1f}s", flush=True)
 
             try:
                 first.goto(config.DEFAULT_URL, timeout=35000, wait_until="domcontentloaded")
@@ -191,6 +257,11 @@ class BrowserManager:
 
                 if self.page is None or self.page.is_closed():
                     self._recover_page()
+                    if not self.running:
+                        break
+                elif self.screencast_ok and self._cdp is None and not self.fast.connected:
+                    self.log("Kết nối lại luồng hình...")
+                    self._start_screencast()
 
                 # Pump Playwright's event loop so screencast frames / dialogs get dispatched.
                 try:
@@ -199,7 +270,7 @@ class BrowserManager:
                     time.sleep(0.012)
 
                 now = time.time()
-                if not self.screencast_ok and now - last_fallback > 0.35:
+                if not self.screencast_ok and not self.window_mode and now - last_fallback > 0.35:
                     self._capture_screenshot()
                     last_fallback = now
                 if now - last_tabs > 1.0:
@@ -298,7 +369,8 @@ class BrowserManager:
         except Exception:
             pass
         try:
-            if page.viewport_size != self.viewport:
+            # Window mode: the page must follow the real window, never a fixed emulated size.
+            if not self.window_mode and page.viewport_size != self.viewport:
                 page.set_viewport_size(self.viewport)
         except Exception:
             pass
@@ -308,6 +380,12 @@ class BrowserManager:
 
     def _recover_page(self):
         pages = [pg for pg in self.context.pages if not pg.is_closed()]
+        if not pages and self.window_mode:
+            # The user closed the browser window: the desktop app shuts down with it.
+            self.log("Cửa sổ trình duyệt đã đóng")
+            self.window_closed = True
+            self.running = False
+            return
         if not pages:
             pg = self.context.new_page()
             self._register_page(pg)
@@ -321,6 +399,20 @@ class BrowserManager:
     # ------------------------------------------------------------------ screencast
 
     def _start_screencast(self):
+        if self.window_mode:
+            return  # the user sees the real window; frames are not streamed
+        if self._devtools_port and config.FAST_CDP:
+            try:
+                info = self.context.new_cdp_session(self.page)
+                target_id = info.send("Target.getTargetInfo")["targetInfo"]["targetId"]
+                info.detach()
+                self.fast.connect(f"ws://127.0.0.1:{self._devtools_port}/devtools/page/{target_id}",
+                                  self.viewport, config.STREAM_QUALITY)
+                self.screencast_ok = True
+                return
+            except Exception as e:
+                self.fast.close()
+                self.log(f"Không mở được kênh CDP nhanh, dùng kênh Playwright: {_short_err(e)}")
         try:
             cdp = self.context.new_cdp_session(self.page)
             cdp.on("Page.screencastFrame", lambda ev, c=cdp: self._on_screencast_frame(c, ev))
@@ -339,6 +431,7 @@ class BrowserManager:
             self.log(f"Không bật được screencast, dùng chụp ảnh định kỳ: {_short_err(e)}")
 
     def _stop_screencast(self):
+        self.fast.close()
         cdp, self._cdp = self._cdp, None
         if cdp is None:
             return
@@ -395,6 +488,12 @@ class BrowserManager:
                 self.url = pg.url
             tabs.append({"id": i, "title": title[:60], "url": pg.url, "active": pg is self.page})
         self.tabs = tabs
+        if self.window_mode and self.page is not None and not self.page.is_closed():
+            try:  # the page follows the window size; keep coordinates for the AI in sync
+                w, h = self.page.evaluate("[innerWidth, innerHeight]")
+                self.viewport = {"width": int(w), "height": int(h)}
+            except Exception:
+                pass
 
     def _update_scroll(self):
         try:
@@ -425,6 +524,7 @@ class BrowserManager:
             "scroll": self.scroll_info,
             "viewport": self.viewport,
             "screencast": self.screencast_ok,
+            "mode": "window" if self.window_mode else "stream",
             "ready": self.ready.is_set() and self.alive,
         }
 
@@ -443,6 +543,11 @@ class BrowserManager:
     def _ai_point(self, x, y, kind):
         self.ai_pointer = {"x": int(x), "y": int(y), "kind": kind, "id": time.time()}
         self.bus.publish("ai_pointer", self.ai_pointer)
+        if self.window_mode:
+            try:  # show where the AI acts directly in the real window
+                self.page.evaluate(js.AI_RIPPLE, {"x": int(x), "y": int(y)})
+            except Exception:
+                pass
 
     # ------------------------------------------------------------------ frames helpers
 
@@ -641,7 +746,9 @@ class BrowserManager:
         return {"scroll": self.scroll_info}
 
     def _cmd_set_viewport(self, p):
-        w = max(480, min(2560, int(p.get("width", config.VIEWPORT_WIDTH))))
+        if self.window_mode:
+            return {"viewport": self.viewport, "note": "Ở chế độ cửa sổ, hãy đổi kích thước cửa sổ trình duyệt trực tiếp."}
+        w =max(480, min(2560, int(p.get("width", config.VIEWPORT_WIDTH))))
         h = max(360, min(1600, int(p.get("height", config.VIEWPORT_HEIGHT))))
         self.viewport = {"width": w, "height": h}
         for pg in self.context.pages:

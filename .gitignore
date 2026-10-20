@@ -9,8 +9,13 @@ __pycache__/
 .venv/
 venv/
 
-# Test artifacts (the drag & drop matrix report is kept)
+# Test artifacts (the drag & drop matrix and smoothness reports are kept)
 tests/reports/*.png
+
+# Build output (tools/build_exe.py) — publish the installer as a GitHub Release instead
+dist/
+build/
+assets/icon-256.png
 
 # Local browser profiles
 .ai_browser_profile/

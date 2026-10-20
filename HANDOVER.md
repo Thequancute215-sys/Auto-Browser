@@ -1,4 +1,4 @@
-# Tài liệu bàn giao: Auto Browser (v6)
+# Tài liệu bàn giao: Auto Browser (v6.0.0)
 
 Dành cho người dùng và công cụ phát triển kế thừa (Claude Code / Cursor / VSCode).
 
@@ -43,6 +43,20 @@ Mỗi bước gồm:
 4. **Thao tác** (`ai_act`): dùng locator của Playwright với chuột/bàn phím thật: `click`, `type` (fill, hoặc Ctrl+A + gõ với contenteditable), `select`, `drag` (engine 7 chiến lược, xem mục 3b), `hover`, `scroll`, `press`, `navigate`, `wait`.
 5. **Kiểm tra lại**: bước sau quan sát lại. Agent chỉ báo "hoàn thành" khi màn hình chứng minh điều đó. Nếu màn hình không đổi sau 3 lần, agent dừng để tránh lặp vô ích.
 
+### 3a. Hai nhà cung cấp AI: Gemini (mặc định) và Claude
+
+Chọn trong Cài đặt (`provider` trong `ai_config.json`). Cả hai đều dùng chung vòng lặp agent, prompt và giao diện `generate()` trong `llm.py`.
+
+| | Gemini (`GeminiClient`) | Claude (`ClaudeClient`, SDK `anthropic`) |
+|---|---|---|
+| Chi phí | Miễn phí, giới hạn lượt theo từng model | Trả phí (Claude Opus 5.5: $4 / $20 cho mỗi 1 triệu token vào / ra; ước tính 0,05–0,1 USD mỗi bước) |
+| Định dạng trả lời | JSON mode + `parse_json_response` | **Structured output** (`output_config.format` với `AGENT_SCHEMA`): JSON luôn hợp lệ |
+| Suy luận | Mặc định của model | Adaptive thinking (luôn bật trên Opus 5.5), độ kỹ chỉnh bằng `claude_effort` (mặc định `medium`) |
+| Khi bị từ chối an toàn | (không có) | `fallbacks: "default"` (beta `server-side-fallback-2026-07-01`): server tự chạy lại trên model phù hợp; nếu vẫn bị từ chối thì agent báo lỗi rõ ràng |
+| Audio (bài nghe) | Có | **Không**: bài nghe luôn chép lời bằng Gemini, nên vẫn cần khóa Gemini |
+
+Chỉ gửi những tham số Claude Opus 5.5 chấp nhận: không gửi `temperature` (bị 400), không tắt thinking. Prompt hệ thống ổn định được đánh dấu `cache_control` để có thể dùng lại cache giữa các bước. Lỗi được phân loại theo exception của SDK: sai khóa, không có quyền, không có model (chuyển model dự phòng), giới hạn tốc độ (chuyển model dự phòng), lỗi server (SDK đã tự thử lại 2 lần). **Chưa chạy thử với Claude thật** vì máy này không có Anthropic API key; `tests/test_claude.py` kiểm tra hình dạng request bằng client giả.
+
 ### 3b. Engine kéo thả
 
 Mỗi trang web dùng một cơ chế kéo thả khác nhau, nên engine thử lần lượt 7 chiến lược và **kiểm tra DOM sau mỗi lần thử**: nguồn có biến mất, đổi cha hay đổi vị trí không, nội dung đích có đổi không. Sau 500ms engine kiểm tra lại để loại hiệu ứng trả về vị trí cũ (kiểu jQuery UI revert).
@@ -68,10 +82,40 @@ Tùy chọn (thanh bên hoặc ⚙️ Cài đặt, lưu trong `ai_config.json`):
 
 Lệnh đơn giản không tốn lượt gọi AI: một URL bất kỳ, `mở youtube|cambridge|rikkei|<tên miền>`, `cuộn xuống 600`, `tìm kiếm <từ khóa>`, `tab mới`, `đóng tab`, `quay lại`, `tải lại`.
 
+### 3c. Ứng dụng desktop và độ mượt
+
+**Hai chế độ hiển thị** (`config.BROWSER_MODE`):
+
+| | `window` (app desktop, mặc định của `AutoBrowser.exe`) | `stream` (`python server.py`, mở bằng trình duyệt bất kỳ) |
+|---|---|---|
+| Bạn dùng gì | Cửa sổ Chromium thật + bảng AI riêng đặt bên phải | Canvas trong trang web, hình được truyền từ Chromium chạy nền |
+| Độ mượt | Như trình duyệt thường (đo được 60–92 khung/giây khi vẽ trang); âm thanh có | Click → hình ~42 ms, rê chuột ~42 ms, cuộn ~49 khung/giây |
+| GPU | Bật | Tắt (tránh SwiftShader ngốn CPU) |
+
+Giới hạn của chế độ stream nằm ở chính Chromium headless. Đo tách từng chặng: input đến trang ~4 ms, trang xử lý ~2 ms, Chrome chụp và mã hóa khung hình ~40–80 ms (`Page.captureScreenshot` riêng lẻ cũng mất ~78 ms). Vì vậy app desktop dùng cửa sổ thật, giống cách tính năng trình duyệt trong Claude hoạt động.
+
+**Kênh CDP trực tiếp** (`cdp_fast.py`, chế độ stream): Chromium được mở với `--remote-debugging-port=0`. Một WebSocket riêng tới trang đang mở nhận khung hình (ack ngay khi nhận, không chờ luồng Playwright) và gửi chuột/phím/chữ của người dùng thẳng vào Chrome theo đúng thứ tự. Playwright vẫn lo điều hướng, AI, tab và frame. Đo A/B cùng điều kiện (`tools/bench_smoothness.py`, tắt kênh bằng `AIB_FAST_CDP=0`):
+
+| | Đường cũ (Playwright) | Kênh CDP trực tiếp |
+|---|---|---|
+| Click → điểm ảnh đổi | 61 ms | **42 ms** |
+| Rê chuột → điểm ảnh đổi | 50 ms | **42 ms** |
+| Cuộn | 19 khung/giây | **49 khung/giây** |
+
+Ngoài ra: server dùng HTTP/1.1 keep-alive (input không phải mở kết nối mới mỗi lần), mousemove được gom mỗi 8 ms, và kéo chuột gửi đúng nút đang giữ (cần cho bôi đen và kéo thả).
+
+**Đóng gói** (`tools/build_exe.py`): PyInstaller (onedir, có icon và thông tin phiên bản) cùng bộ cài Inno Setup cài theo người dùng (không cần admin, có biểu tượng Desktop và Start menu, có gỡ cài đặt). Chromium không được đóng gói vào bộ cài: app dùng thư mục chung `%LOCALAPPDATA%\ms-playwright` và tự tải nếu thiếu. `desktop_app.py`:
+- tính vùng làm việc của màn hình: trình duyệt bên trái, bảng AI (380–470 px) bên phải;
+- mở bảng AI bằng **Chromium của Playwright ở chế độ `--app` với profile riêng**. Không dùng Edge, vì Edge có thể mở bảng bên trong Edge cá nhân đang chạy của bạn;
+- đóng cửa sổ trình duyệt hoặc bảng AI là thoát (theo dõi process của bảng, kèm kết nối SSE làm dự phòng). Job Object dọn sạch mọi process con;
+- mở app lần hai thì chỉ mở lại bảng AI; tự chọn cổng trống trong khoảng 8000–8010.
+
 ## 4. Cấu trúc file
 
 ```
-server.py               HTTP + SSE + luồng hình, kiểm tra origin, Windows Job Object
+desktop_app.py          Launcher của AutoBrowser.exe: bố trí 2 cửa sổ, vòng đời app, tải Chromium lần đầu
+cdp_fast.py             Kênh CDP trực tiếp: khung hình + chuột/phím/chữ độ trễ thấp (chế độ stream)
+server.py               HTTP/1.1 + SSE + luồng hình, kiểm tra origin, Windows Job Object
 browser_manager.py      Luồng Playwright: screencast, tab/popup, input, trích chữ, audio, kéo thả, ai_observe / ai_act
 page_scripts.py         Các đoạn JS chạy trong trang
 ai_controller.py        Agent loop, prompt, chép lời audio, lệnh nhanh, cài đặt
@@ -85,6 +129,11 @@ tests/                  pytest: test_dnd, test_browser, test_agent, test_server,
 tests/fixtures/         Trang thử: quiz.html, listening.html (+ .wav), dnd/*.html (11 cơ chế kéo thả)
 tests/reports/          dnd_matrix.md (ma trận chiến lược × cơ chế) + ảnh chụp UI (không commit)
 tools/build_icons.py    Sinh lại tập icon Octicons
+tools/make_icon.py      assets/icon.svg → assets/icon.ico (16–256 px) + static/favicon.svg
+tools/build_exe.py      Đóng gói exe + bộ cài;  installer/AutoBrowser.iss: script Inno Setup
+tools/test_desktop_exe.py  Kiểm tra app đã đóng gói (cửa sổ, fps, đóng → thoát, không sót process)
+tools/bench_smoothness.py  Đo độ mượt end-to-end trong UI thật → tests/reports/smoothness.md
+tools/bench_chromium_modes.py  So sánh các chế độ chạy Chromium (shell/new headless, GPU, chất lượng JPEG)
 scripts/debug/          Các script gỡ lỗi cũ (gọi API cổng 8000)
 ```
 
@@ -120,7 +169,9 @@ Giao diện dùng **Primer CSS v22** và **Primer Octicons**, lưu sẵn trong `
 
 ## 7. Kiểm thử (21/10/2026)
 
-`python -m pytest`: **49 passed** trong khoảng 4,5 phút, không cần mạng hay API key.
+`python -m pytest`: **74 passed** trong khoảng 5,5 phút, không cần mạng hay API key. Gồm `test_claude.py` (11): hình dạng request gửi Claude (structured output, effort, fallbacks, cache, ảnh, không có `temperature`), từ chối an toàn, sai khóa, chuyển model khi bị giới hạn tốc độ, từ chối audio, schema chặt, agent dùng đúng provider, bài nghe với Claude vẫn chép lời bằng Gemini (và cảnh báo khi thiếu khóa Gemini), cài đặt không lộ khóa nào. Gồm `test_fast_input.py` (14): kênh CDP trực tiếp, gõ tiếng Việt / Ctrl+A / Backspace / Tab, kéo bôi đen, người dùng tự kéo thả bằng tay (HTML5, thư viện chuột, SortableJS), phím không hợp lệ, bảng tên phím.
+
+`python tools/test_desktop_exe.py` (bản đã cài bằng bộ cài): server sẵn sàng sau ~6 giây; cửa sổ trình duyệt (1037×852) và bảng AI (403×852) nằm cạnh nhau; trang vẽ ở 60–92 khung/giây; trang tự theo kích thước cửa sổ; đóng trình duyệt hoặc đóng bảng AI đều thoát sau ~3,5 giây, không sót process hay cửa sổ nào; gỡ cài đặt xóa chương trình nhưng giữ cài đặt của bạn.
 
 | File | Nội dung |
 |---|---|

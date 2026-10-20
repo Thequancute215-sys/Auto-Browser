@@ -8,9 +8,11 @@ import urllib.parse
 from typing import Any, Dict, List, Optional
 
 import config
-from llm import GeminiClient, LLMError, parse_json_response
+from llm import ClaudeClient, GeminiClient, LLMError, parse_json_response
 
 DEFAULT_SETTINGS = {
+    "provider": "gemini",      # "gemini" (miễn phí, nghe được audio) | "claude" (Anthropic, trả phí)
+    # Gemini — also used to transcribe listening audio whatever the provider (Claude has no audio input)
     "api_key": "",
     "model": "gemini-flash-latest",
     # Free-tier quota is per model, so a chain keeps the agent working when one model is exhausted.
@@ -21,6 +23,43 @@ DEFAULT_SETTINGS = {
     "max_steps": 30,
     "action_delay_ms": 150,
     "listen_audio": True,      # tải audio của bài nghe, nhờ Gemini chép lời rồi dùng để làm bài
+    # Claude (Anthropic API)
+    "claude_api_key": "",
+    "claude_model": "claude-opus-5-5",
+    "claude_fallback_models": [],
+    "claude_effort": "medium",  # low | medium | high — độ kỹ của suy luận (cao hơn = chính xác hơn, chậm & đắt hơn)
+}
+PROVIDERS = ("gemini", "claude")
+CLAUDE_EFFORTS = ("low", "medium", "high", "xhigh", "max")
+
+# Structured output for Claude: the reply is guaranteed to be this JSON object.
+_ACTION_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "action": {"type": "string", "enum": ["click", "type", "select", "drag", "hover", "scroll", "press", "navigate", "wait"]},
+        "id": {"type": "integer"}, "target_id": {"type": "integer"},
+        "text": {"type": "string"}, "enter": {"type": "boolean"}, "option": {"type": "string"},
+        "direction": {"type": "string", "enum": ["up", "down"]}, "amount": {"type": "integer"},
+        "key": {"type": "string"}, "url": {"type": "string"}, "ms": {"type": "integer"},
+    },
+    "required": ["action"],
+    "additionalProperties": False,
+}
+AGENT_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "observation": {"type": "string"},
+        "plan": {"type": "string"},
+        "answers": {"type": "array", "items": {
+            "type": "object",
+            "properties": {"q": {"type": "string"}, "a": {"type": "string"}, "why": {"type": "string"}},
+            "required": ["q", "a", "why"], "additionalProperties": False}},
+        "actions": {"type": "array", "items": _ACTION_SCHEMA},
+        "status": {"type": "string", "enum": ["continue", "done", "need_user"]},
+        "message": {"type": "string"},
+    },
+    "required": ["observation", "plan", "answers", "actions", "status", "message"],
+    "additionalProperties": False,
 }
 
 TRANSCRIBE_PROMPT = """Transcribe this audio from an English-learning exercise verbatim.
@@ -85,7 +124,7 @@ class AIController:
     Observe → Think → Act → Verify agent loop on top of BrowserManager.
 
     Each step: annotate interactive elements across all frames (Set-of-Marks screenshot + element list
-    + visible text), ask Gemini for a JSON plan, execute the actions with real mouse/keyboard input,
+    + visible text), ask the model (Gemini or Claude) for a JSON plan, execute the actions with real mouse/keyboard input,
     then look again. The loop ends only when the model confirms completion from the screen, the
     user stops it, the step budget runs out, or no progress is detected.
     """
@@ -93,7 +132,9 @@ class AIController:
     def __init__(self, browser_manager, bus):
         self.browser = browser_manager
         self.bus = bus
-        self.llm = GeminiClient()
+        self.gemini = GeminiClient()
+        self.claude = ClaudeClient()
+        self._llm_override = None  # tests inject a fake model here
         self.settings: Dict[str, Any] = dict(DEFAULT_SETTINGS)
         self._load_config()
         self._run_settings: Dict[str, Any] = dict(self.settings)
@@ -114,7 +155,7 @@ class AIController:
             "- Giải bài: tôi đọc màn hình (cả nội dung trong iframe), suy luận đáp án rồi **tự điền / chọn / kéo thả** bằng chuột & bàn phím thật, sau đó **kiểm tra lại** kết quả.\n"
             "- Ra lệnh tự nhiên: *\"giải bài này\"*, *\"bấm nút Login\"*, *\"mở youtube\"*, *\"cuộn xuống 600\"*...\n"
             "- Chế độ **Gợi ý** chỉ hiện đáp án kèm giải thích, không tự điền.\n\n"
-            "Mở ⚙️ **Cài đặt** để nhập Gemini API Key, sau đó bấm **Chạy**.",
+            "Mở ⚙️ **Cài đặt** để chọn AI (Gemini miễn phí hoặc Claude) và nhập API Key, sau đó bấm **Chạy**.",
             kind="intro",
         )
 
@@ -132,6 +173,8 @@ class AIController:
                 pass
         if not self.settings.get("api_key"):
             self.settings["api_key"] = os.environ.get("GEMINI_API_KEY", "").strip()
+        if self.settings.get("provider") not in PROVIDERS:
+            self.settings["provider"] = "gemini"
 
     def _persist(self):
         try:
@@ -140,22 +183,66 @@ class AIController:
         except Exception:
             pass
 
+    # The active provider decides which client, key, model and fallbacks the agent uses.
+
     @property
-    def api_key(self) -> str:
+    def provider(self) -> str:
+        return self.settings.get("provider") if self.settings.get("provider") in PROVIDERS else "gemini"
+
+    @property
+    def llm(self):
+        if self._llm_override is not None:
+            return self._llm_override
+        return self.claude if self.provider == "claude" else self.gemini
+
+    @llm.setter
+    def llm(self, client):
+        self._llm_override = client
+
+    @property
+    def gemini_key(self) -> str:
         return (self.settings.get("api_key") or "").strip()
 
     @property
+    def claude_key(self) -> str:
+        return (self.settings.get("claude_api_key") or "").strip()
+
+    @property
+    def api_key(self) -> str:
+        if self.provider == "claude":
+            # Empty is fine when ANTHROPIC_API_KEY is set: the SDK picks it up.
+            return self.claude_key or os.environ.get("ANTHROPIC_API_KEY", "").strip()
+        return self.gemini_key
+
+    @property
     def model(self) -> str:
+        if self.provider == "claude":
+            return (self.settings.get("claude_model") or DEFAULT_SETTINGS["claude_model"]).strip()
         return (self.settings.get("model") or DEFAULT_SETTINGS["model"]).strip()
 
+    def fallbacks(self, s: Optional[Dict[str, Any]] = None) -> List[str]:
+        s = s or self.settings
+        return list(s.get("claude_fallback_models" if self.provider == "claude" else "fallback_models") or [])
+
     def save_config(self, payload: Dict[str, Any]):
-        key = (payload.get("api_key") or "").strip()
-        if key:
-            self.settings["api_key"] = key
+        if payload.get("provider") in PROVIDERS:
+            self.settings["provider"] = payload["provider"]
+        for field, setting in (("api_key", "api_key"), ("gemini_api_key", "api_key"), ("claude_api_key", "claude_api_key")):
+            key = (payload.get(field) or "").strip()
+            if key:
+                self.settings[setting] = key
         if payload.get("clear_key"):
-            self.settings["api_key"] = ""
+            # Clears the key of the named provider (default: the active one).
+            which = payload.get("clear_provider") or self.provider
+            self.settings["claude_api_key" if which == "claude" else "api_key"] = ""
         if payload.get("model"):
             self.settings["model"] = str(payload["model"]).strip()
+        if payload.get("claude_model"):
+            self.settings["claude_model"] = str(payload["claude_model"]).strip()
+        if payload.get("claude_effort") in CLAUDE_EFFORTS:
+            self.settings["claude_effort"] = payload["claude_effort"]
+        if isinstance(payload.get("claude_fallback_models"), list):
+            self.settings["claude_fallback_models"] = [str(m).strip() for m in payload["claude_fallback_models"] if str(m).strip()][:4]
         if payload.get("mode") in ("auto", "suggest"):
             self.settings["mode"] = payload["mode"]
         for flag in ("auto_submit", "auto_next", "listen_audio"):
@@ -172,18 +259,31 @@ class AIController:
         self.bus.publish("config", self.get_config())
 
     def get_config(self) -> Dict[str, Any]:
-        key = self.api_key
-        masked = (key[:4] + "…" + key[-4:]) if len(key) > 8 else ("***" if key else "")
-        cfg = {k: v for k, v in self.settings.items() if k != "api_key"}
-        cfg.update({"has_key": bool(key), "masked_key": masked, "usage": dict(self.llm.usage)})
+        def mask(key):
+            return (key[:4] + "…" + key[-4:]) if len(key) > 8 else ("***" if key else "")
+
+        cfg = {k: v for k, v in self.settings.items() if k not in ("api_key", "claude_api_key")}
+        usage = {k: self.gemini.usage[k] + self.claude.usage[k] for k in self.gemini.usage}
+        cfg.update({
+            "provider": self.provider,
+            "active_model": self.model,
+            "has_key": bool(self.api_key), "masked_key": mask(self.api_key),
+            "has_gemini_key": bool(self.gemini_key), "masked_gemini_key": mask(self.gemini_key),
+            "has_claude_key": bool(self.claude_key), "masked_claude_key": mask(self.claude_key),
+            "usage": usage,
+        })
         return cfg
 
-    def list_models(self) -> List[dict]:
-        return self.llm.list_models(self.api_key)
+    def list_models(self, provider: Optional[str] = None) -> List[dict]:
+        provider = provider if provider in PROVIDERS else self.provider
+        if provider == "claude":
+            return self.claude.list_models(self.claude_key or os.environ.get("ANTHROPIC_API_KEY", "").strip())
+        return self.gemini.list_models(self.gemini_key)
 
     def test_connection(self) -> str:
         text = self.llm.generate(self.api_key, self.model, "Trả lời đúng 3 từ: 'Kết nối thành công!'",
-                                 fallbacks=self.settings.get("fallback_models"), max_output_tokens=64)
+                                 fallbacks=self.fallbacks(), max_output_tokens=1024,
+                                 effort="low")
         used = self.llm.last_model_used or self.model
         return f"{text.strip()[:60]} (mô hình: {used})"
 
@@ -255,8 +355,9 @@ class AIController:
                 if not self.api_key:
                     self.add_message(
                         "ai",
-                        "⚠️ **Chưa có Gemini API Key** nên tôi chưa thể đọc và giải bài.\n"
-                        "Bấm ⚙️ **Cài đặt** → dán khóa (lấy miễn phí tại aistudio.google.com) → Lưu.\n"
+                        f"⚠️ **Chưa có {'Claude' if self.provider == 'claude' else 'Gemini'} API Key** nên tôi chưa thể đọc và giải bài.\n"
+                        + ("Bấm ⚙️ **Cài đặt** → dán khóa Claude (lấy tại console.anthropic.com) → Lưu.\n" if self.provider == "claude"
+                           else "Bấm ⚙️ **Cài đặt** → dán khóa (lấy miễn phí tại aistudio.google.com) → Lưu.\n") +
                         "Các lệnh đơn giản vẫn dùng được không cần khóa: *mở <trang>*, *tìm kiếm <từ khóa>*, *cuộn xuống*, *tab mới*.",
                         kind="warning", status="warning")
                 else:
@@ -457,7 +558,19 @@ Reply with the JSON object only."""
         return f"• {kind}"
 
     def _ensure_transcripts(self, obs: dict, s: dict):
-        """Downloads and transcribes each new audio source once; transcripts persist for the session."""
+        """Downloads and transcribes each new audio source once; transcripts persist for the session.
+        Transcription always runs on Gemini: the Claude API has no audio input."""
+        if self._llm_override is not None:
+            transcriber, key, model = self._llm_override, self.api_key, self.model
+        else:
+            transcriber, key = self.gemini, self.gemini_key
+            model = (s.get("model") or DEFAULT_SETTINGS["model"]).strip()
+        if not key and obs.get("media") and "no-gemini-key" not in self._media_failed:
+            self._media_failed.add("no-gemini-key")
+            self.add_message("ai", "🎧 Trang có audio nhưng chưa có **Gemini API Key** để chép lời (Claude không nghe được audio). "
+                                   "Thêm khóa Gemini miễn phí trong ⚙️ Cài đặt để làm bài nghe.", kind="warning", status="warning")
+        if not key:
+            return
         for m in obs.get("media", [])[:3]:
             url = m["src"]
             if url in self._transcripts or url in self._media_failed or self.stop_requested:
@@ -471,7 +584,7 @@ Reply with the JSON object only."""
                 continue
             self._set_phase("listening", detail=f"🎧 Gemini đang nghe {name} ({res['size'] // 1024} KB)")
             try:
-                text = self.llm.generate(self.api_key, self.model, TRANSCRIBE_PROMPT,
+                text = transcriber.generate(key, model, TRANSCRIBE_PROMPT,
                                          attachments=[(res["data"], res["mime"])],
                                          fallbacks=s.get("fallback_models"), max_output_tokens=4096,
                                          should_stop=lambda: self.stop_requested,
@@ -528,19 +641,21 @@ Reply with the JSON object only."""
             # 2. Think
             if self.stop_requested:
                 break
-            self._set_phase("thinking", detail=f"{len(obs.get('elements', []))} phần tử · Gemini đang suy luận")
+            brand = "Claude" if self.provider == "claude" else "Gemini"
+            self._set_phase("thinking", detail=f"{len(obs.get('elements', []))} phần tử · {brand} đang suy luận")
             prompt = self._build_prompt(task, obs, history, step, max_steps)
             t_think = time.time()
             try:
                 raw = self.llm.generate(self.api_key, self.model, prompt, image=obs.get("screenshot"),
-                                        system=SYSTEM_PROMPT, json_mode=True,
-                                        fallbacks=s.get("fallback_models"), should_stop=lambda: self.stop_requested,
+                                        system=SYSTEM_PROMPT, json_mode=True, schema=AGENT_SCHEMA,
+                                        effort=s.get("claude_effort", "medium"),
+                                        fallbacks=self.fallbacks(s), should_stop=lambda: self.stop_requested,
                                         on_retry=lambda m: self._set_phase("thinking", detail=f"⚠️ {m}"))
                 plan = parse_json_response(raw)
             except LLMError as e:
                 if self.stop_requested:
                     break
-                self.add_message("ai", f"❌ Gemini: {e}", kind="error", status="error")
+                self.add_message("ai", f"❌ {brand}: {e}", kind="error", status="error")
                 break
             if self.stop_requested:
                 break
@@ -612,5 +727,6 @@ Reply with the JSON object only."""
         calls = self.llm.usage["calls"] - calls_before
         if self.stop_requested:
             self.add_message("ai", "🛑 Đã dừng theo yêu cầu.", kind="status", status="stopped")
-        summary = f"{total_actions} thao tác · {calls} lượt gọi Gemini · {elapsed:.0f}s"
+        brand = "Claude" if self.provider == "claude" else "Gemini"
+        summary = f"{total_actions} thao tác · {calls} lượt gọi {brand} · {elapsed:.0f}s"
         self.add_message("ai", summary, kind="summary", status="success" if finished_ok else "ok")

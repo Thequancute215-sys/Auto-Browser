@@ -378,6 +378,20 @@ svg.octicon { fill: currentColor; vertical-align: text-bottom; flex: none; overf
 .text-block:hover .btn-octicon { opacity: 1; }
 mark { background: var(--bgColor-attention-muted); color: inherit; border-radius: 2px; }
 
+/* ---------------------------------------------------------------- Panel mode (desktop app) */
+/* The real Chromium window sits on the left; this window is only the AI panel. */
+.panel-mode .tabbar, .panel-mode .stage, .panel-mode #pointerMode, .panel-mode #btnSidebar,
+.panel-mode #sbFps, .panel-mode #sbMode, .panel-mode #sbViewport, .panel-mode #sbCoords, .panel-mode #sbScroll,
+.panel-mode #specialKeys, .panel-mode #sendTextForm { display: none !important; }
+.panel-mode .workspace, .panel-mode .workspace.no-sidebar { grid-template-columns: 1fr; grid-template-rows: 1fr; }
+.panel-mode .workspace.no-sidebar .sidebar { display: flex; }
+.panel-mode .sidebar { border-left: 0; }
+.panel-mode .toolbar { flex-wrap: wrap; row-gap: var(--base-size-8); column-gap: var(--base-size-6); }
+.panel-mode .toolbar .btn { padding-left: 10px; padding-right: 10px; }
+.panel-mode .urlbar { order: -1; flex: 1 1 100%; }
+.panel-mode .hide-sm, .panel-mode .hide-md { display: inline-flex !important; }
+.panel-mode .toolbar .btn span.hide-md, .panel-mode .toolbar .btn span.hide-sm { display: none !important; }
+
 /* ---------------------------------------------------------------- Responsive */
 @media (max-width: 1400px) { .hide-md { display: none; } }
 @media (max-width: 1280px) { :root { --sidebar-w: 360px; } .hide-sm { display: none !important; } }

@@ -74,6 +74,14 @@ def site():
     srv.shutdown()
 
 
+@pytest.fixture(autouse=True)
+def _fresh_ai_config():
+    """Every test starts from default AI settings (save_config() writes to the shared test file)."""
+    TEST_AI_CONFIG.unlink(missing_ok=True)
+    yield
+    TEST_AI_CONFIG.unlink(missing_ok=True)
+
+
 @pytest.fixture(scope="session")
 def bus():
     return EventBus()

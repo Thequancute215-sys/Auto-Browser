@@ -333,6 +333,21 @@ DND_POINTER_EVENTS = r"""
 })
 """
 
+# Visual cue in the real browser window (window mode) where the AI clicks / drops.
+AI_RIPPLE = r"""
+({x, y}) => {
+  const d = document.createElement('div');
+  d.setAttribute('data-ai-overlay', 'ripple');
+  d.style.cssText = `position:fixed;left:${x - 18}px;top:${y - 18}px;width:36px;height:36px;border-radius:50%;
+    border:3px solid #22d3ee;box-shadow:0 0 14px rgba(34,211,238,.8);pointer-events:none;z-index:2147483647;
+    transition:transform .5s ease-out,opacity .5s ease-out;transform:scale(.4);opacity:1;`;
+  document.documentElement.appendChild(d);
+  requestAnimationFrame(() => { d.style.transform = 'scale(1.6)'; d.style.opacity = '0'; });
+  setTimeout(() => d.remove(), 650);
+  return true;
+}
+"""
+
 READ_FIELD_VALUE = r"""
 (el) => el.isContentEditable ? el.innerText : (el.value !== undefined ? el.value : el.innerText)
 """

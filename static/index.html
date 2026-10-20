@@ -5,7 +5,7 @@
   <title>Auto Browser</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="color-scheme" content="light dark">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='4' fill='%230969da'/%3E%3Cpath d='M4 11.5 8 4l4 7.5H9.6L8 8.4 6.4 11.5z' fill='white'/%3E%3C/svg%3E">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <link rel="stylesheet" href="/vendor/primer.css?v=22.3.2">
   <link rel="stylesheet" href="/style.css?v=6.0">
   <script src="/vendor/octicons.js?v=19.41.0"></script>
@@ -40,7 +40,7 @@
       <button class="btn btn-sm BtnGroup-item" data-site="rikkei" title="Mở Rikkei LMS"><svg data-oi="mortar-board" class="site-rikkei"></svg><span class="hide-md">Rikkei</span></button>
       <button class="btn btn-sm BtnGroup-item" data-site="cambridge" title="Mở Cambridge One"><svg data-oi="book" class="site-cambridge"></svg><span class="hide-md">Cambridge</span></button>
     </div>
-    <button class="btn btn-sm" id="btnSettings" title="Cài đặt Gemini & AI"><svg data-oi="gear"></svg><span id="settingsLabel" class="hide-md">Cài đặt</span><span class="status-dot danger" id="keyDot"></span></button>
+    <button class="btn btn-sm" id="btnSettings" title="Cài đặt AI (Gemini / Claude)"><svg data-oi="gear"></svg><span id="settingsLabel" class="hide-md">Cài đặt</span><span class="status-dot danger" id="keyDot"></span></button>
     <button class="btn btn-sm btn-octicon-only" id="btnTheme" title="Giao diện: theo hệ thống" aria-label="Đổi giao diện sáng/tối"><svg data-oi="device-desktop" id="themeIcon"></svg></button>
     <button class="btn btn-sm btn-octicon-only" id="btnSidebar" title="Ẩn/hiện bảng AI" aria-label="Ẩn/hiện bảng AI"><svg data-oi="sidebar-expand"></svg></button>
   </header>
@@ -163,14 +163,49 @@
 <div class="Overlay-backdrop" id="settingsModal" hidden>
   <div class="Overlay" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
     <div class="Overlay-header">
-      <h1 class="Overlay-title" id="settingsTitle"><svg data-oi="gear"></svg> Cài đặt</h1>
+      <h1 class="Overlay-title" id="settingsTitle"><svg data-oi="gear"></svg> Cài đặt AI</h1>
       <button class="btn-octicon" data-close-modal aria-label="Đóng"><svg data-oi="x"></svg></button>
     </div>
     <div class="Overlay-body">
       <section class="form-section">
-        <h2 class="form-section-title">Google Gemini</h2>
+        <h2 class="form-section-title">AI dùng để làm bài</h2>
+        <div class="radio-cards" id="providerCards">
+          <label class="radio-card"><input type="radio" name="provider" value="gemini"><span class="radio-card-title"><svg data-oi="sparkle-fill"></svg> Google Gemini</span><span class="radio-card-desc">Miễn phí (có giới hạn lượt/ngày), nghe được audio bài nghe.</span></label>
+          <label class="radio-card"><input type="radio" name="provider" value="claude"><span class="radio-card-title"><svg data-oi="copilot"></svg> Claude (Anthropic)</span><span class="radio-card-desc">Trả phí theo lượt dùng, suy luận kỹ. Bài nghe vẫn cần khóa Gemini.</span></label>
+        </div>
+      </section>
+
+      <section class="form-section">
+        <h2 class="form-section-title">Claude (Anthropic)</h2>
         <div class="form-group">
-          <label class="form-label" for="apiKeyInput">API Key</label>
+          <label class="form-label" for="claudeKeyInput">Claude API Key</label>
+          <input type="password" id="claudeKeyInput" class="form-control input-block" placeholder="Dán khóa (sk-ant-...)" autocomplete="off" spellcheck="false">
+          <p class="note">Lấy tại <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">console.anthropic.com</a> (cần nạp tiền). Ước tính mỗi bước làm bài khoảng 0,05–0,1 USD với Claude Opus 5.5 (một bài thường 2–5 bước).</p>
+        </div>
+        <div class="field-row">
+          <div class="form-group">
+            <label class="form-label" for="claudeModelInput">Mô hình</label>
+            <div class="input-group">
+              <input type="text" id="claudeModelInput" class="form-control input-block" list="claudeModelList" placeholder="claude-opus-5-5" spellcheck="false">
+              <button type="button" class="btn" id="btnLoadClaudeModels" title="Tải danh sách mô hình"><svg data-oi="list-unordered"></svg></button>
+            </div>
+            <datalist id="claudeModelList"></datalist>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="claudeEffortSelect">Độ kỹ khi suy luận</label>
+            <select id="claudeEffortSelect" class="form-select input-block">
+              <option value="low">Nhanh (low)</option>
+              <option value="medium">Cân bằng (medium, mặc định)</option>
+              <option value="high">Kỹ (high): chậm và tốn hơn</option>
+            </select>
+          </div>
+        </div>
+      </section>
+
+      <section class="form-section">
+        <h2 class="form-section-title">Google Gemini <span class="color-fg-muted text-normal f6">: cũng dùng để chép lời audio bài nghe</span></h2>
+        <div class="form-group">
+          <label class="form-label" for="apiKeyInput">Gemini API Key</label>
           <div class="input-group">
             <input type="password" id="apiKeyInput" class="form-control input-block" placeholder="Dán khóa API (AIza...)" autocomplete="off" spellcheck="false">
             <button type="button" class="btn" id="btnToggleKey" aria-label="Hiện/ẩn khóa"><svg data-oi="eye"></svg></button>

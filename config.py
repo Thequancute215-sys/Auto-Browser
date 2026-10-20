@@ -14,7 +14,13 @@ VIEWPORT = {"width": VIEWPORT_WIDTH, "height": VIEWPORT_HEIGHT}
 VIEWPORT_PRESETS = [(1280, 800), (1366, 768), (1440, 900), (1024, 768), (1600, 900)]
 
 # Screencast (CDP Page.startScreencast): chỉ phát khung hình khi màn hình thay đổi
+# "stream": Chromium chạy nền, hình được truyền vào giao diện web (dùng từ trình duyệt bất kỳ).
+# "window": cửa sổ Chromium thật (mượt như trình duyệt thường, có âm thanh) + bảng AI riêng; app desktop dùng chế độ này.
+BROWSER_MODE = os.environ.get("AIB_BROWSER_MODE", "stream")
+# Vị trí/kích thước cửa sổ Chromium ở chế độ window: "x,y,w,h" (do desktop_app.py tính theo màn hình)
+WINDOW_RECT = os.environ.get("AIB_WINDOW_RECT", "")
 STREAM_QUALITY = 72          # JPEG quality của luồng trực tiếp
+FAST_CDP = os.environ.get("AIB_FAST_CDP", "1") == "1"  # kênh CDP trực tiếp cho hình + input (tắt: AIB_FAST_CDP=0)
 AI_SCREENSHOT_QUALITY = 80   # JPEG quality của ảnh gửi cho Gemini
 
 # Paths

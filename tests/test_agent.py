@@ -35,7 +35,8 @@ class FakeLLM:
 def make_ai(browser, bus):
     def _make(script, **settings):
         ai = AIController(browser, bus)
-        ai.settings.update({"api_key": "fake-key", "max_steps": 6, "action_delay_ms": 0, **settings})
+        ai.settings.update({"api_key": "fake-key", "claude_api_key": "fake-claude-key",
+                            "max_steps": 6, "action_delay_ms": 0, **settings})
         ai.llm = FakeLLM(script)
         return ai
     return _make

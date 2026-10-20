@@ -25,6 +25,7 @@ const S = {
   frames: 0,
   connLive: false,
 };
+window.__aib = S;  // read-only diagnostics for tools/bench_smoothness.py
 
 // ---------------------------------------------------------------- utils
 
@@ -186,6 +187,7 @@ async function decodeLoop() {
       ctx.drawImage(bmp, 0, 0);
       bmp.close();
       S.frames++;
+      S.totalFrames = (S.totalFrames || 0) + 1;
       overlay.hidden = true;
     } catch { /* corrupt frame: skip */ }
   }
@@ -248,7 +250,8 @@ const inputQ = {
     else if (last && ev.t === 'text' && last.t === 'text') last.text += ev.text;
     else this.events.push(ev);
     if (ev.t === 'move') {
-      if (!this.timer) this.timer = setTimeout(() => { this.timer = null; this.flush(); }, 30);
+      // Coalesce bursts of mousemove into one send per ~frame; other events go out immediately.
+      if (!this.timer) this.timer = setTimeout(() => { this.timer = null; this.flush(); }, 8);
     } else {
       this.flush();
     }
@@ -595,6 +598,7 @@ try { if (localStorage.getItem('aib.sidebar') === '0') setSidebar(false); } catc
 
 function applyState(st) {
   if (!st) return;
+  if (st.mode) applyMode(st.mode);
   if (st.viewport && (st.viewport.width !== S.viewport.width || st.viewport.height !== S.viewport.height)) {
     S.viewport = st.viewport;
     fitScreen();
@@ -613,10 +617,11 @@ function applyState(st) {
   const reloadIcon = S.loading ? 'x' : 'sync';
   if ($('btnReload').querySelector('svg').dataset.oi !== reloadIcon) setIcon($('btnReload').querySelector('svg'), reloadIcon);
   $('btnReload').title = S.loading ? 'Dừng tải' : 'Tải lại';
-  if (st.title) document.title = `${st.title} · AI Browser Hub`;
+  // The desktop panel keeps a fixed window title; the web view shows the page being browsed.
+  document.title = document.body.classList.contains('panel-mode') || !st.title ? 'Auto Browser' : `${st.title} · Auto Browser`;
   $('sbMode').textContent = st.screencast ? 'Screencast trực tiếp' : 'Ảnh chụp dự phòng';
   renderScroll(st.scroll);
-  if (st.ready === false) showOverlay('Trình duyệt đang khởi động...');
+  if (st.ready === false && st.mode !== 'window') showOverlay('Trình duyệt đang khởi động...');
 }
 
 // ---------------------------------------------------------------- AI pointer animation
@@ -782,12 +787,15 @@ function applyConfig(cfg) {
   S.config = cfg;
   const dot = $('keyDot');
   dot.className = 'status-dot ' + (cfg.has_key ? 'success' : 'danger');
-  $('settingsLabel').textContent = cfg.has_key ? (cfg.model || 'Gemini').replace(/^gemini-/, 'Gemini ') : 'Cài đặt';
+  const brand = cfg.provider === 'claude' ? 'Claude' : 'Gemini';
+  $('settingsLabel').textContent = cfg.has_key
+    ? (cfg.active_model || brand).replace(/^gemini-/, 'Gemini ').replace(/^claude-/, 'Claude ')
+    : 'Cài đặt';
   setSegmented('aiMode', cfg.mode);
   $('optSubmit').checked = !!cfg.auto_submit;
   $('optNext').checked = !!cfg.auto_next;
   $('optSubmit').disabled = $('optNext').disabled = cfg.mode === 'suggest';
-  if (cfg.usage) $('sbUsage').textContent = cfg.usage.calls ? `Gemini: ${cfg.usage.calls} lượt` : '';
+  if (cfg.usage) $('sbUsage').textContent = cfg.usage.calls ? `AI: ${cfg.usage.calls} lượt` : '';
 }
 
 async function saveConfig(patch) {
@@ -804,8 +812,13 @@ async function saveConfig(patch) {
 const modal = $('settingsModal');
 function openSettings() {
   const c = S.config || {};
+  document.querySelectorAll('input[name=provider]').forEach((r) => { r.checked = r.value === (c.provider || 'gemini'); });
   $('apiKeyInput').value = '';
-  $('apiKeyInput').placeholder = c.masked_key ? `Đã lưu: ${c.masked_key} — nhập khóa mới để thay` : 'Dán khóa API (AIza...)';
+  $('apiKeyInput').placeholder = c.masked_gemini_key ? `Đã lưu: ${c.masked_gemini_key}. Nhập khóa mới để thay` : 'Dán khóa API (AIza...)';
+  $('claudeKeyInput').value = '';
+  $('claudeKeyInput').placeholder = c.masked_claude_key ? `Đã lưu: ${c.masked_claude_key}. Nhập khóa mới để thay` : 'Dán khóa (sk-ant-...)';
+  $('claudeModelInput').value = c.claude_model || 'claude-opus-5-5';
+  $('claudeEffortSelect').value = c.claude_effort || 'medium';
   $('modelInput').value = c.model || '';
   $('fallbackInput').value = (c.fallback_models || []).join(', ');
   document.querySelectorAll('input[name=mode]').forEach((r) => { r.checked = r.value === (c.mode || 'auto'); });
@@ -818,8 +831,9 @@ function openSettings() {
   sel.value = [...sel.options].some((o) => o.value === vp) ? vp : 'fit';
   $('settingsStatus').hidden = true;
   modal.hidden = false;
-  setTimeout(() => $('apiKeyInput').focus(), 50);
-  if (c.has_key && !$('modelList').children.length) loadModels(true);
+  setTimeout(() => (c.provider === 'claude' ? $('claudeKeyInput') : $('apiKeyInput')).focus(), 50);
+  if (c.has_gemini_key && !$('modelList').children.length) loadModels(true, 'gemini');
+  if (c.has_claude_key && !$('claudeModelList').children.length) loadModels(true, 'claude');
 }
 function closeSettings() { modal.hidden = true; }
 
@@ -839,9 +853,14 @@ function collectSettings() {
     auto_next: $('setNext').checked,
     listen_audio: $('setListen').checked,
     max_steps: +$('maxStepsInput').value || 30,
+    provider: (document.querySelector('input[name=provider]:checked') || {}).value || 'gemini',
+    claude_model: $('claudeModelInput').value.trim(),
+    claude_effort: $('claudeEffortSelect').value,
   };
   const key = $('apiKeyInput').value.trim();
   if (key) patch.api_key = key;
+  const claudeKey = $('claudeKeyInput').value.trim();
+  if (claudeKey) patch.claude_api_key = claudeKey;
   return patch;
 }
 
@@ -871,7 +890,7 @@ async function submitSettings(test) {
     if (res.status === 'ok') {
       settingsStatus(`✅ ${res.message}`, 'ok');
       toast('Đã lưu cài đặt', 'success', 1600);
-      if (test) loadModels(true);
+      if (test) loadModels(true, res.config && res.config.provider);
       setTimeout(closeSettings, test ? 1400 : 500);
     } else {
       settingsStatus(`❌ ${res.message}`, 'err');
@@ -882,14 +901,15 @@ async function submitSettings(test) {
   }
 }
 
-async function loadModels(silent = false) {
-  const btn = $('btnLoadModels');
+async function loadModels(silent = false, provider = 'gemini') {
+  const claude = provider === 'claude';
+  const btn = claude ? $('btnLoadClaudeModels') : $('btnLoadModels');
   btn.disabled = true;
   try {
-    const res = await api('/api/ai/models');
+    const res = await api(`/api/ai/models?provider=${claude ? 'claude' : 'gemini'}`);
     if (res.status !== 'ok') { if (!silent) settingsStatus(`❌ ${res.message}`, 'err'); return; }
-    $('modelList').innerHTML = res.models.map((m) => `<option value="${escapeHtml(m.name)}">${escapeHtml(m.display)}</option>`).join('');
-    $('modelHint').textContent = `${res.models.length} mô hình khả dụng — gõ để lọc. Nên chọn bản "flash" để nhanh & rẻ, "pro" để chính xác hơn.`;
+    $(claude ? 'claudeModelList' : 'modelList').innerHTML = res.models.map((m) => `<option value="${escapeHtml(m.name)}">${escapeHtml(m.display)}</option>`).join('');
+    if (!claude) $('modelHint').textContent = `${res.models.length} mô hình khả dụng. Gõ để lọc; bản "flash" nhanh và rẻ, bản "pro" chính xác hơn.`;
     if (!silent) settingsStatus(`Đã tải ${res.models.length} mô hình.`, 'info');
   } catch {
     if (!silent) settingsStatus('❌ Không tải được danh sách mô hình', 'err');
@@ -903,15 +923,18 @@ modal.addEventListener('mousedown', (e) => { if (e.target === modal) closeSettin
 modal.querySelector('[data-close-modal]').addEventListener('click', closeSettings);
 $('btnSaveSettings').addEventListener('click', () => submitSettings(false));
 $('btnTestSettings').addEventListener('click', () => submitSettings(true));
-$('btnLoadModels').addEventListener('click', () => loadModels(false));
+$('btnLoadModels').addEventListener('click', () => loadModels(false, 'gemini'));
+$('btnLoadClaudeModels').addEventListener('click', () => loadModels(false, 'claude'));
 $('btnToggleKey').addEventListener('click', () => {
   const inp = $('apiKeyInput');
   inp.type = inp.type === 'password' ? 'text' : 'password';
   setIcon($('btnToggleKey').querySelector('svg'), inp.type === 'password' ? 'eye' : 'eye-closed');
 });
 $('btnClearKey').addEventListener('click', async () => {
-  if (!confirm('Xóa Gemini API Key đã lưu trên máy này?')) return;
-  await saveConfig({ clear_key: true });
+  const provider = (document.querySelector('input[name=provider]:checked') || {}).value || 'gemini';
+  const brand = provider === 'claude' ? 'Claude' : 'Gemini';
+  if (!confirm(`Xóa ${brand} API Key đã lưu trên máy này?`)) return;
+  await saveConfig({ clear_key: true, clear_provider: provider });
   settingsStatus('Đã xóa API Key.', 'info');
   openSettings();
 });
@@ -993,7 +1016,8 @@ function setConn(state) {
 }
 
 function connectEvents() {
-  const es = new EventSource('/api/events');
+  const isPanel = new URLSearchParams(location.search).get('view') === 'panel';
+  const es = new EventSource('/api/events' + (isPanel ? '?view=panel' : ''));
   const on = (name, fn) => es.addEventListener(name, (e) => { try { fn(JSON.parse(e.data)); } catch (err) { console.error(name, err); } });
 
   on('hello', (d) => {
@@ -1013,12 +1037,27 @@ function connectEvents() {
   on('ai_pointer', showAiPointer);
   on('config', applyConfig);
   on('toast', (t) => toast(t.text, t.type || 'info', 3500));
+  on('app_quit', () => { es.close(); if (isPanel) window.close(); else showOverlay('Ứng dụng đã thoát.'); });
   es.onopen = () => setConn('live');
   es.onerror = () => setConn(es.readyState === EventSource.CLOSED ? 'down' : 'connecting');
 }
 
 // ---------------------------------------------------------------- boot
 
+/** "window" mode: the user works in a real Chromium window, this page is only the AI panel (no stream). */
+let streamStarted = false;
+function applyMode(mode) {
+  const panel = mode === 'window';
+  document.body.classList.toggle('panel-mode', panel);
+  if (panel) {
+    overlay.hidden = true;
+  } else if (!streamStarted) {
+    streamStarted = true;
+    fitScreen();
+    runStream();
+  }
+}
+
 fitScreen();
 connectEvents();
-runStream();
+if (new URLSearchParams(location.search).get('view') === 'panel') applyMode('window');
