@@ -1,0 +1,66 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><title>Bài kiểm tra dài</title>
+<style>
+  body { font: 17px Arial, sans-serif; margin: 0; }
+  header { position: sticky; top: 0; background: #fff; border-bottom: 1px solid #ccc; padding: 12px 24px; display: flex; gap: 16px; align-items: center; z-index: 5; }
+  main { padding: 24px; max-width: 760px; }
+  .q { margin: 0 0 320px; }   /* questions far apart: most are below the first screen */
+  .box { height: 160px; overflow: auto; border: 1px solid #999; padding: 8px; }
+  .box .spacer { height: 420px; }
+  #dialog { position: fixed; inset: 0; background: rgba(0,0,0,.45); display: none; align-items: center; justify-content: center; z-index: 10; }
+  #dialog .card { background: #fff; border-radius: 20px; padding: 28px 36px; text-align: center; }
+  #dialog button { font-size: 18px; padding: 10px 28px; margin: 12px 8px 0; border-radius: 24px; border: 0; }
+</style></head>
+<body>
+<header>
+  <b>Quiz: Môi trường bên ngoài</b>
+  <input type="search" placeholder="Tìm kiếm khóa học..." aria-label="search">
+  <button id="submit" onclick="trySubmit()">Nộp bài</button>
+  <span id="result"></span>
+</header>
+<main>
+  <div class="q"><p>Question 1: choose b</p>
+    <label><input type="radio" name="q1" value="a"> q1-a</label> <label><input type="radio" name="q1" value="b"> q1-b</label></div>
+  <div class="q"><p>Question 2: choose b</p>
+    <label><input type="radio" name="q2" value="a"> q2-a</label> <label><input type="radio" name="q2" value="b"> q2-b</label></div>
+  <div class="q"><p>Question 3: choose b</p>
+    <label><input type="radio" name="q3" value="a"> q3-a</label> <label><input type="radio" name="q3" value="b"> q3-b</label></div>
+  <div class="q"><p>Question 4: choose b</p>
+    <label><input type="radio" name="q4" value="a"> q4-a</label> <label><input type="radio" name="q4" value="b"> q4-b</label></div>
+  <div class="q"><p>Question 5: type x</p><input id="t5"></div>
+  <div class="q"><p>Question 6: type x</p><input id="t6"></div>
+  <div class="q"><p>Question 7: type x</p><input id="t7"></div>
+  <div class="q"><p>Question 8: type x</p><input id="t8"></div>
+  <div class="q"><p>Question 9: pick yes</p><select id="s9"><option>-- Chọn --</option><option>no</option><option>yes</option></select></div>
+  <div class="q"><p>Question 10 (in a scroll box): write ok</p>
+    <div class="box"><div class="spacer">Read the text, then answer at the bottom of this box.</div><textarea id="t10"></textarea></div></div>
+</main>
+<div id="dialog"><div class="card"><h2 id="dlgTitle"></h2><p>Nộp bây giờ vẫn tính 1 lượt (còn <span id="left"></span>/3 lượt). Bạn có chắc muốn nộp?</p>
+  <button onclick="closeDialog()">Làm tiếp</button><button onclick="doSubmit()">Nộp luôn</button></div></div>
+<script>
+window.__state = { attempts: 3, submitted: 0 };
+const v = id => document.getElementById(id).value.trim().toLowerCase();
+function unanswered() {
+  let n = 0;
+  for (let i = 1; i <= 4; i++) if (!document.querySelector(`input[name=q${i}]:checked`)) n++;
+  for (const id of ['t5', 't6', 't7', 't8', 't10']) if (!v(id)) n++;
+  if (document.getElementById('s9').selectedIndex === 0) n++;
+  return n;
+}
+function trySubmit() {
+  const n = unanswered();
+  if (n) { document.getElementById('dlgTitle').textContent = `Còn ${n} câu chưa trả lời`; document.getElementById('left').textContent = __state.attempts - 1; document.getElementById('dialog').style.display = 'flex'; }
+  else doSubmit();
+}
+function closeDialog() { document.getElementById('dialog').style.display = 'none'; }
+function doSubmit() {
+  closeDialog();
+  __state.attempts--; __state.submitted++;
+  let score = 0;
+  for (let i = 1; i <= 4; i++) score += (document.querySelector(`input[name=q${i}]:checked`) || {}).value === 'b';
+  for (const id of ['t5', 't6', 't7', 't8']) score += v(id) === 'x';
+  score += v('s9') === 'yes';
+  score += v('t10') === 'ok';
+  document.getElementById('result').textContent = `Score: ${score}/10`;
+}
+</script>
+</body></html>

@@ -107,7 +107,8 @@ Rules:
 4. A field's current content is in `value`. Its blank is located by the `before`/`after` text. Leave fields that are already correct alone.
 5. `checked` marks a selected radio/checkbox. Do not click an option that is already checked (it may toggle off).
 5b. Drag-and-drop exercises: use "drag" from the `draggable` word/item to the `dropzone` gap (its `context` shows where [HERE] sits in the sentence). Clicking a draggable item does not place it.
-6. If more questions are below, scroll. Put the scroll LAST in the actions list (IDs change after scrolling).
+6. The element list covers the WHOLE page, not just the screenshot: items marked `offscreen: below/above` are scrolled out of view (or inside a scrolled box). Act on them directly by id; the browser scrolls to them automatically. The VISIBLE PAGE TEXT is also the whole page. Scroll only to look at an image or layout you cannot understand from the list.
+6b. FORM STATUS counts the unanswered questions on the whole page. Answer every one of them before pressing Check / Submit / Nộp bài / Hoàn thành; a submit with blanks wastes one of the student's limited attempts. If a dialog says some questions are unanswered (e.g. "Còn 4 câu chưa trả lời"), choose the option that keeps working ("Làm tiếp", "Quay lại", "Cancel"), never the one that submits.
 7. Use status "done" only when the screen proves the task is finished and no action is left. If you still have actions, use "continue" and verify next turn.
 8. Login, CAPTCHA, payments, or a choice only the user can make: status "need_user" and explain in "message".
 9. If an earlier action failed or changed nothing, try a different approach (another element, keyboard, scrolling, waiting for loading) instead of repeating it.
@@ -138,6 +139,7 @@ class AIController:
         self.settings: Dict[str, Any] = dict(DEFAULT_SETTINGS)
         self._load_config()
         self._run_settings: Dict[str, Any] = dict(self.settings)
+        self._submit_blocks = 0
         self._transcripts: Dict[str, str] = {}  # audio URL -> transcript (kept for the whole session)
         self._media_failed: set = set()
 
@@ -466,6 +468,8 @@ class AIController:
         if e.get("options"):
             parts.append(f"options={json.dumps(e['options'][:15], ensure_ascii=False)}")
         flags = [f for f in ("checked", "selected", "disabled", "draggable", "dropzone") if e.get(f)]
+        if e.get("offscreen"):
+            flags.append(f"offscreen: {e['offscreen']}")
         if flags:
             parts.append("(" + ", ".join(flags) + ")")
         parts.append(f"@{e['x']},{e['y']}")
@@ -474,7 +478,7 @@ class AIController:
     def _build_prompt(self, task: str, obs: dict, history: List[str], step: int, max_steps: int) -> str:
         elements = obs.get("elements", [])
         el_lines = "\n".join(self._format_element(e) for e in elements) or "(no interactive elements detected)"
-        texts, budget = [], 14000
+        texts, budget = [], 24000
         for t in obs.get("texts", []):
             chunk = t["text"][:budget]
             budget -= len(chunk)
@@ -496,6 +500,15 @@ class AIController:
             else:
                 audio_lines.append(f"--- audio {i} ({name}) --- (not transcribed yet)")
         audio_block = "\n".join(audio_lines) or "(no audio on this page)"
+        fs = obs.get("form_status") or {}
+        if fs.get("total"):
+            form_lines = [f"{fs['unanswered']} of {fs['total']} questions/fields on the whole page are still unanswered."]
+            for it in fs.get("items", [])[:15]:
+                ref = f"[{it['aid']}] " if it.get("aid") else ""
+                form_lines.append(f"- {ref}{it['kind']} ({it['where']}): …{it.get('context', '')[:80]}…")
+            form_block = "\n".join(form_lines)
+        else:
+            form_block = "(no form fields detected)"
         return f"""TASK FROM USER: {task}
 
 RUN SETTINGS:
@@ -508,7 +521,10 @@ Viewport: {obs.get('viewport', {}).get('width')}x{obs.get('viewport', {}).get('h
 HISTORY OF YOUR PREVIOUS STEPS:
 {hist}
 
-INTERACTIVE ELEMENTS (id, kind, text, state, center position):
+FORM STATUS (whole page):
+{form_block}
+
+INTERACTIVE ELEMENTS OF THE WHOLE PAGE (id, kind, text, state, center position; offscreen = outside the screenshot):
 {el_lines}
 
 VISIBLE PAGE TEXT:
@@ -556,6 +572,27 @@ Reply with the JSON object only."""
         if kind == "hover":
             return f"👆 Rê chuột #{act.get('id')}{name}"
         return f"• {kind}"
+
+    SUBMIT_RE = re.compile(r"\b(nộp|submit|check(\s+answers?)?|kiểm\s*tra|hoàn\s*thành|finish|chấm|gửi\s*bài|done|xong)\b", re.I)
+    MAX_SUBMIT_BLOCKS = 2  # after two warnings the model may insist (the count could be a false positive)
+
+    def _submit_guard(self, act: dict, el_map: Dict[int, dict]):
+        """Blocks a click on a Submit-like button while the page still has unanswered questions.
+        Re-checks the live page, so answers typed earlier in the same step are counted."""
+        if act.get("action") != "click" or self._submit_blocks >= self.MAX_SUBMIT_BLOCKS:
+            return None
+        el = el_map.get(act.get("id")) if isinstance(act.get("id"), int) else None
+        if not el:
+            return None
+        name = (el.get("text") or el.get("label") or "").strip()
+        if not name or len(name) > 40 or not self.SUBMIT_RE.search(name):
+            return None
+        fs = self.browser.execute("form_status", {}, timeout=15)
+        if fs.get("status") != "ok" or not fs.get("unanswered"):
+            return None
+        self._submit_blocks += 1
+        ids = ", ".join(str(it["aid"]) for it in fs.get("items", []) if it.get("aid"))[:120]
+        return {"name": name, "unanswered": fs["unanswered"], "ids": ids}
 
     def _ensure_transcripts(self, obs: dict, s: dict):
         """Downloads and transcribes each new audio source once; transcripts persist for the session.
@@ -605,6 +642,8 @@ Reply with the JSON object only."""
         total_actions = 0
         started = time.time()
         calls_before = self.llm.usage["calls"]
+        switched = set()
+        self._submit_blocks = 0
         finished_ok = False
 
         for step in range(1, max_steps + 1):
@@ -657,6 +696,11 @@ Reply with the JSON object only."""
                     break
                 self.add_message("ai", f"❌ {brand}: {e}", kind="error", status="error")
                 break
+            used = self.llm.last_model_used
+            if used and used != self.model and used not in switched:
+                switched.add(used)  # tell the user once per run which model actually answered, and why
+                why = getattr(self.llm, "last_switch_reason", None) or f"{self.model} đang hết lượt hoặc quá tải"
+                self.add_message("ai", f"ℹ️ Đang dùng **{used}** vì {why}.", kind="action")
             if self.stop_requested:
                 break
 
@@ -699,6 +743,15 @@ Reply with the JSON object only."""
                 self._set_phase("acting", detail=f"{i + 1}/{len(actions)} · " + desc.replace("**", "")[:60])
                 act = dict(act)
                 act["_settle_ms"] = 600 if i == len(actions) - 1 else 120
+                blocked = self._submit_guard(act, el_map)
+                if blocked:
+                    self.add_message("ai", f"⛔ Không bấm «{blocked['name']}»: còn **{blocked['unanswered']}** câu chưa trả lời "
+                                           f"(nộp lúc này sẽ mất 1 lượt làm bài). AI sẽ làm tiếp các câu còn thiếu.",
+                                     kind="action", status="warning")
+                    results.append(f"{json.dumps({k: v for k, v in act.items() if not k.startswith('_')}, ensure_ascii=False)} -> "
+                                   f"BLOCKED by safety guard: {blocked['unanswered']} questions still unanswered "
+                                   f"(ids {blocked['ids'] or 'see FORM STATUS'}). Answer them first.")
+                    continue
                 res = self.browser.execute("ai_act", act, timeout=30)
                 ok = res.get("status") == "ok"
                 total_actions += ok

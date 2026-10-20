@@ -4,7 +4,7 @@ Trình duyệt có trợ lý AI (Google Gemini hoặc Claude) **tự đọc đ�
 
 ## Cài đặt (Windows)
 
-1. Chạy `AutoBrowser-Setup-6.0.0.exe` (không cần quyền admin). Bộ cài tạo biểu tượng **Auto Browser** trên Desktop và trong Start menu, kèm trình gỡ cài đặt.
+1. Tải `AutoBrowser-Setup-<phiên bản>.exe` ở mục [Releases](https://github.com/Thequancute215-sys/Auto-Browser/releases) rồi chạy (không cần quyền admin). Bộ cài tạo biểu tượng **Auto Browser** trên Desktop và trong Start menu, kèm trình gỡ cài đặt.
 2. Mở **Auto Browser**. Màn hình chia hai:
    - **bên trái**: cửa sổ Chromium thật, mượt như trình duyệt thường và có âm thanh. Đăng nhập Cambridge/Rikkei ở đây (chỉ cần một lần);
    - **bên phải**: bảng Trợ lý AI.
@@ -30,7 +30,7 @@ Trình duyệt có trợ lý AI (Google Gemini hoặc Claude) **tự đọc đ�
 
 ```powershell
 pip install -r requirements-dev.txt; python -m playwright install chromium
-python -m pytest                     # 74 test (~5,5 phút): kéo thả, trình duyệt, input nhanh, agent, Claude, server, UI
+python -m pytest                     # 83 test (~7 phút): kéo thả, trình duyệt, trang dài, input nhanh, agent, quota, Claude, server, UI
 python -m pytest -m llm              # agent end-to-end với Gemini thật
 python tools/bench_smoothness.py     # đo độ mượt chế độ web → tests/reports/smoothness.md
 python tools/build_exe.py            # dist/AutoBrowser/AutoBrowser.exe + dist/AutoBrowser-Setup-x.y.z.exe

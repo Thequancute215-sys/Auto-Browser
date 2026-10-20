@@ -15,6 +15,37 @@ class LLMError(Exception):
     pass
 
 
+def _parse_quota(err: str):
+    """Gemini 429 → (seconds until retry, is_daily_quota) or None.
+    Example: '... limit: 20, model: gemini-3.8-flash\\nPlease retry in 9h50m5.0s ... GenerateRequestsPerDay...'"""
+    if "RESOURCE_EXHAUSTED" not in err and "429" not in err:
+        return None
+    m = re.search(r"retry in (?:(\d+)h)?(?:(\d+)m)?(?:([\d.]+)s)?", err)
+    wait = 0.0
+    if m and any(m.groups()):
+        h, mi, s = m.groups()
+        wait = int(h or 0) * 3600 + int(mi or 0) * 60 + float(s or 0)
+    else:
+        d = re.search(r"retryDelay['\"]?\s*:\s*['\"]?(\d+)s", err)
+        wait = float(d.group(1)) if d else 60.0
+    per_day = "PerDay" in err or "per day" in err.lower()
+    return wait, per_day
+
+
+def _fmt_wait(seconds: float) -> str:
+    seconds = max(0, int(seconds))
+    h, m = seconds // 3600, (seconds % 3600) // 60
+    return f"{h} giờ {m} phút" if h else (f"{m} phút" if m else f"{seconds} giây")
+
+
+def _sleep_unless_stopped(seconds, should_stop):
+    end = time.time() + seconds
+    while time.time() < end:
+        if should_stop and should_stop():
+            raise LLMError("Đã dừng theo yêu cầu.")
+        time.sleep(max(0.0, min(0.25, end - time.time())))
+
+
 def parse_json_response(raw: str) -> dict:
     """Extracts the first JSON object from a model reply (tolerates ``` fences and stray prose)."""
     text = (raw or "").strip()
@@ -43,6 +74,8 @@ class GeminiClient:
         self._lock = threading.Lock()
         self._pool = ThreadPoolExecutor(max_workers=4, thread_name_prefix="gemini")
         self._sticky = {}  # primary model -> (fallback that worked, expiry timestamp)
+        self._exhausted = {}  # model -> (timestamp when the free quota resets, kind)
+        self.last_switch_reason = None
         self.last_model_used = None
         self.usage = {"calls": 0, "input_tokens": 0, "output_tokens": 0}
 
@@ -117,51 +150,123 @@ class GeminiClient:
         if sticky and sticky[1] > time.time():
             candidates.insert(0, sticky[0])  # primary failed recently: start from the model that worked
         candidates = list(dict.fromkeys(candidates))
+        self.last_switch_reason = None
         last_err = None
-        for mod in candidates:
-            for attempt in range(3):
-                if should_stop and should_stop():
-                    raise LLMError("Đã dừng theo yêu cầu.")
-                try:
-                    resp = self._call(lambda: client.models.generate_content(model=mod, contents=contents, config=config),
-                                      should_stop=should_stop)
-                    text = resp.text if resp else None
-                    self._record_usage(resp)
-                    if text:
-                        self.last_model_used = mod
-                        if mod != model:
-                            self._sticky[model] = (mod, time.time() + 300)
-                        elif model in self._sticky:
-                            del self._sticky[model]
-                        return text
-                    reason = ""
-                    try:
-                        reason = str(resp.candidates[0].finish_reason)
-                    except Exception:
-                        pass
-                    last_err = LLMError(f"Mô hình {mod} trả về rỗng {reason}".strip())
-                    break
-                except Exception as e:
-                    err = str(e)
-                    last_err = e
-                    if "Đã dừng" in err:
-                        raise
-                    if any(k in err for k in MODEL_MISSING):
-                        if on_retry:
-                            on_retry(f"Không có mô hình {mod}, thử mô hình dự phòng...")
-                        break  # try next model
-                    if any(k in err for k in RETRYABLE):
-                        if attempt < 2:
-                            wait = 1.5 * (2 ** attempt)
-                            if on_retry:
-                                on_retry(f"{mod} quá tải/hết lượt, thử lại sau {wait:.0f}s ({attempt + 2}/3)")
-                            time.sleep(wait)
-                            continue
-                        if on_retry:
-                            on_retry(f"{mod} vẫn lỗi, chuyển sang mô hình dự phòng...")
-                        break  # quota/overload persists: try next model
-                    raise LLMError(self._friendly(err))
+        tried = set()
+        discovered = False
+        i = 0
+        while i < len(candidates):
+            mod = candidates[i]
+            i += 1
+            tried.add(mod)
+            if self._is_exhausted(mod):
+                self._note_switch(mod, on_retry)
+                last_err = LLMError(self._exhausted_msg(mod))
+            else:
+                text, last_err = self._try_model(client, mod, contents, config, should_stop, on_retry)
+                if text is not None:
+                    self.last_model_used = mod
+                    if mod != model:
+                        self._sticky[model] = (mod, time.time() + 300)
+                    elif model in self._sticky:
+                        del self._sticky[model]
+                    return text
+            if i == len(candidates) and not discovered and self._all_quota(candidates):
+                # Every configured model is out of free quota: other Gemini models have their own buckets.
+                discovered = True
+                extra = self._discover_alternatives(api_key, tried)
+                if extra and on_retry:
+                    on_retry(f"Các mô hình đã chọn hết lượt, thử thêm: {', '.join(extra[:3])}...")
+                candidates += extra
+        if candidates and all(self._is_exhausted(m) for m in candidates):
+            soonest = min(self._exhausted.get(m, (0, ""))[0] for m in candidates)
+            raise LLMError("Tất cả mô hình Gemini đã hết lượt miễn phí hôm nay (mỗi mô hình 20 lượt/ngày). "
+                           f"Có lượt lại sau khoảng {_fmt_wait(soonest - time.time())}, "
+                           "hoặc chuyển sang Claude trong ⚙️ Cài đặt.")
         raise LLMError(self._friendly(str(last_err)) if last_err else "Không gọi được mô hình.")
+
+    # ---------------------------------------------------------------- quota handling
+
+    def _try_model(self, client, mod, contents, config, should_stop, on_retry):
+        """One model: returns (text, None) or (None, error). Daily quota → no retry; per-minute → wait as told."""
+        last_err = None
+        for attempt in range(3):
+            if should_stop and should_stop():
+                raise LLMError("Đã dừng theo yêu cầu.")
+            try:
+                resp = self._call(lambda: client.models.generate_content(model=mod, contents=contents, config=config),
+                                  should_stop=should_stop)
+            except LLMError:
+                raise
+            except Exception as e:
+                err = str(e)
+                last_err = e
+                if any(k in err for k in MODEL_MISSING):
+                    if on_retry:
+                        on_retry(f"Không có mô hình {mod}, thử mô hình dự phòng...")
+                    return None, e
+                quota = _parse_quota(err)
+                if quota:
+                    wait_s, per_day = quota
+                    if per_day or wait_s > 90:
+                        # Out of today's free requests: retrying is pointless until the reset time.
+                        self._exhausted[mod] = (time.time() + wait_s, "per_day")
+                        self._note_switch(mod, on_retry)
+                        return None, e
+                    if attempt < 2:  # per-minute limit: wait exactly as long as Google asks
+                        if on_retry:
+                            on_retry(f"{mod} giới hạn lượt/phút, chờ {wait_s:.0f}s rồi thử lại")
+                        _sleep_unless_stopped(wait_s + 0.5, should_stop)
+                        continue
+                    return None, e
+                if any(k in err for k in RETRYABLE):  # overload / server error
+                    if attempt < 2:
+                        wait = 1.5 * (2 ** attempt)
+                        if on_retry:
+                            on_retry(f"{mod} đang quá tải, thử lại sau {wait:.0f}s ({attempt + 2}/3)")
+                        _sleep_unless_stopped(wait, should_stop)
+                        continue
+                    if on_retry:
+                        on_retry(f"{mod} vẫn quá tải, chuyển sang mô hình dự phòng...")
+                    return None, e
+                raise LLMError(self._friendly(err))
+            text = resp.text if resp else None
+            self._record_usage(resp)
+            if text:
+                return text, None
+            reason = ""
+            try:
+                reason = str(resp.candidates[0].finish_reason)
+            except Exception:
+                pass
+            return None, LLMError(f"Mô hình {mod} trả về rỗng {reason}".strip())
+        return None, last_err
+
+    def _is_exhausted(self, mod):
+        until = self._exhausted.get(mod, (0, ""))[0]
+        return until > time.time()
+
+    def _exhausted_msg(self, mod):
+        return f"{mod} hết lượt miễn phí hôm nay (có lại sau {_fmt_wait(self._exhausted[mod][0] - time.time())})"
+
+    def _note_switch(self, mod, on_retry):
+        self.last_switch_reason = self._exhausted_msg(mod)
+        if on_retry:
+            on_retry(f"{self.last_switch_reason}, chuyển mô hình khác...")
+
+    def _all_quota(self, candidates):
+        return all(self._is_exhausted(m) for m in candidates)
+
+    def _discover_alternatives(self, api_key, tried):
+        """Other Flash models available to this key, best first (each has its own free-tier bucket)."""
+        try:
+            names = [m["name"] for m in self.list_models(api_key)]
+        except Exception:
+            return []
+        flash = [n for n in names if "flash" in n and n not in tried and not self._is_exhausted(n)]
+        # Full Flash before Flash-Lite, stable before preview, newest version first.
+        flash.sort(key=lambda n: ("lite" in n, "preview" in n or "exp" in n, [-int(x) for x in re.findall(r"\d+", n)]))
+        return flash[:6]
 
     def _record_usage(self, resp):
         self.usage["calls"] += 1

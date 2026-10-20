@@ -1,4 +1,4 @@
-"""
+﻿"""
 Builds the Windows app and its installer.
 
   python tools/build_exe.py            -> dist/AutoBrowser/AutoBrowser.exe  (+ installer if Inno Setup is installed)
@@ -17,7 +17,7 @@ import subprocess
 import sys
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
-VERSION = "6.0.0"
+VERSION = "6.1.0"
 NAME = "AutoBrowser"
 
 

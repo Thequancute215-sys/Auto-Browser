@@ -3,8 +3,10 @@ JavaScript snippets evaluated inside page frames by BrowserManager.
 Kept separate so the Python worker logic stays readable.
 """
 
-# Finds visible interactive elements in ONE frame, tags them with data-aid="<id>" and returns
-# a compact description. Coordinates are relative to the frame's own viewport.
+# Finds interactive elements in ONE frame, tags them with data-aid="<id>" and returns a compact
+# description. Covers the WHOLE document: elements scrolled out of view (or inside a scrolled box)
+# are kept when they matter for answering (fields, options, drop zones, buttons) and carry
+# offscreen: "above" | "below" | "side". Coordinates are relative to the frame's own viewport.
 ANNOTATE_ELEMENTS = r"""
 ({start, limit}) => {
   document.querySelectorAll('[data-aid]').forEach(e => e.removeAttribute('data-aid'));
@@ -22,12 +24,29 @@ ANNOTATE_ELEMENTS = r"""
   const W = window.innerWidth, H = window.innerHeight;
   const clean = s => (s || '').replace(/\s+/g, ' ').trim();
 
-  const visible = (el, r) => {
+  const shown = (el, r) => {
     if (r.width < 3 || r.height < 3) return false;
-    if (r.bottom < 0 || r.right < 0 || r.top > H || r.left > W) return false;
     const s = getComputedStyle(el);
     if (s.visibility === 'hidden' || s.display === 'none' || parseFloat(s.opacity) === 0) return false;
     return true;
+  };
+  const where = (top, bottom, left, right, T, B, L, R) =>
+    bottom <= T ? 'above' : top >= B ? 'below' : (right <= L || left >= R) ? 'side' : null;
+  // Off-screen relative to the window, or hidden inside a scrolled container (overflow box).
+  const offscreenOf = (el, r) => {
+    const w = where(r.top, r.bottom, r.left, r.right, 0, H, 0, W);
+    if (w) return w;
+    let p = el.parentElement, n = 0;
+    while (p && p !== document.body && p !== document.documentElement && n++ < 30) {
+      const s = getComputedStyle(p);
+      if (/(auto|scroll|hidden)/.test(s.overflowY + ' ' + s.overflowX)) {
+        const pr = p.getBoundingClientRect();
+        const c = where(r.top, r.bottom, r.left, r.right, pr.top, pr.bottom, pr.left, pr.right);
+        if (c) return c;
+      }
+      p = p.parentElement;
+    }
+    return null;
   };
   const uncovered = (el, r) => {
     const cx = Math.min(W - 1, Math.max(0, r.left + r.width / 2));
@@ -62,7 +81,7 @@ ANNOTATE_ELEMENTS = r"""
   // Clickable widgets built from plain divs/spans (cursor:pointer) — common in LMS players.
   let scanned = 0;
   for (const el of document.querySelectorAll('div, span, li, img, p, td, svg')) {
-    if (++scanned > 4000) break;
+    if (++scanned > 8000) break;
     const s = getComputedStyle(el);
     if (s.cursor === 'pointer' && !(el.parentElement && getComputedStyle(el.parentElement).cursor === 'pointer')) cands.push(el);
     else if (s.cursor === 'grab' || s.cursor === 'move' || (typeof el.className === 'string' && DROP_RE.test(el.className))) cands.push(el);
@@ -75,20 +94,23 @@ ANNOTATE_ELEMENTS = r"""
     if (out.length >= limit) break;
     if (el.closest('[data-ai-overlay]')) continue;
     const r = el.getBoundingClientRect();
-    if (!visible(el, r)) continue;
+    if (!shown(el, r)) continue;
     const tag = el.tagName.toLowerCase();
     const inType = (el.type || '').toLowerCase();
     const isToggle = tag === 'input' && (inType === 'radio' || inType === 'checkbox');
     const isField = (tag === 'input' && !isToggle && !['button', 'submit', 'reset', 'image', 'file', 'range', 'color'].includes(inType))
       || tag === 'textarea' || tag === 'select' || el.isContentEditable;
     const isDrop = isDropEl(el);
+    const offscreen = offscreenOf(el, r);
+    // Off-screen plain navigation links are noise; anything you answer with or press is kept.
+    if (offscreen && tag === 'a' && !el.getAttribute('role') && !isDrop) continue;
     // Skip children of an already-listed clickable (span inside button etc.), but keep fields and drop zones.
     if (!isField && !isDrop) {
       let p = el.parentElement, nested = false;
       while (p) { if (candSet.has(p) && p.getAttribute('data-aid')) { nested = true; break; } p = p.parentElement; }
       if (nested) continue;
     }
-    if (!uncovered(el, r) && !isToggle) continue;
+    if (!offscreen && !uncovered(el, r) && !isToggle) continue;
 
     el.setAttribute('data-aid', String(id));
     const info = {
@@ -101,6 +123,7 @@ ANNOTATE_ELEMENTS = r"""
       w: Math.round(r.width), h: Math.round(r.height),
       left: Math.round(r.left), top: Math.round(r.top)
     };
+    if (offscreen) info.offscreen = offscreen;
     if (el.disabled || el.getAttribute('aria-disabled') === 'true') info.disabled = true;
     let toggle = isToggle ? el : null;
     if (tag === 'label') toggle = el.control || el.querySelector('input[type=radio], input[type=checkbox]');
@@ -258,6 +281,68 @@ SCROLL_TO_RATIO = r"""
   }
   if (el) el.scrollTop = Math.round(ratio * maxY);
   return true;
+}
+"""
+
+# Unanswered questions on the WHOLE page of one frame: empty text fields, radio groups with no
+# choice, selects still on a placeholder. Search boxes, header/nav fields and read-only fields are
+# ignored. Items carry the data-aid of the field (or its label) when ANNOTATE_ELEMENTS tagged it.
+FORM_STATUS = r"""
+() => {
+  const clean = s => (s || '').replace(/\s+/g, ' ').trim();
+  const H = window.innerHeight;
+  const shown = el => {
+    const s = getComputedStyle(el);
+    return s.display !== 'none' && s.visibility !== 'hidden' && el.getClientRects().length > 0;
+  };
+  const ignored = el => el.closest('header, nav, [role=search], [role=navigation], [data-ai-overlay]')
+    || el.readOnly || el.disabled || el.getAttribute('aria-disabled') === 'true'
+    || /search|tìm|tim kiem/i.test((el.type || '') + ' ' + (el.placeholder || '') + ' ' + (el.getAttribute('aria-label') || '') + ' ' + (el.name || ''));
+  const pos = el => { const r = el.getBoundingClientRect(); return r.bottom <= 0 ? 'above' : r.top >= H ? 'below' : 'visible'; };
+  const ctx = el => {
+    let p = el.parentElement, n = 0;
+    while (p && n++ < 6) { const t = clean(p.innerText); if (t.length > 8) return t.slice(0, 90); p = p.parentElement; }
+    return '';
+  };
+  const items = [];
+  let total = 0;
+  const push = (el, kind) => items.push({ kind, aid: (el.closest('[data-aid]') || el).getAttribute('data-aid'), where: pos(el), context: ctx(el) });
+
+  const textSel = 'input:not([type]), input[type=text], input[type=number], input[type=email], input[type=tel], input[type=url], textarea, [contenteditable=""], [contenteditable=true]';
+  for (const el of document.querySelectorAll(textSel)) {
+    if (!shown(el) || ignored(el)) continue;
+    if (el.isContentEditable && el.parentElement && el.parentElement.closest('[contenteditable=""], [contenteditable=true]')) continue;
+    total++;
+    const v = clean(el.isContentEditable ? el.innerText : el.value);
+    if (!v) push(el, 'blank');
+  }
+  const groups = new Map();
+  for (const r of document.querySelectorAll('input[type=radio], [role=radio]')) {
+    const vis = shown(r) || (r.labels && r.labels[0] && shown(r.labels[0])) || (r.parentElement && shown(r.parentElement));
+    if (!vis || ignored(r)) continue;
+    const key = r.name ? 'n:' + r.name : r.closest('[role=radiogroup], fieldset, ul, ol, form') || r.parentElement;
+    const g = groups.get(key) || { checked: false, first: r };
+    if (r.checked || r.getAttribute('aria-checked') === 'true') g.checked = true;
+    groups.set(key, g);
+  }
+  for (const g of groups.values()) {
+    total++;
+    if (!g.checked) push((g.first.labels && g.first.labels[0]) || g.first, 'choice');
+  }
+  for (const s of document.querySelectorAll('select')) {
+    if (!shown(s) || ignored(s)) continue;
+    total++;
+    const o = s.options[s.selectedIndex];
+    const bare = o ? clean(o.text).replace(/[-–—_.…\s]+/g, ' ').trim() : '';
+    const placeholder = o && s.selectedIndex === 0 && (o.value === '' || /^(|chọn.*|chon.*|select.*|choose.*|pick.*)$/i.test(bare));
+    if (!o || s.selectedIndex < 0 || placeholder) push(s, 'dropdown');
+  }
+  for (const d of document.querySelectorAll('[ondrop], [aria-dropeffect], [data-droppable], [class*=droppable], [class*=dropzone], [class*=drop-zone]')) {
+    if (!shown(d) || ignored(d) || d.parentElement.closest('[ondrop], [aria-dropeffect], [data-droppable], [class*=droppable], [class*=dropzone], [class*=drop-zone]')) continue;
+    total++;
+    if (!clean(d.innerText) && !d.querySelector('img, [draggable=true]')) push(d, 'drop');
+  }
+  return { total, unanswered: items.length, items: items.slice(0, 15) };
 }
 """
 

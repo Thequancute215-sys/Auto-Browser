@@ -1,6 +1,6 @@
 ﻿; Inno Setup script — built by tools/build_exe.py (ISCC /DAppVersion=x.y.z installer\AutoBrowser.iss)
 #ifndef AppVersion
-  #define AppVersion "6.0.0"
+  #define AppVersion "6.1.0"
 #endif
 
 [Setup]
@@ -42,5 +42,5 @@ Name: "{userdesktop}\Auto Browser"; Filename: "{app}\AutoBrowser.exe"; IconFilen
 Filename: "{app}\AutoBrowser.exe"; Description: "Mở Auto Browser ngay"; Flags: nowait postinstall skipifsilent
 
 [UninstallRun]
-; Make sure the app is not running while files are removed
-Filename: "{sys}\taskkill.exe"; Parameters: "/F /IM AutoBrowser.exe /T"; Flags: runhidden; RunOnceId: "KillApp"
+; Stop only the copy installed in THIS folder (never other installs of Auto Browser) before removing files
+Filename: "powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -Command ""Get-Process AutoBrowser -ErrorAction SilentlyContinue | Where-Object {{ $_.Path -like '{app}\*' }} | Stop-Process -Force"""; Flags: runhidden; RunOnceId: "StopThisCopy"

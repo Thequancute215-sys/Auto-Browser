@@ -551,8 +551,8 @@ class BrowserManager:
 
     # ------------------------------------------------------------------ frames helpers
 
-    def _visible_frames(self):
-        """Main frame + child iframes that are on-screen, with their offset in the main viewport."""
+    def _visible_frames(self, include_offscreen=False):
+        """Main frame + child iframes (on-screen ones, or all with include_offscreen) and their offset."""
         main = self.page.main_frame
         out = [(main, 0.0, 0.0)]
         vw, vh = self.viewport["width"], self.viewport["height"]
@@ -569,14 +569,15 @@ class BrowserManager:
                 continue
             if not box or box["width"] < 20 or box["height"] < 20:
                 continue
-            if box["x"] > vw or box["y"] > vh or box["x"] + box["width"] < 0 or box["y"] + box["height"] < 0:
+            offscreen = box["x"] > vw or box["y"] > vh or box["x"] + box["width"] < 0 or box["y"] + box["height"] < 0
+            if offscreen and not include_offscreen:
                 continue
             out.append((fr, box["x"], box["y"]))
         return out
 
-    def _all_frames_eval(self, script, arg=None):
+    def _all_frames_eval(self, script, arg=None, include_offscreen=False):
         results = []
-        for fr, _, _ in self._visible_frames():
+        for fr, _, _ in self._visible_frames(include_offscreen):
             try:
                 results.append(fr.evaluate(script, arg) if arg is not None else fr.evaluate(script))
             except Exception:
@@ -795,6 +796,18 @@ class BrowserManager:
                      "wav": "audio/wav", "opus": "audio/ogg"}.get(ext.group(1).lower() if ext else "", "audio/mpeg")
         return {"data": body, "mime": ctype, "size": len(body)}
 
+    def _form_status(self):
+        total, items = 0, []
+        for res in self._all_frames_eval(js.FORM_STATUS, include_offscreen=True):
+            if res:
+                total += res.get("total", 0)
+                items += res.get("items", [])
+        return {"total": total, "unanswered": len(items), "items": items[:20]}
+
+    def _cmd_form_status(self, p):
+        """Unanswered questions on the whole page (all frames), used before pressing Submit."""
+        return self._form_status()
+
     def _cmd_eval_frames(self, p):
         """Evaluates a script in every visible frame; returns the list of results (errors skipped)."""
         return {"results": self._all_frames_eval(p.get("script", "undefined"))}
@@ -862,6 +875,12 @@ class BrowserManager:
             order.insert(0, preferred)
         if only in order:
             order = [only]
+        # Mouse/touch strategies need both ends on screen (the element list also covers off-screen items).
+        for fr, eid in ((sframe, sid), (tframe, tid), (sframe, sid)):
+            try:
+                fr.locator(f'[data-aid="{eid}"]').first.scroll_into_view_if_needed(timeout=1500)
+            except Exception:
+                pass
         tried = []
         for name in order:
             if name in ("html5_events", "pointer_events") and sframe is not tframe:
@@ -970,10 +989,11 @@ class BrowserManager:
     # ------------------------------------------------------------------ commands: AI agent
 
     def _cmd_ai_observe(self, p):
-        """Annotates interactive elements in every visible frame, then captures a Set-of-Marks screenshot."""
+        """Annotates interactive elements of the whole page (all frames, also off-screen parts),
+        then captures a Set-of-Marks screenshot of the visible area and the page's form status."""
         page = self.page
-        frames = self._visible_frames()
-        limit = int(p.get("limit", 180))
+        frames = self._visible_frames(include_offscreen=True)
+        limit = int(p.get("limit", 260))
         elements, next_id = [], 1
         self._ai_elements = {}
         vw, vh = self.viewport["width"], self.viewport["height"]
@@ -993,8 +1013,9 @@ class BrowserManager:
                 el["y"] = int(el["y"] + oy)
                 el["left"] = int(el["left"] + ox)
                 el["top"] = int(el["top"] + oy)
-                if not (0 <= el["x"] <= vw and 0 <= el["y"] <= vh):
-                    continue
+                if not el.get("offscreen") and not (0 <= el["x"] <= vw and 0 <= el["y"] <= vh):
+                    # Inside the frame's view but outside the main window (tall/offset iframe).
+                    el["offscreen"] = "below" if el["y"] > vh else "above" if el["y"] < 0 else "side"
                 if fi > 0:
                     el["frame"] = fi
                 self._ai_elements[el["id"]] = (fr, el)
@@ -1003,7 +1024,7 @@ class BrowserManager:
         texts = []
         for fi, (fr, _, _) in enumerate(frames):
             try:
-                t = fr.evaluate(js.FRAME_TEXT, 7000)
+                t = fr.evaluate(js.FRAME_TEXT, 15000)  # whole document text, incl. what is scrolled away
             except Exception:
                 continue
             if t and len(t) > 2:
@@ -1052,6 +1073,7 @@ class BrowserManager:
             "elements": elements,
             "texts": texts,
             "media": media[:8],
+            "form_status": self._form_status(),
             "screenshot": shot,
             "viewport": self.viewport,
             "scroll": self.scroll_info,
@@ -1140,6 +1162,7 @@ class BrowserManager:
                 return {"status": "error", "message": f"Kéo thả không làm thay đổi trang (đã thử: {', '.join(tried)})",
                         "tried": tried}
             result["method"] = method
+            result["tried"] = tried
             self.log(f"AI kéo #{info['id']} → #{tid} bằng cách '{method}'")
 
         elif kind == "hover":

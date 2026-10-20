@@ -1,4 +1,4 @@
-# Tài liệu bàn giao: Auto Browser (v6.0.0)
+# Tài liệu bàn giao: Auto Browser (v6.1.0)
 
 Dành cho người dùng và công cụ phát triển kế thừa (Claude Code / Cursor / VSCode).
 
@@ -56,6 +56,14 @@ Chọn trong Cài đặt (`provider` trong `ai_config.json`). Cả hai đều d�
 | Audio (bài nghe) | Có | **Không**: bài nghe luôn chép lời bằng Gemini, nên vẫn cần khóa Gemini |
 
 Chỉ gửi những tham số Claude Opus 5.5 chấp nhận: không gửi `temperature` (bị 400), không tắt thinking. Prompt hệ thống ổn định được đánh dấu `cache_control` để có thể dùng lại cache giữa các bước. Lỗi được phân loại theo exception của SDK: sai khóa, không có quyền, không có model (chuyển model dự phòng), giới hạn tốc độ (chuyển model dự phòng), lỗi server (SDK đã tự thử lại 2 lần). **Chưa chạy thử với Claude thật** vì máy này không có Anthropic API key; `tests/test_claude.py` kiểm tra hình dạng request bằng client giả.
+
+### 3a'. Trang dài cần cuộn và chống nộp bài sớm (v6.1)
+
+Bản trước chỉ đưa cho AI những phần tử đang hiện trên màn hình, nên với trang dài, AI bỏ sót các câu ở phía dưới và từng bấm "Nộp" khi còn 4 câu trống (mất 1 lượt làm bài). Bây giờ:
+- `ANNOTATE_ELEMENTS` đánh số **toàn bộ trang** (mọi frame, kể cả frame và hộp cuộn đang nằm ngoài màn hình). Phần tử ngoài màn hình được gắn `offscreen: above/below/side`. AI thao tác thẳng bằng id, Playwright tự cuộn tới. Link điều hướng ngoài màn hình bị bỏ qua cho đỡ nhiễu. Chữ trên trang tăng lên 15.000 ký tự mỗi frame, tổng 24.000.
+- `FORM_STATUS` đếm số câu chưa trả lời trên **toàn trang**: ô chữ trống, nhóm radio chưa chọn, dropdown còn ở mục "-- Chọn --", ô kéo thả trống. Ô tìm kiếm, header/nav và ô chỉ-đọc không được tính. Kết quả nằm trong mục "FORM STATUS" của prompt, kèm id từng câu.
+- **Rào chắn trước khi nộp** (`_submit_guard`): trước khi click một nút có chữ Nộp / Submit / Check / Kiểm tra / Hoàn thành / Chấm…, app đếm lại trên trang thật. Nếu còn câu trống thì **không bấm**, báo trong chat, và cho AI biết các id còn thiếu. Rào chắn chặn tối đa 2 lần mỗi lần chạy (phòng trường hợp đếm nhầm). Nút "Nộp luôn" trong hộp xác nhận cũng bị chặn; AI được dặn chọn "Làm tiếp".
+- Kéo thả: cuộn cả nguồn và đích vào màn hình trước khi kéo.
 
 ### 3b. Engine kéo thả
 
@@ -169,7 +177,7 @@ Giao diện dùng **Primer CSS v22** và **Primer Octicons**, lưu sẵn trong `
 
 ## 7. Kiểm thử (21/10/2026)
 
-`python -m pytest`: **74 passed** trong khoảng 5,5 phút, không cần mạng hay API key. Gồm `test_claude.py` (11): hình dạng request gửi Claude (structured output, effort, fallbacks, cache, ảnh, không có `temperature`), từ chối an toàn, sai khóa, chuyển model khi bị giới hạn tốc độ, từ chối audio, schema chặt, agent dùng đúng provider, bài nghe với Claude vẫn chép lời bằng Gemini (và cảnh báo khi thiếu khóa Gemini), cài đặt không lộ khóa nào. Gồm `test_fast_input.py` (14): kênh CDP trực tiếp, gõ tiếng Việt / Ctrl+A / Backspace / Tab, kéo bôi đen, người dùng tự kéo thả bằng tay (HTML5, thư viện chuột, SortableJS), phím không hợp lệ, bảng tên phím.
+`python -m pytest`: **83 passed** trong khoảng 7 phút, không cần mạng hay API key. Gồm `test_long_pages.py` (trang 10 câu trải dài, có hộp cuộn và hộp xác nhận "Còn N câu chưa trả lời": AI thấy đủ 10 câu, nút Nộp sớm bị chặn, chỉ lần nộp đủ câu mới tính, đạt 10/10 và còn 2/3 lượt) và `test_gemini_quota.py` (hết lượt theo ngày thì chuyển model ngay, giới hạn theo phút thì chờ, tự tìm model khác, thông báo khi tất cả đều hết lượt). Gồm `test_claude.py` (11): hình dạng request gửi Claude (structured output, effort, fallbacks, cache, ảnh, không có `temperature`), từ chối an toàn, sai khóa, chuyển model khi bị giới hạn tốc độ, từ chối audio, schema chặt, agent dùng đúng provider, bài nghe với Claude vẫn chép lời bằng Gemini (và cảnh báo khi thiếu khóa Gemini), cài đặt không lộ khóa nào. Gồm `test_fast_input.py` (14): kênh CDP trực tiếp, gõ tiếng Việt / Ctrl+A / Backspace / Tab, kéo bôi đen, người dùng tự kéo thả bằng tay (HTML5, thư viện chuột, SortableJS), phím không hợp lệ, bảng tên phím.
 
 `python tools/test_desktop_exe.py` (bản đã cài bằng bộ cài): server sẵn sàng sau ~6 giây; cửa sổ trình duyệt (1037×852) và bảng AI (403×852) nằm cạnh nhau; trang vẽ ở 60–92 khung/giây; trang tự theo kích thước cửa sổ; đóng trình duyệt hoặc đóng bảng AI đều thoát sau ~3,5 giây, không sót process hay cửa sổ nào; gỡ cài đặt xóa chương trình nhưng giữ cài đặt của bạn.
 
@@ -185,7 +193,13 @@ Giao diện dùng **Primer CSS v22** và **Primer Octicons**, lưu sẵn trong `
 
 ## 8. Giới hạn đã biết
 
-- Quota miễn phí của Gemini tính riêng cho từng model. Khi model chính hết lượt (429), agent tự chuyển sang model dự phòng và giữ model đó 5 phút, nhưng lần chuyển đầu tiên mất thêm vài giây. Phần lớn thời gian chạy test LLM là thời gian chờ quota.
+- **Quota miễn phí của Gemini: 20 lượt/ngày cho mỗi model** (đo ngày 21/10/2026). Một số tên model dùng chung quota: `gemini-3.7-flash` và `gemini-flash-latest` đều báo `model: gemini-3.8-flash`. Mỗi bước của agent tốn 1 lượt, nên một model đủ cho khoảng 3–6 bài mỗi ngày. Cách xử lý trong `llm.py`:
+  - Lỗi 429 **theo ngày** (`PerDay`, hoặc "retry in" lâu hơn 90 giây): bỏ qua model đó **ngay lập tức** (Google trả lỗi trong ~0,3 giây), ghi nhớ đến lúc reset và không gọi lại;
+  - lỗi 429 **theo phút**: chờ đúng thời gian Google yêu cầu rồi thử lại;
+  - khi mọi model đã cấu hình đều hết lượt: tự tìm các model Flash khác của khóa (Flash trước Flash-Lite, bản ổn định trước bản preview);
+  - khi tất cả đều hết lượt: báo rõ còn bao lâu thì có lượt lại, và gợi ý chuyển sang Claude.
+
+  Chat ghi rõ model nào đang được dùng và vì sao.
 - Bài nghe: audio phát qua MediaSource/`blob:` (stream từng mảnh) không tải lại được nên không chép lời được; file mp3/m4a/wav/ogg thông thường thì được.
 - Kéo thả: đã thử 11 cơ chế phổ biến nhưng **chưa thử trên Cambridge One/Rikkei thật** (cần tài khoản của bạn). Nếu không cách nào có tác dụng, agent nhận lỗi kèm danh sách các cách đã thử và được dặn đổi cách tiếp cận.
 - `config.DEFAULT_URL` và nút Cambridge chứa đường dẫn lớp học cụ thể của bạn (org/class id). Nếu đặt repo GitHub ở chế độ công khai, hãy cân nhắc thay đường dẫn này.

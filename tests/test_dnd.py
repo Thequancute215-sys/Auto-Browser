@@ -60,9 +60,9 @@ def test_drag_preference_is_remembered(browser, goto):
     assert first["method"] == "touch"
     goto("dnd/touch.html")
     src, tgt, _ = _observe_pair(browser)
-    t0 = time.time()
     second = browser.execute("ai_act", {"action": "drag", "id": src["id"], "target_id": tgt["id"]}, timeout=60)
-    assert second["method"] == "touch" and time.time() - t0 < 3, "remembered strategy should be tried first"
+    assert first["tried"][-1] == "touch" and len(first["tried"]) > 1, "first drag had to search for the strategy"
+    assert second["method"] == "touch" and second["tried"] == ["touch"], "remembered strategy should be tried first"
 
 
 def test_drag_reports_failure_honestly(browser, goto):
