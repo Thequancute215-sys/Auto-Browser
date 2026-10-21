@@ -61,14 +61,24 @@ class _QuietHandler(http.server.SimpleHTTPRequestHandler):
 
 
 class _DualStackServer(http.server.ThreadingHTTPServer):
+    """Listens on IPv6 and IPv4 at once: 'localhost' may resolve to ::1 (e.g. GitHub's Windows runners),
+    and the cross-origin iframe tests load the same server as both 127.0.0.1 and localhost."""
     daemon_threads = True
+    address_family = socket.AF_INET6
+
+    def server_bind(self):
+        try:
+            self.socket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_V6ONLY, 0)
+        except (AttributeError, OSError):
+            pass
+        super().server_bind()
 
 
 @pytest.fixture(scope="session")
 def site():
     """Base URL of the fixture site. 'localhost' and '127.0.0.1' both work, which gives two origins."""
     handler = functools.partial(_QuietHandler, directory=str(FIXTURES))
-    srv = _DualStackServer(("127.0.0.1", 0), handler)
+    srv = _DualStackServer(("::", 0), handler)
     threading.Thread(target=srv.serve_forever, daemon=True).start()
     yield f"http://127.0.0.1:{srv.server_address[1]}"
     srv.shutdown()

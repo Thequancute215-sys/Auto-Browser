@@ -35,6 +35,7 @@ jobs:
         run: python -m pytest -q
       - name: Upload test reports
         if: always()
+        continue-on-error: true   # optional; private repos have a small artifact storage quota
         uses: actions/upload-artifact@v4
         with:
           name: reports-${{ matrix.os }}

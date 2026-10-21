@@ -79,22 +79,10 @@ jobs:
           Get-Content "$env:LOCALAPPDATA\AutoBrowser\logs\app.log" -Tail 10
           if ($p.ExitCode -ne 0) { throw "selftest failed" }
           Start-Process "$dir\unins000.exe" -ArgumentList "/VERYSILENT","/SUPPRESSMSGBOXES" -Wait
-      - uses: actions/upload-artifact@v4
-        with:
-          name: windows-installer
-          path: dist/AutoBrowser-Setup-*.exe
-
-  publish:
-    needs: [check-version, docker, windows-installer]
-    runs-on: ubuntu-latest
-    if: github.ref_type == 'tag'
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
-        with:
-          name: windows-installer
-          path: dist
+      # Upload straight to the Release (no workflow artifacts: they count against the storage quota).
       - name: Create or update the GitHub Release
+        if: github.ref_type == 'tag'
+        shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -102,7 +90,7 @@ jobs:
           NOTES="docs/releases/${TAG}.md"
           [ -f "$NOTES" ] || NOTES=/dev/null
           if gh release view "$TAG" >/dev/null 2>&1; then
-            gh release upload "$TAG" dist/*.exe --clobber
+            gh release upload "$TAG" dist/AutoBrowser-Setup-*.exe --clobber
           else
-            gh release create "$TAG" dist/*.exe --title "Auto Browser ${TAG#v}" --notes-file "$NOTES"
+            gh release create "$TAG" dist/AutoBrowser-Setup-*.exe --title "Auto Browser ${TAG#v}" --notes-file "$NOTES"
           fi
