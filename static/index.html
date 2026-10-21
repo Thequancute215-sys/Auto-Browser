@@ -258,6 +258,10 @@
         <label class="check"><input type="checkbox" id="setSubmit"> Tự bấm Check / Nộp bài sau khi điền xong (và sửa câu sai nếu được)</label>
         <label class="check"><input type="checkbox" id="setNext"> Tự chuyển sang bài tiếp theo sau khi hoàn thành</label>
         <label class="check"><input type="checkbox" id="setListen"> Bài nghe: tải audio của trang, nhờ Gemini chép lời rồi làm bài</label>
+        <div class="form-group">
+          <label class="form-label" for="startUrlInput">Trang mở khi khởi động <span class="color-fg-muted text-normal">: vd link lớp học của bạn, để trống = trang chủ Cambridge One</span></label>
+          <input type="url" id="startUrlInput" class="form-control input-block" placeholder="https://www.cambridgeone.org/home" spellcheck="false">
+        </div>
         <div class="field-row">
           <div class="form-group">
             <label class="form-label" for="maxStepsInput">Số bước tối đa mỗi lần chạy</label>

@@ -583,7 +583,7 @@ document.querySelectorAll('[data-nav]').forEach((b) => b.addEventListener('click
 $('btnReload').addEventListener('click', () => api('/api/action', { action: S.loading ? 'stop_loading' : 'reload' }));
 
 const SITES = {
-  cambridge: 'https://www.cambridgeone.org/nlp/learner/org_cup_P5P89k5Xlm9dZYgWcNtWU/class/0dbf774e-59f2-4477-bc4e-336e02cddf5b/product/empbe2ednl3dw/assignment/64fffda9-288b-4dc4-81a4-a2e2333d07f6/view/item/1626243307374%2F1626245741894%2F1626258839518',
+  cambridge: 'https://www.cambridgeone.org/home',
   rikkei: 'https://lms-student.rikkei.edu.vn',
 };
 document.querySelectorAll('[data-site]').forEach((b) => b.addEventListener('click', () => api('/api/goto', { url: SITES[b.dataset.site] })));
@@ -822,6 +822,7 @@ function openSettings() {
   $('claudeKeyInput').placeholder = c.masked_claude_key ? `Đã lưu: ${c.masked_claude_key}. Nhập khóa mới để thay` : 'Dán khóa (sk-ant-...)';
   $('claudeModelInput').value = c.claude_model || 'claude-opus-5-5';
   $('setAutoUpdate').checked = c.auto_update !== false;
+  $('startUrlInput').value = c.start_url || '';
   $('updateTokenInput').value = '';
   $('updateTokenInput').placeholder = c.has_update_token ? 'Đã lưu token. Nhập token mới để thay' : 'github_pat_... (quyền chỉ đọc Contents)';
   $('localModelInput').value = c.local_model || 'gemma4:e4b';
@@ -888,6 +889,7 @@ function collectSettings() {
     local_model: $('localModelInput').value.trim(),
     local_fallback: $('setLocalFallback').checked,
     auto_update: $('setAutoUpdate').checked,
+    start_url: $('startUrlInput').value.trim(),
   };
   const updToken = $('updateTokenInput').value.trim();
   if (updToken) patch.update_token = updToken;

@@ -31,6 +31,7 @@ DEFAULT_SETTINGS = {
     # Mô hình chạy trên máy qua Ollama: không cần khóa, không giới hạn lượt (chậm hơn đám mây)
     "local_model": "gemma4:e4b",
     "local_fallback": True,    # khi mọi mô hình đám mây hết lượt miễn phí thì chuyển sang mô hình trên máy
+    "start_url": "",           # trang mở khi khởi động (vd: link lớp học của bạn); trống = trang chủ Cambridge One
     "auto_update": True,       # app desktop: tự cài bản mới (không phải gỡ / tải lại)
     "update_token": "",        # GitHub token chỉ đọc, chỉ cần khi kho GitHub đang để riêng tư
 }
@@ -280,6 +281,9 @@ class AIController:
             self.settings["local_fallback"] = bool(payload["local_fallback"])
         if "auto_update" in payload:
             self.settings["auto_update"] = bool(payload["auto_update"])
+        if isinstance(payload.get("start_url"), str):
+            url = payload["start_url"].strip()
+            self.settings["start_url"] = url if (not url or url.startswith(("http://", "https://"))) else self.settings.get("start_url", "")
         if (payload.get("update_token") or "").strip():
             self.settings["update_token"] = payload["update_token"].strip()
         if payload.get("claude_effort") in CLAUDE_EFFORTS:

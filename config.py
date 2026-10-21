@@ -36,11 +36,21 @@ KILL_STALE_BROWSERS = os.environ.get("AIB_KILL_STALE", "1") == "1"
 AI_CONFIG_FILE = os.environ.get("AIB_AI_CONFIG") or os.path.join(BASE_DIR, "ai_config.json")
 
 # Default URLs
-DEFAULT_URL = (
-    "https://www.cambridgeone.org/nlp/learner/org_cup_P5P89k5Xlm9dZYgWcNtWU/class/"
-    "0dbf774e-59f2-4477-bc4e-336e02cddf5b/product/empbe2ednl3dw/assignment/"
-    "64fffda9-288b-4dc4-81a4-a2e2333d07f6/view/item/1626243307374%2F1626245741894%2F1626258839518"
-)
+# Page opened at start. Personal class/assignment links belong in the user's own settings
+# ("start_url" in ai_config.json, passed in as AIB_START_URL), never in the repository.
+CAMBRIDGE_URL = "https://www.cambridgeone.org/home"
+
+
+def _saved_start_url() -> str:
+    try:
+        import json
+        with open(AI_CONFIG_FILE, "r", encoding="utf-8") as f:
+            return (json.load(f).get("start_url") or "").strip()
+    except Exception:
+        return ""
+
+
+DEFAULT_URL = os.environ.get("AIB_START_URL") or _saved_start_url() or CAMBRIDGE_URL
 RIKKEI_URL = "https://lms-student.rikkei.edu.vn"
 
 # User-Agent for realistic browsing
