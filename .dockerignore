@@ -1,0 +1,19 @@
+# Never ship secrets or local state into the image
+ai_config.json
+.env
+**/__pycache__
+*.pyc
+.git
+.github
+.pytest_cache
+dist
+build
+installer
+assets
+tests
+tools
+scripts
+*.md
+!README.md
+start.bat
+desktop_app.py

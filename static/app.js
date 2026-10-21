@@ -787,9 +787,12 @@ function applyConfig(cfg) {
   S.config = cfg;
   const dot = $('keyDot');
   dot.className = 'status-dot ' + (cfg.has_key ? 'success' : 'danger');
-  const brand = cfg.provider === 'claude' ? 'Claude' : 'Gemini';
-  $('settingsLabel').textContent = cfg.has_key
-    ? (cfg.active_model || brand).replace(/^gemini-/, 'Gemini ').replace(/^claude-/, 'Claude ')
+  const brand = { claude: 'Claude', local: 'Trên máy' }[cfg.provider] || 'Gemini';
+  const localReady = cfg.local && cfg.local.available && cfg.local.has_model;
+  const ready = cfg.provider === 'local' ? localReady : cfg.has_key;
+  dot.className = 'status-dot ' + (ready ? 'success' : 'danger');
+  $('settingsLabel').textContent = ready
+    ? (cfg.provider === 'local' ? `${brand}: ${cfg.active_model}` : (cfg.active_model || brand).replace(/^gemini-/, 'Gemini ').replace(/^claude-/, 'Claude '))
     : 'Cài đặt';
   setSegmented('aiMode', cfg.mode);
   $('optSubmit').checked = !!cfg.auto_submit;
@@ -818,6 +821,15 @@ function openSettings() {
   $('claudeKeyInput').value = '';
   $('claudeKeyInput').placeholder = c.masked_claude_key ? `Đã lưu: ${c.masked_claude_key}. Nhập khóa mới để thay` : 'Dán khóa (sk-ant-...)';
   $('claudeModelInput').value = c.claude_model || 'claude-opus-5-5';
+  $('setAutoUpdate').checked = c.auto_update !== false;
+  $('updateTokenInput').value = '';
+  $('updateTokenInput').placeholder = c.has_update_token ? 'Đã lưu token. Nhập token mới để thay' : 'github_pat_... (quyền chỉ đọc Contents)';
+  $('localModelInput').value = c.local_model || 'gemma4:e4b';
+  $('setLocalFallback').checked = c.local_fallback !== false;
+  renderLocalStatus(c.local);
+  if (c.local && c.local.models) {
+    $('localModelList').innerHTML = c.local.models.map((m) => `<option value="${escapeHtml(m)}"></option>`).join('');
+  }
   $('claudeEffortSelect').value = c.claude_effort || 'medium';
   $('modelInput').value = c.model || '';
   $('fallbackInput').value = (c.fallback_models || []).join(', ');
@@ -836,6 +848,23 @@ function openSettings() {
   if (c.has_claude_key && !$('claudeModelList').children.length) loadModels(true, 'claude');
 }
 function closeSettings() { modal.hidden = true; }
+
+function renderLocalStatus(st) {
+  const el = $('localStatus');
+  if (!st) { el.hidden = true; return; }
+  el.hidden = false;
+  const want = $('localModelInput').value.trim() || 'gemma4:e4b';
+  if (!st.available) {
+    el.className = 'flash flash-error';
+    el.textContent = `Chưa thấy Ollama tại ${st.host}. Cài từ ollama.com rồi mở lại app.`;
+  } else if (!st.has_model) {
+    el.className = 'flash flash-error';
+    el.textContent = `Ollama đang chạy nhưng chưa có mô hình «${want}». Chạy lệnh: ollama pull ${want}`;
+  } else {
+    el.className = 'flash flash-success';
+    el.textContent = `Ollama sẵn sàng với «${want}» (${st.models.length} mô hình trên máy).`;
+  }
+}
 
 function settingsStatus(text, cls) {
   const el = $('settingsStatus');
@@ -856,7 +885,12 @@ function collectSettings() {
     provider: (document.querySelector('input[name=provider]:checked') || {}).value || 'gemini',
     claude_model: $('claudeModelInput').value.trim(),
     claude_effort: $('claudeEffortSelect').value,
+    local_model: $('localModelInput').value.trim(),
+    local_fallback: $('setLocalFallback').checked,
+    auto_update: $('setAutoUpdate').checked,
   };
+  const updToken = $('updateTokenInput').value.trim();
+  if (updToken) patch.update_token = updToken;
   const key = $('apiKeyInput').value.trim();
   if (key) patch.api_key = key;
   const claudeKey = $('claudeKeyInput').value.trim();
@@ -902,14 +936,15 @@ async function submitSettings(test) {
 }
 
 async function loadModels(silent = false, provider = 'gemini') {
-  const claude = provider === 'claude';
-  const btn = claude ? $('btnLoadClaudeModels') : $('btnLoadModels');
+  const ids = { gemini: ['btnLoadModels', 'modelList'], claude: ['btnLoadClaudeModels', 'claudeModelList'], local: ['btnLoadLocalModels', 'localModelList'] };
+  const [btnId, listId] = ids[provider] || ids.gemini;
+  const btn = $(btnId);
   btn.disabled = true;
   try {
-    const res = await api(`/api/ai/models?provider=${claude ? 'claude' : 'gemini'}`);
+    const res = await api(`/api/ai/models?provider=${provider in ids ? provider : 'gemini'}`);
     if (res.status !== 'ok') { if (!silent) settingsStatus(`❌ ${res.message}`, 'err'); return; }
-    $(claude ? 'claudeModelList' : 'modelList').innerHTML = res.models.map((m) => `<option value="${escapeHtml(m.name)}">${escapeHtml(m.display)}</option>`).join('');
-    if (!claude) $('modelHint').textContent = `${res.models.length} mô hình khả dụng. Gõ để lọc; bản "flash" nhanh và rẻ, bản "pro" chính xác hơn.`;
+    $(listId).innerHTML = res.models.map((m) => `<option value="${escapeHtml(m.name)}">${escapeHtml(m.display)}</option>`).join('');
+    if (provider === 'gemini') $('modelHint').textContent = `${res.models.length} mô hình khả dụng. Gõ để lọc; bản "flash" nhanh và rẻ, bản "pro" chính xác hơn.`;
     if (!silent) settingsStatus(`Đã tải ${res.models.length} mô hình.`, 'info');
   } catch {
     if (!silent) settingsStatus('❌ Không tải được danh sách mô hình', 'err');
@@ -925,6 +960,8 @@ $('btnSaveSettings').addEventListener('click', () => submitSettings(false));
 $('btnTestSettings').addEventListener('click', () => submitSettings(true));
 $('btnLoadModels').addEventListener('click', () => loadModels(false, 'gemini'));
 $('btnLoadClaudeModels').addEventListener('click', () => loadModels(false, 'claude'));
+$('btnLoadLocalModels').addEventListener('click', () => loadModels(false, 'local'));
+$('localModelInput').addEventListener('input', () => renderLocalStatus(S.config && S.config.local));
 $('btnToggleKey').addEventListener('click', () => {
   const inp = $('apiKeyInput');
   inp.type = inp.type === 'password' ? 'text' : 'password';
@@ -932,6 +969,7 @@ $('btnToggleKey').addEventListener('click', () => {
 });
 $('btnClearKey').addEventListener('click', async () => {
   const provider = (document.querySelector('input[name=provider]:checked') || {}).value || 'gemini';
+  if (provider === 'local') { settingsStatus('AI trên máy không dùng khóa nên không có gì để xóa.', 'info'); return; }
   const brand = provider === 'claude' ? 'Claude' : 'Gemini';
   if (!confirm(`Xóa ${brand} API Key đã lưu trên máy này?`)) return;
   await saveConfig({ clear_key: true, clear_provider: provider });
@@ -1041,6 +1079,45 @@ function connectEvents() {
   es.onopen = () => setConn('live');
   es.onerror = () => setConn(es.readyState === EventSource.CLOSED ? 'down' : 'connecting');
 }
+
+// ---------------------------------------------------------------- updates (no reinstall needed)
+
+async function checkUpdate(force = false) {
+  let info;
+  try { info = await api(`/api/app/version${force ? '?force=1' : ''}`); } catch { return null; }
+  $('versionLabel').textContent = `: đang dùng ${info.current} (${{ desktop: 'app Windows', docker: 'Docker', source: 'mã nguồn' }[info.mode] || info.mode})`;
+  const banner = $('updateBanner');
+  if (info.update_available) {
+    banner.hidden = false;
+    $('updateText').textContent = `Có bản mới ${info.latest} (đang dùng ${info.current}).`;
+    $('btnUpdateNow').hidden = info.mode !== 'desktop';
+    const cmd = $('updateCmd');
+    cmd.hidden = info.mode === 'desktop';
+    cmd.textContent = info.mode === 'docker' ? 'docker compose pull && docker compose up -d' : 'git pull  (hoặc chạy lại start.bat)';
+  } else {
+    banner.hidden = true;
+  }
+  return info;
+}
+
+$('btnUpdateNow').addEventListener('click', async () => {
+  $('btnUpdateNow').disabled = true;
+  $('updateText').textContent = 'Đang tải và kiểm tra bản cài...';
+  const res = await api('/api/app/update', {});
+  $('updateText').textContent = res.message;
+  $('btnUpdateNow').disabled = res.status === 'ok';
+});
+
+$('btnCheckUpdate').addEventListener('click', async () => {
+  $('updateCheckResult').textContent = 'Đang kiểm tra...';
+  const info = await checkUpdate(true);
+  if (!info) { $('updateCheckResult').textContent = 'Không kiểm tra được.'; return; }
+  $('updateCheckResult').textContent = info.error ? info.error
+    : info.update_available ? `Có bản ${info.latest}.` : `Bạn đang dùng bản mới nhất (${info.current}).`;
+});
+
+setTimeout(() => checkUpdate(false), 4000);
+setInterval(() => checkUpdate(false), 6 * 3600 * 1000);
 
 // ---------------------------------------------------------------- boot
 

@@ -355,6 +355,11 @@ svg.octicon { fill: currentColor; vertical-align: text-bottom; flex: none; overf
 .radio-card input { position: absolute; left: 12px; top: 15px; margin: 0; accent-color: var(--bgColor-accent-emphasis); }
 .radio-card-title { display: flex; align-items: center; gap: var(--base-size-6); font-weight: 600; }
 .radio-card-desc { font-size: 12px; color: var(--fgColor-muted); }
+#providerCards { grid-template-columns: repeat(3, 1fr); }
+.update-banner { display: flex; flex-direction: column; gap: var(--base-size-6); padding: var(--base-size-8) var(--base-size-12); }
+.update-banner .update-cmd { font-size: 11px; padding: 4px 6px; border-radius: var(--borderRadius-small); background: var(--bgColor-default); user-select: all; }
+#updateCheckResult { align-self: center; }
+@media (max-width: 640px) { .radio-cards, #providerCards { grid-template-columns: 1fr; } }
 .radio-card:has(input:checked) { border-color: var(--borderColor-accent-emphasis); background: var(--bgColor-accent-muted); }
 
 /* ---------------------------------------------------------------- Drawer */

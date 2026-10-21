@@ -76,6 +76,12 @@
         <span class="Label Label--success" id="aiBadge"><span class="Label-dot"></span><span id="aiBadgeText">Sẵn sàng</span></span>
       </div>
 
+      <div class="flash flash-info update-banner" id="updateBanner" hidden>
+        <div><svg data-oi="rocket"></svg> <span id="updateText">Có bản mới</span></div>
+        <button class="btn btn-sm btn-primary" id="btnUpdateNow" hidden>Cập nhật ngay</button>
+        <code class="update-cmd" id="updateCmd" hidden></code>
+      </div>
+
       <div class="ai-progress" id="aiProgress" hidden>
         <div class="progress-row"><span id="aiStepText" class="text-semibold">Bước 0/0</span><span id="aiPhaseText" class="color-fg-muted"></span></div>
         <span class="ProgressBar"><span class="ProgressBar-item" id="aiProgressFill"></span></span>
@@ -172,7 +178,23 @@
         <div class="radio-cards" id="providerCards">
           <label class="radio-card"><input type="radio" name="provider" value="gemini"><span class="radio-card-title"><svg data-oi="sparkle-fill"></svg> Google Gemini</span><span class="radio-card-desc">Miễn phí (có giới hạn lượt/ngày), nghe được audio bài nghe.</span></label>
           <label class="radio-card"><input type="radio" name="provider" value="claude"><span class="radio-card-title"><svg data-oi="copilot"></svg> Claude (Anthropic)</span><span class="radio-card-desc">Trả phí theo lượt dùng, suy luận kỹ. Bài nghe vẫn cần khóa Gemini.</span></label>
+          <label class="radio-card"><input type="radio" name="provider" value="local"><span class="radio-card-title"><svg data-oi="device-desktop"></svg> Trên máy (Ollama)</span><span class="radio-card-desc">Không cần khóa, không giới hạn lượt, dữ liệu không rời máy. Chậm hơn đám mây.</span></label>
         </div>
+      </section>
+
+      <section class="form-section">
+        <h2 class="form-section-title">AI chạy trên máy (Ollama)</h2>
+        <div class="flash flash-info" id="localStatus">Đang kiểm tra Ollama...</div>
+        <div class="form-group">
+          <label class="form-label" for="localModelInput">Mô hình trên máy</label>
+          <div class="input-group">
+            <input type="text" id="localModelInput" class="form-control input-block" list="localModelList" placeholder="gemma4:e4b" spellcheck="false">
+            <button type="button" class="btn" id="btnLoadLocalModels" title="Tải danh sách mô hình đã cài"><svg data-oi="list-unordered"></svg></button>
+          </div>
+          <datalist id="localModelList"></datalist>
+          <p class="note">Cài <a href="https://ollama.com/download" target="_blank" rel="noopener">Ollama</a> rồi tải mô hình bằng lệnh <code>ollama pull gemma4:e4b</code> (khoảng 6,6 GB, có đọc hình ảnh).</p>
+        </div>
+        <label class="check"><input type="checkbox" id="setLocalFallback"> Khi Gemini/Gemma đám mây hết lượt miễn phí, tự chuyển sang AI trên máy để làm tiếp</label>
       </section>
 
       <section class="form-section">
@@ -254,6 +276,16 @@
           </div>
         </div>
       </section>
+      <section class="form-section">
+        <h2 class="form-section-title">Cập nhật <span class="color-fg-muted text-normal f6" id="versionLabel"></span></h2>
+        <label class="check"><input type="checkbox" id="setAutoUpdate"> Tự động cài bản mới khi mở app (không cần gỡ hay tải lại; cài đặt và đăng nhập được giữ nguyên)</label>
+        <div class="form-group">
+          <label class="form-label" for="updateTokenInput">GitHub token <span class="color-fg-muted text-normal">: chỉ cần khi kho GitHub của dự án đang để riêng tư</span></label>
+          <input type="password" id="updateTokenInput" class="form-control input-block" placeholder="github_pat_... (quyền chỉ đọc Contents)" autocomplete="off" spellcheck="false">
+        </div>
+        <div class="input-group"><button type="button" class="btn btn-sm" id="btnCheckUpdate"><svg data-oi="sync"></svg> Kiểm tra cập nhật</button><span class="note" id="updateCheckResult"></span></div>
+      </section>
+
       <div class="flash" id="settingsStatus" hidden></div>
     </div>
     <div class="Overlay-footer">

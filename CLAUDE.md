@@ -16,7 +16,9 @@ python tools/build_exe.py            # đóng gói: dist/AutoBrowser/AutoBrowser
 python tools/test_desktop_exe.py     # kiểm tra app desktop đã đóng gói (2 cửa sổ, fps, đóng → thoát sạch)
 ```
 
-Phiên bản app nằm ở `VERSION` trong `tools/build_exe.py`. Muốn phát hành: tăng số này, build, rồi đính kèm bộ cài vào GitHub Release (thư mục `dist/` không được commit).
+**Phát hành:** phiên bản duy nhất nằm ở `version.py`. Tăng số này, viết `docs/releases/vX.Y.Z.md`, commit, rồi `git tag vX.Y.Z && git push origin main --tags`. GitHub Actions (`release.yml`) sẽ build image Docker lên GHCR, build và test bộ cài Windows, rồi tạo Release. Không đính kèm file thủ công. App đã cài sẽ tự cập nhật từ Release đó (`updater.py`), nên **mọi thay đổi phải giữ tương thích với dữ liệu cũ**: chỉ thêm key mới vào `DEFAULT_SETTINGS`, không đổi tên hay xóa key, và không đổi `AppId` trong `installer/AutoBrowser.iss`.
+
+Docker: `docker build -t autobrowser .` rồi `docker run -p 127.0.0.1:8000:8000 --shm-size=1g autobrowser`. Phiên bản Playwright trong `requirements.lock` phải khớp tag của base image trong `Dockerfile`.
 
 Biến môi trường: `PORT`, `ALLOW_LAN=1`, `AIB_PROFILE_DIR`, `AIB_AI_CONFIG`, `AIB_KILL_STALE=0`, `GEMINI_API_KEY`.
 Muốn chạy thử song song với server đang dùng: đặt `PORT=8765`, `AIB_KILL_STALE=0` và `AIB_PROFILE_DIR` trỏ tới một thư mục tạm.
@@ -30,6 +32,8 @@ Muốn chạy thử song song với server đang dùng: đặt `PORT=8765`, `AIB
 - `llm.py`: `GeminiClient` (mặc định, miễn phí, nhận audio) và `ClaudeClient` (SDK `anthropic`, mặc định `claude-opus-5-5`). Cả hai có cùng `generate()` / `list_models()`. Với Claude: không gửi `temperature`, không tắt thinking (Opus 5.5 trả 400), dùng `output_config` (`effort` + `format` json_schema), `fallbacks: "default"` qua `client.beta.messages.create` với beta `server-side-fallback-2026-07-01`, và bắt lỗi bằng các exception của SDK. Bài nghe luôn chép lời bằng Gemini (Claude không nhận audio). Test không bao giờ gọi API thật: inject client giả qua `_get_client`.
 - `events.py`: EventBus cho SSE.
 - `cdp_fast.py`: WebSocket CDP trực tiếp tới trang đang mở (chế độ stream). Nhận khung hình và gửi input của người dùng, không đi qua luồng Playwright. Phải giữ nguyên thứ tự gửi (một WebSocket, gửi rồi không chờ phản hồi).
+- `updater.py`: kiểm tra GitHub Releases, tải bộ cài, xác minh SHA-256 rồi cài đè im lặng (desktop); hướng dẫn cập nhật cho Docker và bản mã nguồn. `version.py` giữ phiên bản và tên repo.
+- Ba provider AI: `gemini` (mặc định, xoay vòng Flash → Flash-Lite → Gemma khi hết quota), `claude`, `local` (Ollama). Khi cả pool đám mây hết lượt, `QuotaExhausted` khiến agent chuyển sang mô hình trên máy nếu `local_fallback` bật.
 - `desktop_app.py`: launcher của exe, chạy chế độ `window`: một cửa sổ Chromium thật, cộng bảng AI (`/?view=panel`) mở bằng Chromium của Playwright với `--app` và profile riêng. **Không mở bảng bằng Edge** (Edge có thể nhét bảng vào Edge cá nhân của người dùng).
 - `static/`: giao diện vanilla JS dựa trên **GitHub Primer**. `vendor/primer.css` (v22, gồm token sáng/tối) và `vendor/octicons.js` được lưu sẵn trong repo, không phụ thuộc CDN.
 

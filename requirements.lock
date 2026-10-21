@@ -1,0 +1,6 @@
+# Exact versions that the test suite and the Docker image are built against.
+# playwright must match the base image tag in Dockerfile (mcr.microsoft.com/playwright/python:v1.64.0-noble).
+playwright==1.64.0
+google-genai==2.31.0
+anthropic==1.16.0
+websocket-client==1.9.2

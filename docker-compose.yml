@@ -1,0 +1,43 @@
+# Auto Browser with Docker Compose.
+#   Start / update:   docker compose pull && docker compose up -d
+#   Open:             http://localhost:8000
+#   Build from code:  docker compose up -d --build
+# Logins, API keys and settings are kept in the "autobrowser-data" volume across updates.
+services:
+  autobrowser:
+    image: ghcr.io/thequancute215-sys/auto-browser:latest
+    build: .
+    container_name: autobrowser
+    ports:
+      - "127.0.0.1:8000:8000"     # only this computer can open the UI
+    volumes:
+      - autobrowser-data:/data
+    shm_size: "1gb"               # Chromium needs more shared memory than Docker's 64 MB default
+    restart: unless-stopped
+    environment:
+      - TZ=${TZ:-Asia/Ho_Chi_Minh}
+      # Local AI: Ollama on the host machine by default; with the "local-ai" profile use http://ollama:11434
+      - OLLAMA_HOST=${OLLAMA_HOST:-http://host.docker.internal:11434}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  # Optional: run the local AI model in Docker too  →  docker compose --profile local-ai up -d
+  ollama:
+    image: ollama/ollama:latest
+    profiles: ["local-ai"]
+    volumes:
+      - ollama-models:/root/.ollama
+    restart: unless-stopped
+
+  # Optional: install new versions automatically  →  docker compose --profile autoupdate up -d
+  watchtower:
+    image: containrrr/watchtower:1.7.1
+    profiles: ["autoupdate"]
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: --interval 21600 --cleanup autobrowser
+    restart: unless-stopped
+
+volumes:
+  autobrowser-data:
+  ollama-models:

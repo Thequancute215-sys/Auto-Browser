@@ -8,7 +8,7 @@ import urllib.parse
 from typing import Any, Dict, List, Optional
 
 import config
-from llm import ClaudeClient, GeminiClient, LLMError, parse_json_response
+from llm import ClaudeClient, GeminiClient, LLMError, OllamaClient, QuotaExhausted, parse_json_response
 
 DEFAULT_SETTINGS = {
     "provider": "gemini",      # "gemini" (miễn phí, nghe được audio) | "claude" (Anthropic, trả phí)
@@ -28,8 +28,14 @@ DEFAULT_SETTINGS = {
     "claude_model": "claude-opus-5-5",
     "claude_fallback_models": [],
     "claude_effort": "medium",  # low | medium | high — độ kỹ của suy luận (cao hơn = chính xác hơn, chậm & đắt hơn)
+    # Mô hình chạy trên máy qua Ollama: không cần khóa, không giới hạn lượt (chậm hơn đám mây)
+    "local_model": "gemma4:e4b",
+    "local_fallback": True,    # khi mọi mô hình đám mây hết lượt miễn phí thì chuyển sang mô hình trên máy
+    "auto_update": True,       # app desktop: tự cài bản mới (không phải gỡ / tải lại)
+    "update_token": "",        # GitHub token chỉ đọc, chỉ cần khi kho GitHub đang để riêng tư
 }
-PROVIDERS = ("gemini", "claude")
+SECRET_KEYS = ("api_key", "claude_api_key", "update_token")
+PROVIDERS = ("gemini", "claude", "local")
 CLAUDE_EFFORTS = ("low", "medium", "high", "xhigh", "max")
 
 # Structured output for Claude: the reply is guaranteed to be this JSON object.
@@ -135,6 +141,7 @@ class AIController:
         self.bus = bus
         self.gemini = GeminiClient()
         self.claude = ClaudeClient()
+        self.ollama = OllamaClient()
         self._llm_override = None  # tests inject a fake model here
         self.settings: Dict[str, Any] = dict(DEFAULT_SETTINGS)
         self._load_config()
@@ -195,7 +202,7 @@ class AIController:
     def llm(self):
         if self._llm_override is not None:
             return self._llm_override
-        return self.claude if self.provider == "claude" else self.gemini
+        return {"claude": self.claude, "local": self.ollama}.get(self.provider, self.gemini)
 
     @llm.setter
     def llm(self, client):
@@ -211,6 +218,8 @@ class AIController:
 
     @property
     def api_key(self) -> str:
+        if self.provider == "local":
+            return "local"  # Ollama needs no key; reachability is checked when it is called
         if self.provider == "claude":
             # Empty is fine when ANTHROPIC_API_KEY is set: the SDK picks it up.
             return self.claude_key or os.environ.get("ANTHROPIC_API_KEY", "").strip()
@@ -218,13 +227,35 @@ class AIController:
 
     @property
     def model(self) -> str:
+        if self.provider == "local":
+            return (self.settings.get("local_model") or DEFAULT_SETTINGS["local_model"]).strip()
         if self.provider == "claude":
             return (self.settings.get("claude_model") or DEFAULT_SETTINGS["claude_model"]).strip()
         return (self.settings.get("model") or DEFAULT_SETTINGS["model"]).strip()
 
     def fallbacks(self, s: Optional[Dict[str, Any]] = None) -> List[str]:
         s = s or self.settings
+        if self.provider == "local":
+            return []
         return list(s.get("claude_fallback_models" if self.provider == "claude" else "fallback_models") or [])
+
+    def local_status(self) -> Dict[str, Any]:
+        """Is Ollama reachable, and is the chosen local model downloaded? Cached for 20 s (polled by the UI)."""
+        now = time.time()
+        cached = getattr(self, "_local_cache", None)
+        if cached and now - cached[0] < 20:
+            return cached[1]
+        status = {"available": False, "has_model": False, "models": [], "host": self.ollama.host}
+        if self.ollama.available():
+            status["available"] = True
+            try:
+                status["models"] = [m["name"] for m in self.ollama.list_models()]
+            except LLMError:
+                pass
+            want = self.settings.get("local_model") or DEFAULT_SETTINGS["local_model"]
+            status["has_model"] = any(m == want or m.split(":")[0] == want for m in status["models"])
+        self._local_cache = (now, status)
+        return status
 
     def save_config(self, payload: Dict[str, Any]):
         if payload.get("provider") in PROVIDERS:
@@ -236,11 +267,21 @@ class AIController:
         if payload.get("clear_key"):
             # Clears the key of the named provider (default: the active one).
             which = payload.get("clear_provider") or self.provider
-            self.settings["claude_api_key" if which == "claude" else "api_key"] = ""
+            if which != "local":  # the local model has no key to clear
+                self.settings["claude_api_key" if which == "claude" else "api_key"] = ""
         if payload.get("model"):
             self.settings["model"] = str(payload["model"]).strip()
         if payload.get("claude_model"):
             self.settings["claude_model"] = str(payload["claude_model"]).strip()
+        if payload.get("local_model"):
+            self.settings["local_model"] = str(payload["local_model"]).strip()
+            self._local_cache = None
+        if "local_fallback" in payload:
+            self.settings["local_fallback"] = bool(payload["local_fallback"])
+        if "auto_update" in payload:
+            self.settings["auto_update"] = bool(payload["auto_update"])
+        if (payload.get("update_token") or "").strip():
+            self.settings["update_token"] = payload["update_token"].strip()
         if payload.get("claude_effort") in CLAUDE_EFFORTS:
             self.settings["claude_effort"] = payload["claude_effort"]
         if isinstance(payload.get("claude_fallback_models"), list):
@@ -264,20 +305,24 @@ class AIController:
         def mask(key):
             return (key[:4] + "…" + key[-4:]) if len(key) > 8 else ("***" if key else "")
 
-        cfg = {k: v for k, v in self.settings.items() if k not in ("api_key", "claude_api_key")}
-        usage = {k: self.gemini.usage[k] + self.claude.usage[k] for k in self.gemini.usage}
+        cfg = {k: v for k, v in self.settings.items() if k not in SECRET_KEYS}
+        cfg["has_update_token"] = bool((self.settings.get("update_token") or "").strip())
+        usage = {k: self.gemini.usage[k] + self.claude.usage[k] + self.ollama.usage[k] for k in self.gemini.usage}
         cfg.update({
             "provider": self.provider,
             "active_model": self.model,
             "has_key": bool(self.api_key), "masked_key": mask(self.api_key),
             "has_gemini_key": bool(self.gemini_key), "masked_gemini_key": mask(self.gemini_key),
             "has_claude_key": bool(self.claude_key), "masked_claude_key": mask(self.claude_key),
+            "local": self.local_status(),
             "usage": usage,
         })
         return cfg
 
     def list_models(self, provider: Optional[str] = None) -> List[dict]:
         provider = provider if provider in PROVIDERS else self.provider
+        if provider == "local":
+            return self.ollama.list_models()
         if provider == "claude":
             return self.claude.list_models(self.claude_key or os.environ.get("ANTHROPIC_API_KEY", "").strip())
         return self.gemini.list_models(self.gemini_key)
@@ -399,7 +444,7 @@ class AIController:
             self.add_message("ai", f"📜 Đã cuộn {'lên' if up else 'xuống'} {dist}px", kind="action")
             return True
 
-        m = re.match(r"^(tìm kiếm|search|tra cứu|google) (.+)$", text, re.I)
+        m = re.match(r"^(tìm kiếm|tim kiem|search|tra cứu|tra cuu|google) (.+)$", text, re.I)
         if m:
             q = m.group(2).strip()
             self.browser.execute("goto", {"url": f"https://www.google.com/search?q={urllib.parse.quote(q)}"})
@@ -408,6 +453,7 @@ class AIController:
 
         simple = {
             "tab mới": ("new_tab", {"url": "https://www.google.com"}, "📑 Đã mở tab mới"),
+            "mở tab mới": ("new_tab", {"url": "https://www.google.com"}, "📑 Đã mở tab mới"),
             "đóng tab": ("close_tab", {}, "📑 Đã đóng tab hiện tại"),
             "quay lại": ("back", {}, "⬅️ Đã quay lại trang trước"),
             "tải lại": ("reload", {}, "🔄 Đã tải lại trang"),
@@ -419,7 +465,45 @@ class AIController:
             self.browser.execute(action, payload)
             self.add_message("ai", msg, kind="action")
             return True
-        return False
+        return self._try_find_and_go(text)
+
+    # Accented and unaccented spellings ("vào mục" / "vao muc"), since many people type without diacritics.
+    NAV_RE = re.compile(
+        r"^(?:hãy\s+|hay\s+)?(?:vào|vao|mở|mo|đi\s+tới|di\s+toi|đi\s+đến|di\s+den|tới|toi|đến|den|"
+        r"chuyển\s+(?:sang|tới|đến)|chuyen\s+(?:sang|toi|den)|bấm(?:\s+vào)?|bam(?:\s+vao)?|nhấn(?:\s+vào)?|nhan(?:\s+vao)?|"
+        r"click(?:\s+vào|\s+vao)?|xem|tìm|tim|go\s+to|open)\s+"
+        r"(?:(?:mục|muc|phần|phan|bài|bai|trang|tab|menu|nút|nut|chương|chuong|buổi|buoi|khóa\s+học|khoá\s+học|khoa\s+hoc|"
+        r"môn|mon|link|section)\s+)?(.+?)\s*[.!]?$", re.I)
+    # Words that make it a multi-step task for the agent, not a simple "go to X"
+    TASK_WORDS = re.compile(r"\b(và|rồi|sau đó|giải|làm|điền|trả lời|nộp|then|and)\b", re.I)
+
+    def _try_find_and_go(self, text: str) -> bool:
+        """'vào mục X' / 'mở phần X' / 'tìm X': searches the whole page (all frames, off-screen too)
+        and opens the match without an LLM call. Ambiguous → candidates for the agent or the user."""
+        m = self.NAV_RE.match(text)
+        if not m or self.TASK_WORDS.search(m.group(1)) or len(m.group(1).split()) > 8:
+            return False
+        query = m.group(1).strip(" \"'«»“”")
+        self._set_phase("acting", detail=f"🧭 Đang tìm «{query}» trên toàn trang")
+        res = self.browser.execute("find_and_go", {"query": query}, timeout=30)
+        if res.get("status") != "ok":
+            return False
+        opened = res.get("opened")
+        if opened:
+            verb = "Đã cuộn tới" if opened["kind"] == "heading" else "Đã mở"
+            where = {"below": " (ở phía dưới trang)", "above": " (ở phía trên trang)"}.get(opened["where"], "")
+            self.add_message("ai", f"🧭 {verb} «{opened['text']}»{where}. Không tốn lượt gọi AI.", kind="action")
+            return True
+        cands = res.get("candidates") or []
+        if self.api_key:
+            return False  # the agent sees the whole page and can decide between the candidates
+        if cands:
+            lines = "\n".join(f"- {c['text']}" for c in cands[:6])
+            self.add_message("ai", f"🧭 Có nhiều mục giống «{query}», bạn muốn mở mục nào? (gõ lại tên đầy đủ)\n{lines}", kind="warning", status="warning")
+        else:
+            self.add_message("ai", f"🧭 Không tìm thấy «{query}» trên trang này (kể cả phần chưa cuộn tới). "
+                                   "Có thể nó nằm trong một menu đang đóng hoặc ở trang khác.", kind="warning", status="warning")
+        return True
 
     # ------------------------------------------------------------------ agent loop
 
@@ -573,6 +657,16 @@ Reply with the JSON object only."""
             return f"👆 Rê chuột #{act.get('id')}{name}"
         return f"• {kind}"
 
+    def _calls_so_far(self) -> int:
+        clients = [self.llm] + ([self.ollama] if self.ollama is not self.llm else [])
+        return sum(c.usage["calls"] for c in clients)
+
+    def _can_use_local(self, s: Dict[str, Any]) -> bool:
+        if not s.get("local_fallback", True) or self._llm_override is not None:
+            return False
+        st = self.local_status()
+        return st["available"] and st["has_model"]
+
     SUBMIT_RE = re.compile(r"\b(nộp|submit|check(\s+answers?)?|kiểm\s*tra|hoàn\s*thành|finish|chấm|gửi\s*bài|done|xong)\b", re.I)
     MAX_SUBMIT_BLOCKS = 2  # after two warnings the model may insist (the count could be a false positive)
 
@@ -641,7 +735,10 @@ Reply with the JSON object only."""
         last_sig, no_change = None, 0
         total_actions = 0
         started = time.time()
-        calls_before = self.llm.usage["calls"]
+        # The "brain" of this run; it can change mid-run (cloud pool exhausted → local model).
+        brand = {"claude": "Claude", "local": "AI trên máy"}.get(self.provider, "Gemini")
+        brain = {"llm": self.llm, "key": self.api_key, "model": self.model, "brand": brand, "fallbacks": self.fallbacks(s)}
+        calls_before = self._calls_so_far()
         switched = set()
         self._submit_blocks = 0
         finished_ok = False
@@ -680,26 +777,41 @@ Reply with the JSON object only."""
             # 2. Think
             if self.stop_requested:
                 break
-            brand = "Claude" if self.provider == "claude" else "Gemini"
-            self._set_phase("thinking", detail=f"{len(obs.get('elements', []))} phần tử · {brand} đang suy luận")
+            self._set_phase("thinking", detail=f"{len(obs.get('elements', []))} phần tử · {brain['brand']} đang suy luận")
             prompt = self._build_prompt(task, obs, history, step, max_steps)
             t_think = time.time()
-            try:
-                raw = self.llm.generate(self.api_key, self.model, prompt, image=obs.get("screenshot"),
-                                        system=SYSTEM_PROMPT, json_mode=True, schema=AGENT_SCHEMA,
-                                        effort=s.get("claude_effort", "medium"),
-                                        fallbacks=self.fallbacks(s), should_stop=lambda: self.stop_requested,
-                                        on_retry=lambda m: self._set_phase("thinking", detail=f"⚠️ {m}"))
-                plan = parse_json_response(raw)
-            except LLMError as e:
-                if self.stop_requested:
+            plan = None
+            for attempt in range(2):
+                try:
+                    raw = brain["llm"].generate(brain["key"], brain["model"], prompt, image=obs.get("screenshot"),
+                                                system=SYSTEM_PROMPT, json_mode=True, schema=AGENT_SCHEMA,
+                                                effort=s.get("claude_effort", "medium"),
+                                                fallbacks=brain["fallbacks"], should_stop=lambda: self.stop_requested,
+                                                on_retry=lambda m: self._set_phase("thinking", detail=f"⚠️ {m}"))
+                    plan = parse_json_response(raw)
                     break
-                self.add_message("ai", f"❌ {brand}: {e}", kind="error", status="error")
+                except QuotaExhausted as e:
+                    if attempt == 0 and self._can_use_local(s) and brain["llm"] is not self.ollama:
+                        # Long task, cloud quota gone: continue on the local model instead of stopping.
+                        brain = {"llm": self.ollama, "key": "local", "model": s.get("local_model") or DEFAULT_SETTINGS["local_model"],
+                                 "brand": "AI trên máy", "fallbacks": []}
+                        self.add_message("ai", f"🖥️ Mô hình đám mây đã hết lượt miễn phí ({e}). Chuyển sang **{brain['model']}** chạy "
+                                               "trên máy để làm tiếp (chậm hơn nhưng không giới hạn lượt).", kind="action", status="warning")
+                        self._set_phase("thinking", detail=f"{brain['brand']} ({brain['model']}) đang suy luận")
+                        continue
+                    if not self.stop_requested:
+                        self.add_message("ai", f"❌ {brain['brand']}: {e}", kind="error", status="error")
+                    break
+                except LLMError as e:
+                    if not self.stop_requested:
+                        self.add_message("ai", f"❌ {brain['brand']}: {e}", kind="error", status="error")
+                    break
+            if plan is None:
                 break
-            used = self.llm.last_model_used
-            if used and used != self.model and used not in switched:
+            used = brain["llm"].last_model_used
+            if used and used != brain["model"] and used not in switched:
                 switched.add(used)  # tell the user once per run which model actually answered, and why
-                why = getattr(self.llm, "last_switch_reason", None) or f"{self.model} đang hết lượt hoặc quá tải"
+                why = getattr(brain["llm"], "last_switch_reason", None) or f"{brain['model']} đang hết lượt hoặc quá tải"
                 self.add_message("ai", f"ℹ️ Đang dùng **{used}** vì {why}.", kind="action")
             if self.stop_requested:
                 break
@@ -712,7 +824,7 @@ Reply with the JSON object only."""
             thought = " ".join(x for x in [plan.get("observation"), plan.get("plan")] if x)
             if thought:
                 self.add_message("ai", thought, kind="thought",
-                                 data={"step": step, "model": self.llm.last_model_used or self.model,
+                                 data={"step": step, "model": brain["llm"].last_model_used or brain["model"],
                                        "secs": round(time.time() - t_think, 1)})
             answers = [a for a in (plan.get("answers") or []) if isinstance(a, dict) and a.get("a")]
             if answers:
@@ -777,9 +889,10 @@ Reply with the JSON object only."""
                              kind="warning", status="warning")
 
         elapsed = time.time() - started
-        calls = self.llm.usage["calls"] - calls_before
+        calls = self._calls_so_far() - calls_before
         if self.stop_requested:
             self.add_message("ai", "🛑 Đã dừng theo yêu cầu.", kind="status", status="stopped")
-        brand = "Claude" if self.provider == "claude" else "Gemini"
         summary = f"{total_actions} thao tác · {calls} lượt gọi {brand} · {elapsed:.0f}s"
+        if brain["brand"] != brand:
+            summary += f" (cuối cùng dùng {brain['brand']})"
         self.add_message("ai", summary, kind="summary", status="success" if finished_ok else "ok")

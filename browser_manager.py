@@ -808,6 +808,44 @@ class BrowserManager:
         """Unanswered questions on the whole page (all frames), used before pressing Submit."""
         return self._form_status()
 
+    def _cmd_find_and_go(self, p):
+        """Finds a section/link anywhere on the page (all frames, off-screen too) and opens it.
+        Returns {"opened": {...}} when one candidate clearly wins, else {"candidates": [...]} for the AI/user."""
+        query = str(p.get("query", "")).strip()
+        cands = []
+        for fr, _, _ in self._visible_frames(include_offscreen=True):
+            try:
+                for c in fr.evaluate(js.FIND_TARGETS, query) or []:
+                    cands.append((c, fr))
+            except Exception:
+                continue
+        cands.sort(key=lambda cf: -cf[0]["score"])
+        public = [c for c, _ in cands[:8]]
+        if not cands:
+            return {"opened": None, "candidates": []}
+        best, fr = cands[0]
+        runner_up = cands[1][0]["score"] if len(cands) > 1 else 0
+        same_text = len(cands) > 1 and cands[1][0]["text"].lower() == best["text"].lower()
+        clear = best["score"] >= 68 and (best["score"] - runner_up >= 8 or same_text)
+        if not clear and not p.get("force"):
+            return {"opened": None, "candidates": public}
+        loc = fr.locator(f'[data-find="{best["idx"]}"]').first
+        loc.scroll_into_view_if_needed(timeout=3000)
+        box = loc.bounding_box(timeout=2000)
+        if box:
+            self._ai_point(box["x"] + box["width"] / 2, box["y"] + box["height"] / 2, "click")
+        if best["kind"] == "link":
+            try:
+                loc.click(timeout=3000)
+            except Exception:
+                loc.click(timeout=2000, force=True)
+            try:
+                self.page.wait_for_load_state("domcontentloaded", timeout=5000)
+            except Exception:
+                pass
+        self.log(f"Tìm & mở: {best['text'][:60]}")
+        return {"opened": best, "candidates": public}
+
     def _cmd_eval_frames(self, p):
         """Evaluates a script in every visible frame; returns the list of results (errors skipped)."""
         return {"results": self._all_frames_eval(p.get("script", "undefined"))}

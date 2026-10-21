@@ -1,0 +1,108 @@
+# Pushing a tag vX.Y.Z publishes a release: the Docker image on GHCR (amd64 + arm64) and the Windows
+# installer on GitHub Releases. Installed apps then update themselves in place (see updater.py).
+name: Release
+
+on:
+  push:
+    tags: ["v*.*.*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  check-version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.v.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: v
+        name: Tag must match version.py
+        run: |
+          VERSION=$(python3 -c "import version; print(version.__version__)")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          if [ "${GITHUB_REF_TYPE}" = "tag" ] && [ "${GITHUB_REF_NAME}" != "v$VERSION" ]; then
+            echo "::error::tag ${GITHUB_REF_NAME} does not match version.py ($VERSION)"; exit 1
+          fi
+
+  docker:
+    needs: check-version
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Image name (GHCR needs lowercase)
+        id: img
+        run: echo "name=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            ${{ steps.img.outputs.name }}:${{ needs.check-version.outputs.version }}
+            ${{ steps.img.outputs.name }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  windows-installer:
+    needs: check-version
+    runs-on: windows-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Install build tools
+        run: |
+          python -m pip install -r requirements.lock pyinstaller
+          choco install innosetup -y --no-progress
+      - name: Build app + installer
+        run: python tools/build_exe.py
+      - name: Smoke test the installer (silent install, self-test, uninstall)
+        shell: pwsh
+        run: |
+          $v = "${{ needs.check-version.outputs.version }}"
+          $dir = "$env:RUNNER_TEMP\ab-install"
+          Start-Process "dist\AutoBrowser-Setup-$v.exe" -ArgumentList "/VERYSILENT","/SUPPRESSMSGBOXES","/NORESTART","/DIR=`"$dir`"","/TASKS=`"`"" -Wait
+          $p = Start-Process "$dir\AutoBrowser.exe" -ArgumentList "--selftest" -PassThru -Wait
+          Get-Content "$env:LOCALAPPDATA\AutoBrowser\logs\app.log" -Tail 10
+          if ($p.ExitCode -ne 0) { throw "selftest failed" }
+          Start-Process "$dir\unins000.exe" -ArgumentList "/VERYSILENT","/SUPPRESSMSGBOXES" -Wait
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-installer
+          path: dist/AutoBrowser-Setup-*.exe
+
+  publish:
+    needs: [check-version, docker, windows-installer]
+    runs-on: ubuntu-latest
+    if: github.ref_type == 'tag'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: windows-installer
+          path: dist
+      - name: Create or update the GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          NOTES="docs/releases/${TAG}.md"
+          [ -f "$NOTES" ] || NOTES=/dev/null
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" dist/*.exe --clobber
+          else
+            gh release create "$TAG" dist/*.exe --title "Auto Browser ${TAG#v}" --notes-file "$NOTES"
+          fi

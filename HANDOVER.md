@@ -1,4 +1,4 @@
-# Tài liệu bàn giao: Auto Browser (v6.1.0)
+# Tài liệu bàn giao: Auto Browser (v6.2.0)
 
 Dành cho người dùng và công cụ phát triển kế thừa (Claude Code / Cursor / VSCode).
 
@@ -56,6 +56,32 @@ Chọn trong Cài đặt (`provider` trong `ai_config.json`). Cả hai đều d�
 | Audio (bài nghe) | Có | **Không**: bài nghe luôn chép lời bằng Gemini, nên vẫn cần khóa Gemini |
 
 Chỉ gửi những tham số Claude Opus 5.5 chấp nhận: không gửi `temperature` (bị 400), không tắt thinking. Prompt hệ thống ổn định được đánh dấu `cache_control` để có thể dùng lại cache giữa các bước. Lỗi được phân loại theo exception của SDK: sai khóa, không có quyền, không có model (chuyển model dự phòng), giới hạn tốc độ (chuyển model dự phòng), lỗi server (SDK đã tự thử lại 2 lần). **Chưa chạy thử với Claude thật** vì máy này không có Anthropic API key; `tests/test_claude.py` kiểm tra hình dạng request bằng client giả.
+
+### 3a''. Vượt giới hạn lượt: xoay vòng mô hình + AI trên máy (v6.2)
+
+Đo ngày 22/10/2026 trên bài trộn 6 dạng câu (cùng prompt của agent, có ảnh màn hình):
+
+| Mô hình | Thời gian 1 bước | Đúng |
+|---|---|---|
+| `gemini-3.5-flash-lite` | 6,3 s | 5/5 |
+| `gemma-4-26b-a4b-it` | 31 s | 5/5 |
+| `gemma-4-31b-it` | 73 s (lỗi 500 khi có system instruction) | 5/5 |
+
+- **Xoay vòng mô hình** (`GeminiClient._discover_alternatives`): khi mọi mô hình đã cấu hình đều hết lượt, app thử lần lượt Flash, rồi Flash-Lite, rồi Gemma. Mỗi mô hình có quota riêng. Với Gemma, system prompt được đặt vào nội dung tin nhắn và không bật JSON mode (kết quả vẫn được parse thành JSON). Khi toàn bộ pool đều hết lượt, `QuotaExhausted` được ném ra.
+- **AI trên máy** (`OllamaClient`, provider `local`): dùng REST API của Ollama (`/api/chat`, `format` = `AGENT_SCHEMA`, có ảnh). Mặc định `gemma4:e4b`. Có thể chọn làm provider chính, hoặc bật `local_fallback`: khi nhận `QuotaExhausted`, agent đổi "bộ não" ngay giữa lần chạy sang mô hình trên máy và làm tiếp. Trong Docker, mô hình được gọi qua `OLLAMA_HOST`.
+- **"Vào mục X" không cần AI** (`_try_find_and_go`, `FIND_TARGETS`): tìm trên toàn trang (mọi frame, kể cả phần ngoài màn hình), không phân biệt dấu và hoa thường. Thứ tự ưu tiên: khớp hoàn toàn, rồi khớp đầu chuỗi (theo ranh giới từ), rồi khớp nguyên từ, rồi chứa chuỗi, rồi trùng một phần các từ. Kết quả rõ ràng thì mở luôn; nếu mơ hồ thì liệt kê các lựa chọn (hoặc giao cho agent nếu có khóa). Câu lệnh có nhiều bước ("…rồi làm bài") được chuyển cho agent.
+
+### 3a'''. Docker, phát hành và cập nhật tại chỗ (v6.2)
+
+- `Dockerfile`: dựa trên `mcr.microsoft.com/playwright/python:v1.64.0-noble` (amd64 + arm64), chạy bằng user `pwuser`. Dữ liệu nằm trong volume `/data` (`AIB_PROFILE_DIR`, `AIB_AI_CONFIG`). `AIB_BIND=0.0.0.0` chỉ đổi địa chỉ lắng nghe; kiểm tra Host/Origin vẫn chỉ cho localhost, và compose chỉ publish cổng tại `127.0.0.1:8000`. Phiên bản thư viện được ghim trong `requirements.lock`.
+- `docker-compose.yml`: dịch vụ chính, profile `local-ai` (Ollama trong Docker), profile `autoupdate` (Watchtower, kiểm tra mỗi 6 giờ).
+- `.github/workflows/ci.yml`: mỗi lần push chạy toàn bộ pytest trên **ubuntu-latest và windows-latest**, sau đó build image Docker và smoke test (state, UI, goto, khung hình JPEG, chặn Host lạ, `mode: docker`).
+- `.github/workflows/release.yml`: push tag `vX.Y.Z` (phải khớp `version.py`) sẽ đẩy image lên GHCR (`:X.Y.Z` và `:latest`), build bộ cài Windows, cài thử im lặng rồi chạy `--selftest`, sau đó tạo GitHub Release kèm ghi chú từ `docs/releases/vX.Y.Z.md`.
+- `updater.py` (cập nhật mà không cần gỡ app):
+  - **Desktop:** đọc release mới nhất trên GitHub, tải bộ cài, so mã SHA-256 với `digest` mà GitHub báo (không khớp thì không chạy), rồi chạy `/VERYSILENT /CLOSEAPPLICATIONS /RELAUNCH`. Inno Setup cài đè cùng AppId; `[Code] ShouldRelaunch` mở lại app. Bộ cài được tách khỏi Job Object (`CREATE_BREAKAWAY_FROM_JOB`, job có `BREAKAWAY_OK`) để không bị kill khi app thoát. Cập nhật tự động chạy khoảng 8 giây sau khi mở app (tắt bằng `auto_update`).
+  - **Docker:** `docker compose pull && docker compose up -d`, hoặc Watchtower.
+  - **Mã nguồn:** `start.bat` chạy `git pull --ff-only`.
+  - Kho đang riêng tư thì API trả 404, nên cần `update_token` (GitHub token chỉ đọc, lưu như API key và không bao giờ được trả qua API).
 
 ### 3a'. Trang dài cần cuộn và chống nộp bài sớm (v6.1)
 
@@ -177,7 +203,7 @@ Giao diện dùng **Primer CSS v22** và **Primer Octicons**, lưu sẵn trong `
 
 ## 7. Kiểm thử (21/10/2026)
 
-`python -m pytest`: **83 passed** trong khoảng 7 phút, không cần mạng hay API key. Gồm `test_long_pages.py` (trang 10 câu trải dài, có hộp cuộn và hộp xác nhận "Còn N câu chưa trả lời": AI thấy đủ 10 câu, nút Nộp sớm bị chặn, chỉ lần nộp đủ câu mới tính, đạt 10/10 và còn 2/3 lượt) và `test_gemini_quota.py` (hết lượt theo ngày thì chuyển model ngay, giới hạn theo phút thì chờ, tự tìm model khác, thông báo khi tất cả đều hết lượt). Gồm `test_claude.py` (11): hình dạng request gửi Claude (structured output, effort, fallbacks, cache, ảnh, không có `temperature`), từ chối an toàn, sai khóa, chuyển model khi bị giới hạn tốc độ, từ chối audio, schema chặt, agent dùng đúng provider, bài nghe với Claude vẫn chép lời bằng Gemini (và cảnh báo khi thiếu khóa Gemini), cài đặt không lộ khóa nào. Gồm `test_fast_input.py` (14): kênh CDP trực tiếp, gõ tiếng Việt / Ctrl+A / Backspace / Tab, kéo bôi đen, người dùng tự kéo thả bằng tay (HTML5, thư viện chuột, SortableJS), phím không hợp lệ, bảng tên phím.
+`python -m pytest`: **108 passed** trong khoảng 6 phút (CI chạy trên cả Linux và Windows), không cần mạng hay API key. Gồm `test_long_pages.py` (trang 10 câu trải dài, có hộp cuộn và hộp xác nhận "Còn N câu chưa trả lời": AI thấy đủ 10 câu, nút Nộp sớm bị chặn, chỉ lần nộp đủ câu mới tính, đạt 10/10 và còn 2/3 lượt) và `test_gemini_quota.py` (hết lượt theo ngày thì chuyển model ngay, giới hạn theo phút thì chờ, tự tìm model khác, thông báo khi tất cả đều hết lượt). Gồm `test_claude.py` (11): hình dạng request gửi Claude (structured output, effort, fallbacks, cache, ảnh, không có `temperature`), từ chối an toàn, sai khóa, chuyển model khi bị giới hạn tốc độ, từ chối audio, schema chặt, agent dùng đúng provider, bài nghe với Claude vẫn chép lời bằng Gemini (và cảnh báo khi thiếu khóa Gemini), cài đặt không lộ khóa nào. Gồm `test_fast_input.py` (14): kênh CDP trực tiếp, gõ tiếng Việt / Ctrl+A / Backspace / Tab, kéo bôi đen, người dùng tự kéo thả bằng tay (HTML5, thư viện chuột, SortableJS), phím không hợp lệ, bảng tên phím.
 
 `python tools/test_desktop_exe.py` (bản đã cài bằng bộ cài): server sẵn sàng sau ~6 giây; cửa sổ trình duyệt (1037×852) và bảng AI (403×852) nằm cạnh nhau; trang vẽ ở 60–92 khung/giây; trang tự theo kích thước cửa sổ; đóng trình duyệt hoặc đóng bảng AI đều thoát sau ~3,5 giây, không sót process hay cửa sổ nào; gỡ cài đặt xóa chương trình nhưng giữ cài đặt của bạn.
 

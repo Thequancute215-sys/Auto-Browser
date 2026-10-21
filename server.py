@@ -82,8 +82,9 @@ def setup_windows_job_object():
             ]
 
         JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE = 0x2000
+        JOB_OBJECT_LIMIT_BREAKAWAY_OK = 0x0800  # lets the updater start an installer that outlives the app
         info = JOBOBJECT_EXTENDED_LIMIT_INFORMATION()
-        info.BasicLimitInformation.LimitFlags = JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE
+        info.BasicLimitInformation.LimitFlags = JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE | JOB_OBJECT_LIMIT_BREAKAWAY_OK
         kernel32.SetInformationJobObject(job, 9, ctypes.byref(info), ctypes.sizeof(info))
         proc = kernel32.GetCurrentProcess()
         kernel32.AssignProcessToJobObject(job, proc)
@@ -100,9 +101,13 @@ from events import EventBus  # noqa: E402
 from browser_manager import BrowserManager, COMMAND_WHITELIST  # noqa: E402
 from ai_controller import AIController  # noqa: E402
 
+from updater import Updater  # noqa: E402
+
 bus = EventBus()
 browser = BrowserManager(bus)
 ai = AIController(browser, bus)
+updater = Updater(token_getter=lambda: ai.settings.get("update_token") or os.environ.get("AIB_UPDATE_TOKEN", ""))
+QUIT_REQUESTED = threading.Event()  # set by an in-app update; desktop_app.py exits when it is set
 
 LOCAL_HOSTS = {"localhost", "127.0.0.1", "[::1]", "::1"}
 
@@ -313,6 +318,10 @@ class AppRequestHandler(BaseHTTPRequestHandler):
         elif path == "/api/page/text":
             res = browser.execute("page_text", {})
             self._send_json(res.get("analysis", {"textBlocks": [], "error": res.get("message")}))
+        elif path == "/api/app/version":
+            force = parse_qs(parsed.query).get("force", ["0"])[0] == "1"
+            info = updater.check(force=force)
+            self._send_json({**info, "instructions": updater.instructions(info["mode"]), "state": updater.state})
         elif path == "/api/selection":
             self._send_json(browser.execute("get_selection", {}))
         else:
@@ -352,6 +361,14 @@ class AppRequestHandler(BaseHTTPRequestHandler):
                     except Exception as e:
                         ok, msg = False, f"Lỗi kết nối: {e}"
             self._send_json({"status": "ok" if ok else "error", "message": msg, "config": ai.get_config()})
+        elif path == "/api/app/update":
+            if ai.is_running:
+                self._send_json({"status": "error", "message": "AI đang chạy, bấm Dừng trước khi cập nhật."})
+            else:
+                try:
+                    self._send_json(updater.apply(on_quit=QUIT_REQUESTED.set))
+                except Exception as e:
+                    self._send_json({"status": "error", "message": f"Cập nhật lỗi: {str(e)[:200]}"})
         elif path == "/api/input":
             self._send_json(browser.input_events(payload.get("events")))
         elif path == "/api/ai_command":

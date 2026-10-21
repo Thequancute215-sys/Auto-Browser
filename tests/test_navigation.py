@@ -1,0 +1,77 @@
+"""'Vào mục X' anywhere on the page, without an AI call (sidebar scrolled away, headings far below)."""
+import pytest
+
+from ai_controller import AIController
+
+
+def _ev(browser, script):
+    return browser.execute("eval", {"script": script})["result"]
+
+
+@pytest.fixture
+def ai_nokey(browser, bus):
+    ai = AIController(browser, bus)
+    ai.settings.update({"api_key": "", "claude_api_key": ""})
+    return ai
+
+
+def _run(ai, cmd):
+    ai.run_command(cmd)
+    ai.current_task_thread.join(60)
+    return ai.get_status()["messages"]
+
+
+def test_opens_lesson_far_down_the_sidebar(browser, goto, ai_nokey):
+    goto("course.html")
+    msgs = _run(ai_nokey, "vào mục Lesson 27")
+    assert _ev(browser, "document.getElementById('opened').textContent").startswith("Lesson 27:")
+    assert any("Đã mở «Lesson 27" in m["text"] and "Không tốn lượt gọi AI" in m["text"] for m in msgs)
+
+
+def test_lesson_1_is_not_confused_with_lesson_10(browser, goto, ai_nokey):
+    goto("course.html")
+    _run(ai_nokey, "mở Lesson 1")
+    assert _ev(browser, "document.getElementById('opened').textContent").startswith("Lesson 1:")
+
+
+@pytest.mark.parametrize("cmd", ["đi tới phần 5 bai tap tong hop", "di toi phan 5 BAI TAP tong hop"])
+def test_diacritics_and_case_do_not_matter(browser, goto, ai_nokey, cmd):
+    goto("course.html")
+    msgs = _run(ai_nokey, cmd)
+    top = _ev(browser, "document.getElementById('ex').getBoundingClientRect().top")
+    assert 0 <= top < 800, "the heading far below must be scrolled into view"
+    assert any("Đã cuộn tới «Phần 5" in m["text"] for m in msgs)
+
+
+def test_unaccented_open_command(browser, goto, ai_nokey):
+    goto("course.html")
+    _run(ai_nokey, "vao muc lesson 12")
+    assert _ev(browser, "document.getElementById('opened').textContent").startswith("Lesson 12:")
+
+
+def test_ambiguous_query_lists_candidates(browser, goto, ai_nokey):
+    goto("course.html")
+    msgs = _run(ai_nokey, "vào mục Hoạch định")   # six lessons are called "Hoạch định"
+    assert _ev(browser, "document.getElementById('opened').textContent") == "none"
+    assert any("Có nhiều mục giống" in m["text"] for m in msgs)
+
+
+def test_not_found_is_explained(browser, goto, ai_nokey):
+    goto("course.html")
+    msgs = _run(ai_nokey, "vào mục Thống kê tài chính")
+    assert any("Không tìm thấy «Thống kê tài chính»" in m["text"] for m in msgs)
+
+
+def test_task_with_extra_steps_goes_to_the_agent(browser, goto, ai_nokey):
+    goto("course.html")
+    msgs = _run(ai_nokey, "vào Lesson 3 rồi làm bài tập")
+    assert _ev(browser, "document.getElementById('opened').textContent") == "none"
+    assert any("API Key" in m["text"] for m in msgs), "multi-step tasks are for the agent (needs a key)"
+
+
+def test_offscreen_links_reach_the_agent(browser, goto):
+    goto("course.html")
+    els = browser.execute("ai_observe", {"marks": False})["elements"]
+    texts = [e["text"] for e in els if e.get("tag") == "a"]
+    assert any(t.startswith("Lesson 30:") for t in texts), "links scrolled away inside the sidebar are listed"
+    assert all(e.get("offscreen") for e in els if e.get("text", "").startswith("Lesson 30:"))

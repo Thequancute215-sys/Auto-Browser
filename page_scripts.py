@@ -89,6 +89,7 @@ ANNOTATE_ELEMENTS = r"""
   const candSet = new Set(cands);
   cands = Array.from(candSet);  // an element can match several rules; annotate it once
   const out = [];
+  const deferredLinks = [];
   let id = start;
   for (const el of cands) {
     if (out.length >= limit) break;
@@ -102,8 +103,8 @@ ANNOTATE_ELEMENTS = r"""
       || tag === 'textarea' || tag === 'select' || el.isContentEditable;
     const isDrop = isDropEl(el);
     const offscreen = offscreenOf(el, r);
-    // Off-screen plain navigation links are noise; anything you answer with or press is kept.
-    if (offscreen && tag === 'a' && !el.getAttribute('role') && !isDrop) continue;
+    // Off-screen plain links come last (after questions and buttons), so they never crowd answers out.
+    if (offscreen && tag === 'a' && !el.getAttribute('role') && !isDrop) { deferredLinks.push([el, r, offscreen]); continue; }
     // Skip children of an already-listed clickable (span inside button etc.), but keep fields and drop zones.
     if (!isField && !isDrop) {
       let p = el.parentElement, nested = false;
@@ -151,6 +152,18 @@ ANNOTATE_ELEMENTS = r"""
       info.value = clean(el.options[el.selectedIndex] ? el.options[el.selectedIndex].text : '');
     }
     out.push(info);
+    id++;
+  }
+  // Second pass: off-screen links (menus, course outlines, lesson lists) with whatever budget is left.
+  for (const [el, r, offscreen] of deferredLinks) {
+    if (out.length >= limit) break;
+    if (el.parentElement && el.parentElement.closest('[data-aid]')) continue;
+    const text = clean(el.innerText || el.getAttribute('aria-label') || el.getAttribute('title') || '').slice(0, 120);
+    if (!text) continue;
+    el.setAttribute('data-aid', String(id));
+    out.push({ id, tag: 'a', type: '', role: '', text, label: '', offscreen,
+               x: Math.round(r.left + r.width / 2), y: Math.round(r.top + r.height / 2),
+               w: Math.round(r.width), h: Math.round(r.height), left: Math.round(r.left), top: Math.round(r.top) });
     id++;
   }
   const doc = document.scrollingElement || document.documentElement;
@@ -281,6 +294,67 @@ SCROLL_TO_RATIO = r"""
   }
   if (el) el.scrollTop = Math.round(ratio * maxY);
   return true;
+}
+"""
+
+# "Go to section X" without the AI: ranks every clickable item and heading of the WHOLE page (incl.
+# off-screen ones) by how well its text matches the query, ignoring Vietnamese diacritics and case.
+# Tags candidates with data-find="<n>" so the Python side can click the chosen one.
+FIND_TARGETS = r"""
+(query) => {
+  const norm = s => (s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D')
+    .toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
+  const q = norm(query);
+  if (!q) return [];
+  const qWords = q.split(' ');
+  document.querySelectorAll('[data-find]').forEach(e => e.removeAttribute('data-find'));
+  const sel = 'a, button, summary, label, [role=button], [role=link], [role=tab], [role=menuitem], [role=treeitem], [role=option], li, h1, h2, h3, h4, h5, h6, [onclick], [tabindex]:not([tabindex="-1"])';
+  const out = [];
+  let n = 0;
+  const H = window.innerHeight;
+  for (const el of document.querySelectorAll(sel)) {
+    if (++n > 6000) break;
+    if (el.closest('[data-ai-overlay]')) continue;
+    const s = getComputedStyle(el);
+    if (s.display === 'none' || s.visibility === 'hidden' || !el.getClientRects().length) continue;
+    const raw = (el.innerText || el.getAttribute('aria-label') || el.getAttribute('title') || '').replace(/\s+/g, ' ').trim();
+    if (!raw || raw.length > 160) continue;
+    const t = norm(raw);
+    let score = 0;
+    if (t === q) score = 100;
+    else if (t.startsWith(q + ' ')) score = 88;   // word boundary: "lesson 1" must not match "lesson 10" here
+    else if ((' ' + t + ' ').includes(' ' + q + ' ')) score = 78;
+    else if (t.includes(q)) score = 68;
+    else {
+      const tWords = new Set(t.split(' '));
+      const hit = qWords.filter(w => tWords.has(w)).length;
+      if (hit) score = Math.round(55 * hit / qWords.length);
+    }
+    if (score < 40) continue;
+    const tag = el.tagName.toLowerCase();
+    const heading = /^h[1-6]$/.test(tag);
+    const clickable = !heading && (tag !== 'li' || s.cursor === 'pointer');
+    if (!heading && !clickable) continue;
+    score += clickable ? 4 : 0;               // prefer something you can open
+    score -= Math.min(10, Math.floor(Math.max(0, t.length - q.length) / 12));  // prefer tight matches
+    const r = el.getBoundingClientRect();
+    out.push({ el, text: raw.slice(0, 90), score, kind: heading ? 'heading' : 'link',
+               where: r.bottom <= 0 ? 'above' : r.top >= H ? 'below' : 'visible' });
+  }
+  out.sort((a, b) => b.score - a.score);
+  // Nested duplicates (a <li> around an <a> with the same text): keep the innermost clickable.
+  const picked = [];
+  for (const c of out) {
+    const outer = picked.findIndex(p => p.el.contains(c.el));
+    if (outer >= 0) {
+      if (c.score >= picked[outer].score - 6) picked[outer] = c;  // same item, deeper element
+      continue;
+    }
+    if (picked.some(p => c.el.contains(p.el))) continue;
+    picked.push(c);
+    if (picked.length >= 8) break;
+  }
+  return picked.map((c, i) => { c.el.setAttribute('data-find', String(i)); return { idx: i, text: c.text, score: c.score, kind: c.kind, where: c.where }; });
 }
 """
 

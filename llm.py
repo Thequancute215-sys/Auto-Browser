@@ -15,6 +15,10 @@ class LLMError(Exception):
     pass
 
 
+class QuotaExhausted(LLMError):
+    """Every cloud model in the pool is out of free quota (the agent can switch to the local model)."""
+
+
 def _parse_quota(err: str):
     """Gemini 429 → (seconds until retry, is_daily_quota) or None.
     Example: '... limit: 20, model: gemini-3.8-flash\\nPlease retry in 9h50m5.0s ... GenerateRequestsPerDay...'"""
@@ -106,16 +110,17 @@ class GeminiClient:
                 if time.time() > deadline:
                     raise LLMError(f"Gemini không phản hồi sau {int(timeout)}s (timed out)")
 
-    def list_models(self, api_key: str) -> List[dict]:
+    def list_models(self, api_key: str, include_gemma: bool = True) -> List[dict]:
         client = self._get_client(api_key)
         out = []
         for m in self._call(lambda: list(client.models.list()), timeout=30):
             name = (m.name or "").replace("models/", "")
             actions = m.supported_actions or []
-            if "gemini" not in name or "generateContent" not in actions:
+            family_ok = "gemini" in name or (include_gemma and name.startswith("gemma-"))
+            if not family_ok or "generateContent" not in actions:
                 continue
             if any(bad in name for bad in ("embedding", "tts", "image", "native-audio", "live", "robotics",
-                                           "transcribe", "banana", "computer-use", "customtools")):
+                                           "transcribe", "banana", "computer-use", "customtools", "omni")):
                 continue
             out.append({"name": name, "display": m.display_name or name,
                         "input_limit": m.input_token_limit or 0})
@@ -131,19 +136,24 @@ class GeminiClient:
         from google.genai import types
 
         client = self._get_client(api_key)
-        contents = []
-        for data, mime in attachments or []:
-            contents.append(types.Part.from_bytes(data=data, mime_type=mime))
+        media = [types.Part.from_bytes(data=data, mime_type=mime) for data, mime in attachments or []]
         if image:
-            contents.append(types.Part.from_bytes(data=image, mime_type="image/jpeg"))
-        contents.append(prompt)
+            media.append(types.Part.from_bytes(data=image, mime_type="image/jpeg"))
 
-        cfg = {"temperature": temperature, "max_output_tokens": max_output_tokens}
-        if system:
-            cfg["system_instruction"] = system
-        if json_mode:
-            cfg["response_mime_type"] = "application/json"
-        config = types.GenerateContentConfig(**cfg)
+        def payload(mod):
+            """Gemini takes a system instruction and JSON mode; Gemma models on this API are more reliable
+            with the system prompt inside the message and plain text output (parsed as JSON afterwards)."""
+            cfg = {"temperature": temperature, "max_output_tokens": max_output_tokens}
+            text = prompt
+            if mod.startswith("gemma-"):
+                if system:
+                    text = f"{system}\n\n{prompt}"
+            else:
+                if system:
+                    cfg["system_instruction"] = system
+                if json_mode:
+                    cfg["response_mime_type"] = "application/json"
+            return media + [text], types.GenerateContentConfig(**cfg)
 
         candidates = [m for m in [model] + list(fallbacks or []) if m]
         sticky = self._sticky.get(model)
@@ -163,6 +173,7 @@ class GeminiClient:
                 self._note_switch(mod, on_retry)
                 last_err = LLMError(self._exhausted_msg(mod))
             else:
+                contents, config = payload(mod)
                 text, last_err = self._try_model(client, mod, contents, config, should_stop, on_retry)
                 if text is not None:
                     self.last_model_used = mod
@@ -180,9 +191,9 @@ class GeminiClient:
                 candidates += extra
         if candidates and all(self._is_exhausted(m) for m in candidates):
             soonest = min(self._exhausted.get(m, (0, ""))[0] for m in candidates)
-            raise LLMError("Tất cả mô hình Gemini đã hết lượt miễn phí hôm nay (mỗi mô hình 20 lượt/ngày). "
-                           f"Có lượt lại sau khoảng {_fmt_wait(soonest - time.time())}, "
-                           "hoặc chuyển sang Claude trong ⚙️ Cài đặt.")
+            raise QuotaExhausted("Tất cả mô hình Google (Gemini, Gemma) đã hết lượt miễn phí hôm nay. "
+                                 f"Có lượt lại sau khoảng {_fmt_wait(soonest - time.time())}, "
+                                 "hoặc dùng mô hình chạy trên máy (Ollama) / Claude trong ⚙️ Cài đặt.")
         raise LLMError(self._friendly(str(last_err)) if last_err else "Không gọi được mô hình.")
 
     # ---------------------------------------------------------------- quota handling
@@ -258,15 +269,19 @@ class GeminiClient:
         return all(self._is_exhausted(m) for m in candidates)
 
     def _discover_alternatives(self, api_key, tried):
-        """Other Flash models available to this key, best first (each has its own free-tier bucket)."""
+        """The model pool: other Flash, Flash-Lite and Gemma models of this key, best first.
+        Each has its own free-tier bucket, so the pool multiplies the daily number of agent steps."""
         try:
-            names = [m["name"] for m in self.list_models(api_key)]
+            names = [m["name"] for m in self.list_models(api_key, include_gemma=True)]
         except Exception:
             return []
-        flash = [n for n in names if "flash" in n and n not in tried and not self._is_exhausted(n)]
-        # Full Flash before Flash-Lite, stable before preview, newest version first.
-        flash.sort(key=lambda n: ("lite" in n, "preview" in n or "exp" in n, [-int(x) for x in re.findall(r"\d+", n)]))
-        return flash[:6]
+        pool = [n for n in names if ("flash" in n or n.startswith("gemma-")) and n not in tried and not self._is_exhausted(n)]
+
+        def rank(n):
+            family = 2 if n.startswith("gemma-") else (1 if "lite" in n else 0)  # Flash > Flash-Lite > Gemma (slower)
+            return (family, "preview" in n or "exp" in n, [-int(x) for x in re.findall(r"\d+", n)])
+        pool.sort(key=rank)
+        return pool[:10]
 
     def _record_usage(self, resp):
         self.usage["calls"] += 1
@@ -406,3 +421,83 @@ class ClaudeClient:
         if u:
             self.usage["input_tokens"] += (u.input_tokens or 0) + (getattr(u, "cache_read_input_tokens", 0) or 0)
             self.usage["output_tokens"] += u.output_tokens or 0
+
+
+# Local model through Ollama (https://ollama.com): no API key, no quota, runs on the user's own machine.
+OLLAMA_DEFAULT_HOST = "http://127.0.0.1:11434"
+
+
+class OllamaClient:
+    """Same interface as GeminiClient / ClaudeClient, over Ollama's REST API (/api/chat, /api/tags)."""
+
+    def __init__(self, host: Optional[str] = None):
+        import os
+        self.host = (host or os.environ.get("OLLAMA_HOST") or OLLAMA_DEFAULT_HOST).rstrip("/")
+        if not self.host.startswith("http"):
+            self.host = "http://" + self.host
+        self._pool = ThreadPoolExecutor(max_workers=2, thread_name_prefix="ollama")
+        self.last_model_used = None
+        self.last_switch_reason = None
+        self.usage = {"calls": 0, "input_tokens": 0, "output_tokens": 0}
+
+    _call = GeminiClient._call
+
+    def _request(self, path, body=None, timeout=600):
+        import urllib.request
+        data = json.dumps(body).encode() if body is not None else None
+        req = urllib.request.Request(self.host + path, data=data, headers={"Content-Type": "application/json"})
+        with urllib.request.urlopen(req, timeout=timeout) as r:
+            return json.loads(r.read().decode())
+
+    def available(self) -> bool:
+        try:
+            self._request("/api/version", timeout=2)
+            return True
+        except Exception:
+            return False
+
+    def list_models(self, api_key: str = "") -> List[dict]:
+        try:
+            tags = self._request("/api/tags", timeout=5).get("models", [])
+        except Exception as e:
+            raise LLMError(f"Không kết nối được Ollama tại {self.host}: {e}")
+        return [{"name": m["name"], "display": f"{m['name']} ({m.get('details', {}).get('parameter_size', '?')})",
+                 "input_limit": 0} for m in tags]
+
+    def generate(self, api_key: str, model: str, prompt: str, image: Optional[bytes] = None,
+                 system: Optional[str] = None, json_mode: bool = False, fallbacks: Optional[List[str]] = None,
+                 temperature: float = 0.2, max_output_tokens: int = 4096, should_stop=None,
+                 on_retry=None, attachments=None, schema=None, effort=None) -> str:
+        if attachments:
+            raise LLMError("Mô hình chạy trên máy chưa nghe được audio. Bài nghe cần Gemini API Key.")
+        messages = []
+        if system:
+            messages.append({"role": "system", "content": system})
+        user = {"role": "user", "content": prompt}
+        if image:
+            user["images"] = [base64.standard_b64encode(image).decode("ascii")]
+        messages.append(user)
+        body = {"model": model, "messages": messages, "stream": False,
+                "options": {"temperature": temperature, "num_predict": max_output_tokens, "num_ctx": 32768},
+                "keep_alive": "30m"}
+        if schema:
+            body["format"] = schema          # Ollama structured outputs: constrained to the JSON schema
+        elif json_mode:
+            body["format"] = "json"
+        try:
+            res = self._call(lambda: self._request("/api/chat", body, timeout=900), should_stop=should_stop, timeout=905)
+        except LLMError:
+            raise
+        except Exception as e:
+            msg = str(e)
+            if "404" in msg or "not found" in msg.lower():
+                raise LLMError(f"Chưa có mô hình «{model}» trên máy. Chạy: ollama pull {model}")
+            raise LLMError(f"Ollama lỗi ({self.host}): {msg[:200]}")
+        self.usage["calls"] += 1
+        self.usage["input_tokens"] += res.get("prompt_eval_count", 0) or 0
+        self.usage["output_tokens"] += res.get("eval_count", 0) or 0
+        text = (res.get("message") or {}).get("content", "")
+        if not text:
+            raise LLMError(f"Mô hình {model} trả về rỗng")
+        self.last_model_used = model
+        return text

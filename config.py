@@ -4,7 +4,11 @@ import os
 # 127.0.0.1 = chỉ máy này truy cập được. Đặt ALLOW_LAN=1 nếu thật sự muốn mở ra mạng LAN
 # (cảnh báo: ai trong mạng cũng điều khiển được trình duyệt đã đăng nhập của bạn).
 ALLOW_LAN = os.environ.get("ALLOW_LAN", "0") == "1"
-HOST = "0.0.0.0" if ALLOW_LAN else "127.0.0.1"
+# AIB_BIND only changes which network interface the server listens on (Docker needs 0.0.0.0 inside the
+# container); requests must still come from localhost unless ALLOW_LAN=1. Publish the port as
+# 127.0.0.1:8000:8000 so only the host machine can reach it.
+HOST = os.environ.get("AIB_BIND") or ("0.0.0.0" if ALLOW_LAN else "127.0.0.1")
+IN_DOCKER = os.environ.get("AIB_IN_DOCKER") == "1"
 PORT = int(os.environ.get("PORT", "8000"))
 
 # Browser configuration

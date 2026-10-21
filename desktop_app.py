@@ -177,9 +177,13 @@ def main():
     # Other browsers (Edge) may hand the window to an existing process, so the live SSE connection
     # (server.PANEL, with a grace period for reloads) is the fallback signal.
     own_panel = panel is not None and "ms-playwright" in (app_browser or "")
+    threading.Thread(target=_auto_update, args=(server,), daemon=True).start()
     try:
         while True:
             time.sleep(0.4)
+            if server.QUIT_REQUESTED.is_set():
+                print("update installing -> quit")
+                break
             if server.browser.window_closed or not server.browser.alive:
                 print("browser window closed -> quit")
                 break
@@ -203,6 +207,24 @@ def main():
         # Anything still alive is ended by the Windows Job Object when this process exits.
 
 
+def _auto_update(server):
+    """A few seconds after start: if a newer release exists and auto-update is on, install it in place.
+    The installer upgrades over this install and reopens the app; nothing has to be uninstalled."""
+    time.sleep(8)
+    try:
+        if not server.ai.settings.get("auto_update", True):
+            return
+        info = server.updater.check(force=True)
+        print(f"[update] current {info['current']} latest {info['latest']} available={info['update_available']} {info['error'] or ''}")
+        if not info["update_available"] or server.ai.is_running:
+            return
+        server.bus.publish("toast", {"type": "info", "text": f"Đang cập nhật lên bản {info['latest']}, app sẽ tự mở lại sau ít giây..."})
+        res = server.updater.apply(on_quit=server.QUIT_REQUESTED.set)
+        print(f"[update] {res}")
+    except Exception as e:
+        print(f"[update] failed: {e}")
+
+
 def selftest():
     """`AutoBrowser.exe --selftest`: checks the bundle contains every runtime dependency, then exits."""
     _setup_logging()
@@ -210,7 +232,8 @@ def selftest():
     for mod in ("anthropic", "google.genai", "playwright.sync_api", "websocket", "server_deps"):
         try:
             if mod == "server_deps":
-                import ai_controller, browser_manager, cdp_fast, events, llm, page_scripts  # noqa: F401
+                import ai_controller, browser_manager, cdp_fast, events, llm, page_scripts, updater, version  # noqa: F401
+                print(f"[selftest] version {version.__version__}")
             else:
                 __import__(mod)
             print(f"[selftest] ok   {mod}")

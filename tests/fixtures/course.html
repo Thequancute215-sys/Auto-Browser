@@ -1,0 +1,28 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><title>Quản trị học căn bản</title>
+<style>
+  body { font: 16px Arial, sans-serif; margin: 0; display: flex; }
+  nav { width: 280px; height: 100vh; overflow: auto; border-right: 1px solid #ccc; position: sticky; top: 0; }
+  nav a { display: block; padding: 10px 14px; color: #124; text-decoration: none; }
+  main { flex: 1; padding: 24px; }
+  section { margin-bottom: 700px; }
+</style></head>
+<body>
+<nav id="outline"></nav>
+<main>
+  <h1>Quản trị học căn bản</h1>
+  <section><h2>Giới thiệu môn học</h2><p>Mục tiêu và cách đánh giá.</p></section>
+  <section><h2>Tài liệu tham khảo</h2><p>Giáo trình chính.</p></section>
+  <section><h2>Phần 5: Bài tập tổng hợp</h2><p id="ex">Bài tập cuối khóa.</p></section>
+  <p id="opened">none</p>
+</main>
+<script>
+const nav = document.getElementById('outline');
+for (let i = 1; i <= 30; i++) {
+  const a = document.createElement('a');
+  a.href = '#lesson-' + i;
+  a.textContent = `Lesson ${i}: ${['Môi trường bên ngoài', 'Hoạch định', 'Tổ chức', 'Lãnh đạo', 'Kiểm tra'][i % 5]}`;
+  a.onclick = e => { e.preventDefault(); document.getElementById('opened').textContent = a.textContent; };
+  nav.appendChild(a);
+}
+</script>
+</body></html>
