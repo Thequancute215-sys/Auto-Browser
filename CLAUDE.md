@@ -25,7 +25,17 @@ Muốn chạy thử song song với server đang dùng: đặt `PORT=8765`, `AIB
 
 ## Quy trình làm việc với Understand-Anything
 
-Repo dùng plugin [Understand-Anything](https://github.com/Thequancute215-sys/understand-anything) để giữ một bản đồ kiến thức (knowledge graph) của toàn bộ mã. `.claude/settings.json` đã khai báo marketplace và bật plugin, nên Claude Code sẽ đề nghị cài khi mở repo (hoặc chạy `/plugin marketplace add Thequancute215-sys/understand-anything` rồi `/plugin install understand-anything`).
+Repo dùng plugin [Understand-Anything](https://github.com/Thequancute215-sys/understand-anything) để giữ một bản đồ kiến thức (knowledge graph) của toàn bộ mã. `.claude/settings.json` đã khai báo marketplace và bật plugin, nên Claude Code sẽ đề nghị cài khi mở repo.
+
+Cài thủ công (lệnh `/plugin` không có trong extension VS Code, nên dùng CLI `claude` trong terminal; cần Node.js ≥ 22 và pnpm ≥ 10):
+
+```powershell
+winget install OpenJS.NodeJS.LTS; npm install -g pnpm@10
+claude plugin marketplace add Thequancute215-sys/understand-anything --sparse .claude-plugin understand-anything-plugin
+claude plugin install understand-anything@understand-anything
+```
+
+Nếu `claude` không có trong PATH, dùng file `claude.exe` trong `%USERPROFILE%\.vscode\extensions\anthropic.claude-code-*\resources\native-binary\`. Luôn dùng `--sparse`: clone cả repo hay bị quá thời gian chờ 120 giây.
 
 - **Trước khi sửa:** dùng `/understand-chat <câu hỏi>` hoặc `/understand-explain <file hoặc hàm>` để tìm đúng chỗ cần sửa, thay vì đọc mò cả repo. Người mới vào dự án: `/understand-onboard`.
 - **Sau khi sửa:** chạy `/understand` (chỉ phân tích lại các file đã đổi). Hoặc chạy một lần `/understand --auto-update` để cài hook post-commit tự cập nhật sau mỗi commit.

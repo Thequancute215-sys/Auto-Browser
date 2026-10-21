@@ -3,7 +3,11 @@
     "understand-anything": {
       "source": {
         "source": "github",
-        "repo": "Thequancute215-sys/understand-anything"
+        "repo": "Thequancute215-sys/understand-anything",
+        "sparsePaths": [
+          ".claude-plugin",
+          "understand-anything-plugin"
+        ]
       }
     }
   },
