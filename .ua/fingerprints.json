@@ -1,0 +1,4555 @@
+{
+  "version": "1.0.0",
+  "gitCommitHash": "6a2247e76a3a534f7e3d74bae64409e224a12ec8",
+  "generatedAt": "2026-10-21T19:41:26.973Z",
+  "files": {
+    ".claude/settings.json": {
+      "filePath": ".claude/settings.json",
+      "contentHash": "84b40bf86f1903167ba41be54fb577826da8929464faeaebfa9cd041555d22ad",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 18,
+      "hasStructuralAnalysis": false
+    },
+    ".dockerignore": {
+      "filePath": ".dockerignore",
+      "contentHash": "95f6c516579fe767acfffd738bcb1fa97fa6058a90ef0671cdc9ef96fbfa671d",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 23,
+      "hasStructuralAnalysis": false
+    },
+    ".gitattributes": {
+      "filePath": ".gitattributes",
+      "contentHash": "e0224d2de121233fd70c4e7c6dbbdc5cd61adc89601fc84911268e2cb1032b08",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 5,
+      "hasStructuralAnalysis": false
+    },
+    ".github/workflows/ci.yml": {
+      "filePath": ".github/workflows/ci.yml",
+      "contentHash": "7bcc864a7b38bfc1be454d2771af4f54097a077a14615fffb82ef24f223adfb6",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 73,
+      "hasStructuralAnalysis": false
+    },
+    ".github/workflows/release.yml": {
+      "filePath": ".github/workflows/release.yml",
+      "contentHash": "2231e5ea1c84ecbd2980cbc11accbf6be03ad1d9475f2cdb77acb32d24183541",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 97,
+      "hasStructuralAnalysis": false
+    },
+    "CLAUDE.md": {
+      "filePath": "CLAUDE.md",
+      "contentHash": "4793f2c26a6fa0d1d6de53dc25ed660d96b02c2b4d568dd56a43bd5d0b458efe",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 79,
+      "hasStructuralAnalysis": false
+    },
+    "Dockerfile": {
+      "filePath": "Dockerfile",
+      "contentHash": "98f503f12ace071d90634351db146e36749fd2863bf8633dcaf2bd88cdcb99bd",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 38,
+      "hasStructuralAnalysis": false
+    },
+    "HANDOVER.md": {
+      "filePath": "HANDOVER.md",
+      "contentHash": "9256062c6f638099a07ee912f53e18582e9a95782c138d405bae36f83cda7c3a",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 234,
+      "hasStructuralAnalysis": false
+    },
+    "INSTALL.md": {
+      "filePath": "INSTALL.md",
+      "contentHash": "1921e7b562b7a01111e5d778f4994cfc0e59e043e97aef261930c5408972e832",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 120,
+      "hasStructuralAnalysis": false
+    },
+    "README.md": {
+      "filePath": "README.md",
+      "contentHash": "0741200db21a61762947134a14f770a46b6447e296b1785f3300b7e93698ba07",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 41,
+      "hasStructuralAnalysis": false
+    },
+    "ai_browser.py": {
+      "filePath": "ai_browser.py",
+      "contentHash": "2c3da42a38af133ca3993bf8e1731a3de6568d948224c366cbe8bcabfe87c805",
+      "functions": [
+        {
+          "name": "call_api",
+          "params": [
+            "endpoint",
+            "payload"
+          ],
+          "returnType": "dict",
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "get_state",
+          "params": [],
+          "returnType": "dict",
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "print_help",
+          "params": [],
+          "exported": true,
+          "lineCount": 12
+        },
+        {
+          "name": "main",
+          "params": [],
+          "exported": true,
+          "lineCount": 39
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "sys",
+          "specifiers": [
+            "sys"
+          ]
+        },
+        {
+          "source": "json",
+          "specifiers": [
+            "json"
+          ]
+        },
+        {
+          "source": "urllib.request",
+          "specifiers": [
+            "urllib.request"
+          ]
+        },
+        {
+          "source": "config",
+          "specifiers": [
+            "config"
+          ]
+        }
+      ],
+      "exports": [
+        "call_api",
+        "get_state",
+        "print_help",
+        "main"
+      ],
+      "totalLines": 87,
+      "hasStructuralAnalysis": true
+    },
+    "ai_config.example.json": {
+      "filePath": "ai_config.example.json",
+      "contentHash": "7227aff5c76a3341db84ce1376046b0f72be23fb614357cd574775349c8b102e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 11,
+      "hasStructuralAnalysis": false
+    },
+    "ai_controller.py": {
+      "filePath": "ai_controller.py",
+      "contentHash": "644b223c737cc9e1ae9119859bba5c741c2d0128f0903cdb609361e1effe7218",
+      "functions": [
+        {
+          "name": "_now",
+          "params": [],
+          "returnType": "str",
+          "exported": true,
+          "lineCount": 2
+        }
+      ],
+      "classes": [
+        {
+          "name": "AIController",
+          "methods": [
+            "__init__",
+            "_load_config",
+            "_persist",
+            "provider",
+            "llm",
+            "llm",
+            "gemini_key",
+            "claude_key",
+            "api_key",
+            "model",
+            "fallbacks",
+            "local_status",
+            "save_config",
+            "get_config",
+            "list_models",
+            "test_connection",
+            "add_message",
+            "_set_phase",
+            "_status_payload",
+            "get_status",
+            "clear_messages",
+            "stop",
+            "stop_requested",
+            "run_command",
+            "_execute_pipeline",
+            "_try_local_command",
+            "_try_find_and_go",
+            "_rules_for_settings",
+            "_format_element",
+            "_build_prompt",
+            "_signature",
+            "_describe_action",
+            "_calls_so_far",
+            "_can_use_local",
+            "_submit_guard",
+            "_ensure_transcripts",
+            "_agent_loop"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 773
+        }
+      ],
+      "imports": [
+        {
+          "source": "hashlib",
+          "specifiers": [
+            "hashlib"
+          ]
+        },
+        {
+          "source": "json",
+          "specifiers": [
+            "json"
+          ]
+        },
+        {
+          "source": "os",
+          "specifiers": [
+            "os"
+          ]
+        },
+        {
+          "source": "re",
+          "specifiers": [
+            "re"
+          ]
+        },
+        {
+          "source": "threading",
+          "specifiers": [
+            "threading"
+          ]
+        },
+        {
+          "source": "time",
+          "specifiers": [
+            "time"
+          ]
+        },
+        {
+          "source": "urllib.parse",
+          "specifiers": [
+            "urllib.parse"
+          ]
+        },
+        {
+          "source": "typing",
+          "specifiers": [
+            "Any",
+            "Dict",
+            "List",
+            "Optional"
+          ]
+        },
+        {
+          "source": "config",
+          "specifiers": [
+            "config"
+          ]
+        },
+        {
+          "source": "llm",
+          "specifiers": [
+            "ClaudeClient",
+            "GeminiClient",
+            "LLMError",
+            "OllamaClient",
+            "QuotaExhausted",
+            "parse_json_response"
+          ]
+        }
+      ],
+      "exports": [
+        "_now",
+        "AIController"
+      ],
+      "totalLines": 903,
+      "hasStructuralAnalysis": true
+    },
+    "browser_manager.py": {
+      "filePath": "browser_manager.py",
+      "contentHash": "fa0f1242bc1d3b19ebf070aa99c37cbeb311e07edf2b7bb4ce63db9868f9b94e",
+      "functions": [
+        {
+          "name": "_short_err",
+          "params": [
+            "err"
+          ],
+          "returnType": "str",
+          "exported": true,
+          "lineCount": 3
+        }
+      ],
+      "classes": [
+        {
+          "name": "BrowserManager",
+          "methods": [
+            "__init__",
+            "log",
+            "execute",
+            "_suppress_frames",
+            "_suppress_frames",
+            "input_events",
+            "wait_frame",
+            "get_screenshot",
+            "get_state",
+            "stop",
+            "_worker_main",
+            "_launch",
+            "_read_devtools_port",
+            "_run",
+            "_drain_commands",
+            "_register_page",
+            "_on_response",
+            "_on_context_page",
+            "_on_dialog",
+            "_on_navigated",
+            "_on_load",
+            "_attach",
+            "_recover_page",
+            "_start_screencast",
+            "_stop_screencast",
+            "_on_screencast_frame",
+            "_capture_screenshot",
+            "_set_frame",
+            "_sync_tabs",
+            "_update_scroll",
+            "_state_dict",
+            "_publish_state",
+            "_flush_typed_log",
+            "_ai_point",
+            "_visible_frames",
+            "_all_frames_eval",
+            "_normalize_url",
+            "_cmd_goto",
+            "_cmd_back",
+            "_cmd_forward",
+            "_cmd_reload",
+            "_cmd_stop_loading",
+            "_cmd_action",
+            "_cmd_new_tab",
+            "_cmd_switch_tab",
+            "_cmd_close_tab",
+            "_clamp_xy",
+            "_cmd_input",
+            "_cmd_click",
+            "_cmd_type",
+            "_cmd_scroll",
+            "_cmd_scroll_ratio",
+            "_cmd_set_viewport",
+            "_cmd_eval",
+            "_cmd_fetch_media",
+            "_form_status",
+            "_cmd_form_status",
+            "_cmd_find_and_go",
+            "_cmd_eval_frames",
+            "_cmd_extract_text",
+            "_cmd_page_text",
+            "_cmd_get_selection",
+            "_cmd_select_text",
+            "_dnd_snapshot",
+            "_dnd_changed",
+            "_drag",
+            "_live_center",
+            "_dnd_playwright",
+            "_dnd_mouse_steps",
+            "_dnd_mouse_hold",
+            "_dnd_touch",
+            "_dnd_html5_events",
+            "_dnd_pointer_events",
+            "_dnd_click_place",
+            "_cmd_ai_observe",
+            "_cmd_ai_act"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 1218
+        }
+      ],
+      "imports": [
+        {
+          "source": "base64",
+          "specifiers": [
+            "base64"
+          ]
+        },
+        {
+          "source": "json",
+          "specifiers": [
+            "json"
+          ]
+        },
+        {
+          "source": "os",
+          "specifiers": [
+            "os"
+          ]
+        },
+        {
+          "source": "queue",
+          "specifiers": [
+            "queue"
+          ]
+        },
+        {
+          "source": "re",
+          "specifiers": [
+            "re"
+          ]
+        },
+        {
+          "source": "threading",
+          "specifiers": [
+            "threading"
+          ]
+        },
+        {
+          "source": "time",
+          "specifiers": [
+            "time"
+          ]
+        },
+        {
+          "source": "weakref",
+          "specifiers": [
+            "weakref"
+          ]
+        },
+        {
+          "source": "collections",
+          "specifiers": [
+            "deque"
+          ]
+        },
+        {
+          "source": "urllib.parse",
+          "specifiers": [
+            "quote_plus"
+          ]
+        },
+        {
+          "source": "playwright.sync_api",
+          "specifiers": [
+            "sync_playwright"
+          ]
+        },
+        {
+          "source": "config",
+          "specifiers": [
+            "config"
+          ]
+        },
+        {
+          "source": "page_scripts",
+          "specifiers": [
+            "js"
+          ]
+        },
+        {
+          "source": "cdp_fast",
+          "specifiers": [
+            "FastCDP"
+          ]
+        }
+      ],
+      "exports": [
+        "_short_err",
+        "BrowserManager"
+      ],
+      "totalLines": 1246,
+      "hasStructuralAnalysis": true
+    },
+    "cdp_fast.py": {
+      "filePath": "cdp_fast.py",
+      "contentHash": "9824624e8a7243563466fd1db500926503fa3562807daeb7bedda43dcca75b28",
+      "functions": [
+        {
+          "name": "key_event_params",
+          "params": [
+            "combo"
+          ],
+          "exported": true,
+          "lineCount": 31
+        }
+      ],
+      "classes": [
+        {
+          "name": "FastCDP",
+          "methods": [
+            "__init__",
+            "connected",
+            "connect",
+            "close",
+            "_read_loop",
+            "send",
+            "call",
+            "dispatch",
+            "_mouse"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 150
+        }
+      ],
+      "imports": [
+        {
+          "source": "base64",
+          "specifiers": [
+            "base64"
+          ]
+        },
+        {
+          "source": "itertools",
+          "specifiers": [
+            "itertools"
+          ]
+        },
+        {
+          "source": "json",
+          "specifiers": [
+            "json"
+          ]
+        },
+        {
+          "source": "threading",
+          "specifiers": [
+            "threading"
+          ]
+        },
+        {
+          "source": "websocket",
+          "specifiers": [
+            "websocket"
+          ]
+        }
+      ],
+      "exports": [
+        "key_event_params",
+        "FastCDP"
+      ],
+      "totalLines": 220,
+      "hasStructuralAnalysis": true
+    },
+    "config.py": {
+      "filePath": "config.py",
+      "contentHash": "030e1fe74293bc972e5b4329e8ed07ebdfbe7413ade74e531296c235c50b149b",
+      "functions": [
+        {
+          "name": "_saved_start_url",
+          "params": [],
+          "returnType": "str",
+          "exported": true,
+          "lineCount": 7
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "os",
+          "specifiers": [
+            "os"
+          ]
+        }
+      ],
+      "exports": [
+        "_saved_start_url"
+      ],
+      "totalLines": 90,
+      "hasStructuralAnalysis": true
+    },
+    "desktop_app.py": {
+      "filePath": "desktop_app.py",
+      "contentHash": "a4c23ae28b7b71284d7fe7ad742bddff33adff4c9accb8466f5a6b997ae04ae2",
+      "functions": [
+        {
+          "name": "_message_box",
+          "params": [
+            "text",
+            "title",
+            "icon"
+          ],
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "_work_area",
+          "params": [],
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "_find_app_browser",
+          "params": [],
+          "exported": true,
+          "lineCount": 15
+        },
+        {
+          "name": "_setup_logging",
+          "params": [],
+          "exported": true,
+          "lineCount": 13
+        },
+        {
+          "name": "_port_is_free",
+          "params": [
+            "port"
+          ],
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "_running_instance",
+          "params": [
+            "port"
+          ],
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "_choose_port",
+          "params": [],
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "_ensure_chromium",
+          "params": [],
+          "exported": true,
+          "lineCount": 12
+        },
+        {
+          "name": "main",
+          "params": [],
+          "exported": true,
+          "lineCount": 83
+        },
+        {
+          "name": "_auto_update",
+          "params": [
+            "server"
+          ],
+          "exported": true,
+          "lineCount": 16
+        },
+        {
+          "name": "selftest",
+          "params": [],
+          "exported": true,
+          "lineCount": 17
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "glob",
+          "specifiers": [
+            "glob"
+          ]
+        },
+        {
+          "source": "json",
+          "specifiers": [
+            "json"
+          ]
+        },
+        {
+          "source": "os",
+          "specifiers": [
+            "os"
+          ]
+        },
+        {
+          "source": "socket",
+          "specifiers": [
+            "socket"
+          ]
+        },
+        {
+          "source": "subprocess",
+          "specifiers": [
+            "subprocess"
+          ]
+        },
+        {
+          "source": "sys",
+          "specifiers": [
+            "sys"
+          ]
+        },
+        {
+          "source": "threading",
+          "specifiers": [
+            "threading"
+          ]
+        },
+        {
+          "source": "time",
+          "specifiers": [
+            "time"
+          ]
+        },
+        {
+          "source": "traceback",
+          "specifiers": [
+            "traceback"
+          ]
+        },
+        {
+          "source": "urllib.request",
+          "specifiers": [
+            "urllib.request"
+          ]
+        }
+      ],
+      "exports": [
+        "_message_box",
+        "_work_area",
+        "_find_app_browser",
+        "_setup_logging",
+        "_port_is_free",
+        "_running_instance",
+        "_choose_port",
+        "_ensure_chromium",
+        "main",
+        "_auto_update",
+        "selftest"
+      ],
+      "totalLines": 255,
+      "hasStructuralAnalysis": true
+    },
+    "docker-compose.yml": {
+      "filePath": "docker-compose.yml",
+      "contentHash": "1adc3ab1ea44a8078c9a3535fed789913510258006983a9ee8d3bb4838300880",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 44,
+      "hasStructuralAnalysis": false
+    },
+    "docs/releases/v6.2.0.md": {
+      "filePath": "docs/releases/v6.2.0.md",
+      "contentHash": "eefe26afcc76ddb42dc844eb6c8c1edaab7608b6620a3089346105d6be5052a2",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 16,
+      "hasStructuralAnalysis": false
+    },
+    "events.py": {
+      "filePath": "events.py",
+      "contentHash": "88f10c9d365177aff05160ba608f6a1a407291d79f936b54aec5503196de1594",
+      "functions": [],
+      "classes": [
+        {
+          "name": "EventBus",
+          "methods": [
+            "__init__",
+            "seq",
+            "publish",
+            "wait"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 33
+        }
+      ],
+      "imports": [
+        {
+          "source": "threading",
+          "specifiers": [
+            "threading"
+          ]
+        },
+        {
+          "source": "collections",
+          "specifiers": [
+            "deque"
+          ]
+        }
+      ],
+      "exports": [
+        "EventBus"
+      ],
+      "totalLines": 38,
+      "hasStructuralAnalysis": true
+    },
+    "installer/AutoBrowser.iss": {
+      "filePath": "installer/AutoBrowser.iss",
+      "contentHash": "0c077e49779408bb3f668f634b11038799efe114e34a28eca6c1cb27e74cf6dd",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 55,
+      "hasStructuralAnalysis": false
+    },
+    "llm.py": {
+      "filePath": "llm.py",
+      "contentHash": "6705e79d2cd2dd309cbda6c1f924dc49588aef079d54507f4afe00b39cbcca4f",
+      "functions": [
+        {
+          "name": "_parse_quota",
+          "params": [
+            "err"
+          ],
+          "exported": true,
+          "lineCount": 15
+        },
+        {
+          "name": "_fmt_wait",
+          "params": [
+            "seconds"
+          ],
+          "returnType": "str",
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "_sleep_unless_stopped",
+          "params": [
+            "seconds",
+            "should_stop"
+          ],
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "parse_json_response",
+          "params": [
+            "raw"
+          ],
+          "returnType": "dict",
+          "exported": true,
+          "lineCount": 17
+        }
+      ],
+      "classes": [
+        {
+          "name": "LLMError",
+          "methods": [],
+          "properties": [],
+          "exported": true,
+          "lineCount": 2
+        },
+        {
+          "name": "QuotaExhausted",
+          "methods": [],
+          "properties": [],
+          "exported": true,
+          "lineCount": 2
+        },
+        {
+          "name": "GeminiClient",
+          "methods": [
+            "__init__",
+            "_get_client",
+            "_call",
+            "list_models",
+            "generate",
+            "_try_model",
+            "_is_exhausted",
+            "_exhausted_msg",
+            "_note_switch",
+            "_all_quota",
+            "_discover_alternatives",
+            "_record_usage",
+            "_friendly"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 232
+        },
+        {
+          "name": "ClaudeClient",
+          "methods": [
+            "__init__",
+            "_get_client",
+            "list_models",
+            "generate",
+            "_record_usage"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 113
+        },
+        {
+          "name": "OllamaClient",
+          "methods": [
+            "__init__",
+            "_request",
+            "available",
+            "list_models",
+            "generate"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 74
+        }
+      ],
+      "imports": [
+        {
+          "source": "base64",
+          "specifiers": [
+            "base64"
+          ]
+        },
+        {
+          "source": "json",
+          "specifiers": [
+            "json"
+          ]
+        },
+        {
+          "source": "re",
+          "specifiers": [
+            "re"
+          ]
+        },
+        {
+          "source": "threading",
+          "specifiers": [
+            "threading"
+          ]
+        },
+        {
+          "source": "time",
+          "specifiers": [
+            "time"
+          ]
+        },
+        {
+          "source": "concurrent.futures",
+          "specifiers": [
+            "ThreadPoolExecutor",
+            "FutureTimeout"
+          ]
+        },
+        {
+          "source": "typing",
+          "specifiers": [
+            "List",
+            "Optional"
+          ]
+        }
+      ],
+      "exports": [
+        "LLMError",
+        "QuotaExhausted",
+        "_parse_quota",
+        "_fmt_wait",
+        "_sleep_unless_stopped",
+        "parse_json_response",
+        "GeminiClient",
+        "ClaudeClient",
+        "OllamaClient"
+      ],
+      "totalLines": 504,
+      "hasStructuralAnalysis": true
+    },
+    "page_scripts.py": {
+      "filePath": "page_scripts.py",
+      "contentHash": "00224b5c16a2817ca3084596c3925f1c60ae7df874ba87c3ec451adafc604f50",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 513,
+      "hasStructuralAnalysis": true
+    },
+    "pytest.ini": {
+      "filePath": "pytest.ini",
+      "contentHash": "6a96ba0e2d5a8296fb90f474da9d2f0173d3e41eba18965513f711104155f913",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 4,
+      "hasStructuralAnalysis": false
+    },
+    "requirements-dev.txt": {
+      "filePath": "requirements-dev.txt",
+      "contentHash": "8cab270017beb5cd0f5be6759ed47ff3d0825cd5e483d06aa5f26efbdab4b9e7",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 4,
+      "hasStructuralAnalysis": false
+    },
+    "requirements.txt": {
+      "filePath": "requirements.txt",
+      "contentHash": "4876015b4dd0df9bb3e3eb1c60e1c9a1ef00071198cd7b7ba557715f6b54e4f4",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 5,
+      "hasStructuralAnalysis": false
+    },
+    "scripts/debug/check_scroll.py": {
+      "filePath": "scripts/debug/check_scroll.py",
+      "contentHash": "c15c0c88dfd745fb66e4c5bb73f57f5a8cac980547c8e3403327c830beca0f9f",
+      "functions": [
+        {
+          "name": "eval_js",
+          "params": [
+            "script"
+          ],
+          "exported": true,
+          "lineCount": 6
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "json",
+          "specifiers": [
+            "json"
+          ]
+        },
+        {
+          "source": "urllib.request",
+          "specifiers": [
+            "urllib.request"
+          ]
+        },
+        {
+          "source": "sys",
+          "specifiers": [
+            "sys"
+          ]
+        }
+      ],
+      "exports": [
+        "eval_js"
+      ],
+      "totalLines": 47,
+      "hasStructuralAnalysis": true
+    },
+    "scripts/debug/enter_quiz2.py": {
+      "filePath": "scripts/debug/enter_quiz2.py",
+      "contentHash": "dc597ba7d5d6d750f52c4fff413faca7ab34557dc28f0c3157188c798ce38736",
+      "functions": [
+        {
+          "name": "eval_js",
+          "params": [
+            "script"
+          ],
+          "exported": true,
+          "lineCount": 6
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "json",
+          "specifiers": [
+            "json"
+          ]
+        },
+        {
+          "source": "urllib.request",
+          "specifiers": [
+            "urllib.request"
+          ]
+        },
+        {
+          "source": "time",
+          "specifiers": [
+            "time"
+          ]
+        },
+        {
+          "source": "sys",
+          "specifiers": [
+            "sys"
+          ]
+        }
+      ],
+      "exports": [
+        "eval_js"
+      ],
+      "totalLines": 36,
+      "hasStructuralAnalysis": true
+    },
+    "scripts/debug/test_dashboard_scroll.py": {
+      "filePath": "scripts/debug/test_dashboard_scroll.py",
+      "contentHash": "1cbb36a30a71098676df008d112356228f32ff471c99992ba3d9b9454093c22f",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "urllib.request",
+          "specifiers": [
+            "urllib.request"
+          ]
+        },
+        {
+          "source": "json",
+          "specifiers": [
+            "json"
+          ]
+        },
+        {
+          "source": "sys",
+          "specifiers": [
+            "sys"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 12,
+      "hasStructuralAnalysis": true
+    },
+    "server.py": {
+      "filePath": "server.py",
+      "contentHash": "4c4790b7151314f53372b4180dc8b63005447cd99e3ed38318426aabc5ec20d7",
+      "functions": [
+        {
+          "name": "cleanup_zombie_processes",
+          "params": [],
+          "exported": true,
+          "lineCount": 8
+        },
+        {
+          "name": "setup_windows_job_object",
+          "params": [],
+          "exported": true,
+          "lineCount": 64
+        },
+        {
+          "name": "_panel_change",
+          "params": [
+            "delta"
+          ],
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "main",
+          "params": [],
+          "exported": true,
+          "lineCount": 11
+        }
+      ],
+      "classes": [
+        {
+          "name": "AppRequestHandler",
+          "methods": [
+            "_begin_stream",
+            "_send_json",
+            "_request_allowed",
+            "_serve_static",
+            "_read_json",
+            "_stream_frames",
+            "_stream_events",
+            "_sse_loop",
+            "do_GET",
+            "do_POST",
+            "log_message"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 245
+        },
+        {
+          "name": "Server",
+          "methods": [
+            "handle_error"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 9
+        }
+      ],
+      "imports": [
+        {
+          "source": "json",
+          "specifiers": [
+            "json"
+          ]
+        },
+        {
+          "source": "mimetypes",
+          "specifiers": [
+            "mimetypes"
+          ]
+        },
+        {
+          "source": "os",
+          "specifiers": [
+            "os"
+          ]
+        },
+        {
+          "source": "struct",
+          "specifiers": [
+            "struct"
+          ]
+        },
+        {
+          "source": "sys",
+          "specifiers": [
+            "sys"
+          ]
+        },
+        {
+          "source": "threading",
+          "specifiers": [
+            "threading"
+          ]
+        },
+        {
+          "source": "time",
+          "specifiers": [
+            "time"
+          ]
+        },
+        {
+          "source": "http.server",
+          "specifiers": [
+            "BaseHTTPRequestHandler",
+            "ThreadingHTTPServer"
+          ]
+        },
+        {
+          "source": "urllib.parse",
+          "specifiers": [
+            "parse_qs",
+            "urlparse"
+          ]
+        },
+        {
+          "source": "config",
+          "specifiers": [
+            "config"
+          ]
+        },
+        {
+          "source": "events",
+          "specifiers": [
+            "EventBus"
+          ]
+        },
+        {
+          "source": "browser_manager",
+          "specifiers": [
+            "BrowserManager",
+            "COMMAND_WHITELIST"
+          ]
+        },
+        {
+          "source": "ai_controller",
+          "specifiers": [
+            "AIController"
+          ]
+        },
+        {
+          "source": "updater",
+          "specifiers": [
+            "Updater"
+          ]
+        }
+      ],
+      "exports": [
+        "cleanup_zombie_processes",
+        "setup_windows_job_object",
+        "_panel_change",
+        "AppRequestHandler",
+        "Server",
+        "main"
+      ],
+      "totalLines": 415,
+      "hasStructuralAnalysis": true
+    },
+    "start.bat": {
+      "filePath": "start.bat",
+      "contentHash": "9937dad99b8e6b134943da9ace0b86061dca0eb1eb9022c4babda4ef32e21cd6",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 37,
+      "hasStructuralAnalysis": false
+    },
+    "static/app.js": {
+      "filePath": "static/app.js",
+      "contentHash": "4bd1e67339d58c166889ff8968897d78f509d6871dff522425f42939017b03d9",
+      "functions": [
+        {
+          "name": "$",
+          "params": [
+            "id"
+          ],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "api",
+          "params": [
+            "path",
+            "body"
+          ],
+          "exported": false,
+          "lineCount": 7
+        },
+        {
+          "name": "escapeHtml",
+          "params": [
+            "s"
+          ],
+          "exported": false,
+          "lineCount": 3
+        },
+        {
+          "name": "md",
+          "params": [
+            "text"
+          ],
+          "exported": false,
+          "lineCount": 21
+        },
+        {
+          "name": "toast",
+          "params": [
+            "text"
+          ],
+          "exported": false,
+          "lineCount": 11
+        },
+        {
+          "name": "setSegmented",
+          "params": [
+            "groupId",
+            "value"
+          ],
+          "exported": false,
+          "lineCount": 7
+        },
+        {
+          "name": "copyText",
+          "params": [
+            "text"
+          ],
+          "exported": false,
+          "lineCount": 15
+        },
+        {
+          "name": "oi",
+          "params": [
+            "name"
+          ],
+          "exported": false,
+          "lineCount": 5
+        },
+        {
+          "name": "setIcon",
+          "params": [
+            "svg",
+            "name"
+          ],
+          "exported": false,
+          "lineCount": 11
+        },
+        {
+          "name": "hydrateIcons",
+          "params": [],
+          "exported": false,
+          "lineCount": 3
+        },
+        {
+          "name": "applyTheme",
+          "params": [
+            "mode"
+          ],
+          "exported": false,
+          "lineCount": 6
+        },
+        {
+          "name": "sleep",
+          "params": [
+            "ms"
+          ],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "preview",
+          "params": [
+            "t"
+          ],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "fitScreen",
+          "params": [],
+          "exported": false,
+          "lineCount": 9
+        },
+        {
+          "name": "queueFrame",
+          "params": [
+            "bytes"
+          ],
+          "exported": false,
+          "lineCount": 4
+        },
+        {
+          "name": "decodeLoop",
+          "params": [],
+          "exported": false,
+          "lineCount": 20
+        },
+        {
+          "name": "runStream",
+          "params": [],
+          "exported": false,
+          "lineCount": 29
+        },
+        {
+          "name": "showOverlay",
+          "params": [
+            "text"
+          ],
+          "exported": false,
+          "lineCount": 4
+        },
+        {
+          "name": "toRemote",
+          "params": [
+            "e"
+          ],
+          "exported": false,
+          "lineCount": 9
+        },
+        {
+          "name": "afterSelection",
+          "params": [],
+          "exported": false,
+          "lineCount": 15
+        },
+        {
+          "name": "copyRemoteSelection",
+          "params": [],
+          "exported": false,
+          "lineCount": 8
+        },
+        {
+          "name": "setPointerMode",
+          "params": [
+            "mode"
+          ],
+          "exported": false,
+          "lineCount": 6
+        },
+        {
+          "name": "focusKeyboard",
+          "params": [],
+          "exported": false,
+          "lineCount": 3
+        },
+        {
+          "name": "toPlaywrightKey",
+          "params": [
+            "e"
+          ],
+          "exported": false,
+          "lineCount": 18
+        },
+        {
+          "name": "renderScroll",
+          "params": [
+            "sc"
+          ],
+          "exported": false,
+          "lineCount": 16
+        },
+        {
+          "name": "sendRatio",
+          "params": [
+            "r"
+          ],
+          "exported": false,
+          "lineCount": 12
+        },
+        {
+          "name": "renderTabs",
+          "params": [
+            "tabs"
+          ],
+          "exported": false,
+          "lineCount": 12
+        },
+        {
+          "name": "setSidebar",
+          "params": [
+            "open"
+          ],
+          "exported": false,
+          "lineCount": 5
+        },
+        {
+          "name": "applyState",
+          "params": [
+            "st"
+          ],
+          "exported": false,
+          "lineCount": 27
+        },
+        {
+          "name": "showAiPointer",
+          "params": [
+            "p"
+          ],
+          "exported": false,
+          "lineCount": 14
+        },
+        {
+          "name": "nearBottom",
+          "params": [],
+          "exported": false,
+          "lineCount": 3
+        },
+        {
+          "name": "messageHtml",
+          "params": [
+            "m"
+          ],
+          "exported": false,
+          "lineCount": 28
+        },
+        {
+          "name": "appendMessage",
+          "params": [
+            "m"
+          ],
+          "exported": false,
+          "lineCount": 9
+        },
+        {
+          "name": "renderAllMessages",
+          "params": [
+            "list"
+          ],
+          "exported": false,
+          "lineCount": 5
+        },
+        {
+          "name": "applyAiStatus",
+          "params": [
+            "st"
+          ],
+          "exported": false,
+          "lineCount": 31
+        },
+        {
+          "name": "runAi",
+          "params": [
+            "command",
+            "overrides"
+          ],
+          "exported": false,
+          "lineCount": 4
+        },
+        {
+          "name": "autoGrow",
+          "params": [
+            "ta"
+          ],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "applyConfig",
+          "params": [
+            "cfg"
+          ],
+          "exported": false,
+          "lineCount": 18
+        },
+        {
+          "name": "saveConfig",
+          "params": [
+            "patch"
+          ],
+          "exported": false,
+          "lineCount": 10
+        },
+        {
+          "name": "openSettings",
+          "params": [],
+          "exported": false,
+          "lineCount": 35
+        },
+        {
+          "name": "closeSettings",
+          "params": [],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "renderLocalStatus",
+          "params": [
+            "st"
+          ],
+          "exported": false,
+          "lineCount": 16
+        },
+        {
+          "name": "settingsStatus",
+          "params": [
+            "text",
+            "cls"
+          ],
+          "exported": false,
+          "lineCount": 6
+        },
+        {
+          "name": "collectSettings",
+          "params": [],
+          "exported": false,
+          "lineCount": 25
+        },
+        {
+          "name": "applyViewportChoice",
+          "params": [],
+          "exported": false,
+          "lineCount": 11
+        },
+        {
+          "name": "submitSettings",
+          "params": [
+            "test"
+          ],
+          "exported": false,
+          "lineCount": 24
+        },
+        {
+          "name": "loadModels",
+          "params": [],
+          "exported": false,
+          "lineCount": 17
+        },
+        {
+          "name": "openDrawer",
+          "params": [],
+          "exported": false,
+          "lineCount": 11
+        },
+        {
+          "name": "closeDrawer",
+          "params": [],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "renderDrawer",
+          "params": [],
+          "exported": false,
+          "lineCount": 17
+        },
+        {
+          "name": "appendLog",
+          "params": [
+            "line"
+          ],
+          "exported": false,
+          "lineCount": 8
+        },
+        {
+          "name": "setConn",
+          "params": [
+            "state"
+          ],
+          "exported": false,
+          "lineCount": 5
+        },
+        {
+          "name": "connectEvents",
+          "params": [],
+          "exported": false,
+          "lineCount": 26
+        },
+        {
+          "name": "checkUpdate",
+          "params": [],
+          "exported": false,
+          "lineCount": 17
+        },
+        {
+          "name": "applyMode",
+          "params": [
+            "mode"
+          ],
+          "exported": false,
+          "lineCount": 11
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 1143,
+      "hasStructuralAnalysis": true
+    },
+    "static/index.html": {
+      "filePath": "static/index.html",
+      "contentHash": "328c8cbd72c1af8212362931e0c5f8482fd4a620090e5552c47b2ecda0f95643",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 321,
+      "hasStructuralAnalysis": false
+    },
+    "static/style.css": {
+      "filePath": "static/style.css",
+      "contentHash": "aa8fd8f0f79d4aff1cfffb20296ed6ccdd870bc7a39debf1e24ada01042fd71c",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 408,
+      "hasStructuralAnalysis": false
+    },
+    "tests/conftest.py": {
+      "filePath": "tests/conftest.py",
+      "contentHash": "adcfb26ca5c11fd79fb436fc1a62676d383508a46ad9a6165f76bb8078bd1b07",
+      "functions": [
+        {
+          "name": "pytest_configure",
+          "params": [
+            "config"
+          ],
+          "exported": true,
+          "lineCount": 2
+        },
+        {
+          "name": "pytest_collection_modifyitems",
+          "params": [
+            "config",
+            "items"
+          ],
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "site",
+          "params": [],
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "_fresh_ai_config",
+          "params": [],
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "bus",
+          "params": [],
+          "exported": true,
+          "lineCount": 2
+        },
+        {
+          "name": "browser",
+          "params": [
+            "bus"
+          ],
+          "exported": true,
+          "lineCount": 8
+        },
+        {
+          "name": "goto",
+          "params": [
+            "browser",
+            "site"
+          ],
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "api_get",
+          "params": [
+            "base",
+            "path",
+            "headers"
+          ],
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "api_post",
+          "params": [
+            "base",
+            "path",
+            "body",
+            "headers"
+          ],
+          "exported": true,
+          "lineCount": 8
+        },
+        {
+          "name": "server",
+          "params": [],
+          "exported": true,
+          "lineCount": 25
+        },
+        {
+          "name": "frames_eval",
+          "params": [
+            "browser",
+            "script"
+          ],
+          "exported": true,
+          "lineCount": 4
+        }
+      ],
+      "classes": [
+        {
+          "name": "_QuietHandler",
+          "methods": [
+            "log_message"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "_DualStackServer",
+          "methods": [
+            "server_bind"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 12
+        }
+      ],
+      "imports": [
+        {
+          "source": "functools",
+          "specifiers": [
+            "functools"
+          ]
+        },
+        {
+          "source": "http.server",
+          "specifiers": [
+            "http.server"
+          ]
+        },
+        {
+          "source": "json",
+          "specifiers": [
+            "json"
+          ]
+        },
+        {
+          "source": "os",
+          "specifiers": [
+            "os"
+          ]
+        },
+        {
+          "source": "pathlib",
+          "specifiers": [
+            "pathlib"
+          ]
+        },
+        {
+          "source": "shutil",
+          "specifiers": [
+            "shutil"
+          ]
+        },
+        {
+          "source": "socket",
+          "specifiers": [
+            "socket"
+          ]
+        },
+        {
+          "source": "subprocess",
+          "specifiers": [
+            "subprocess"
+          ]
+        },
+        {
+          "source": "sys",
+          "specifiers": [
+            "sys"
+          ]
+        },
+        {
+          "source": "tempfile",
+          "specifiers": [
+            "tempfile"
+          ]
+        },
+        {
+          "source": "threading",
+          "specifiers": [
+            "threading"
+          ]
+        },
+        {
+          "source": "time",
+          "specifiers": [
+            "time"
+          ]
+        },
+        {
+          "source": "urllib.error",
+          "specifiers": [
+            "urllib.error"
+          ]
+        },
+        {
+          "source": "urllib.request",
+          "specifiers": [
+            "urllib.request"
+          ]
+        },
+        {
+          "source": "pytest",
+          "specifiers": [
+            "pytest"
+          ]
+        },
+        {
+          "source": "config",
+          "specifiers": [
+            "config"
+          ]
+        },
+        {
+          "source": "events",
+          "specifiers": [
+            "EventBus"
+          ]
+        },
+        {
+          "source": "browser_manager",
+          "specifiers": [
+            "BrowserManager"
+          ]
+        }
+      ],
+      "exports": [
+        "pytest_configure",
+        "pytest_collection_modifyitems",
+        "_QuietHandler",
+        "_DualStackServer",
+        "site",
+        "_fresh_ai_config",
+        "bus",
+        "browser",
+        "goto",
+        "api_get",
+        "api_post",
+        "server",
+        "frames_eval"
+      ],
+      "totalLines": 169,
+      "hasStructuralAnalysis": true
+    },
+    "tests/fixtures/course.html": {
+      "filePath": "tests/fixtures/course.html",
+      "contentHash": "9ae74b7ded7d593b8abb9ce385fc53d0b351734bdc0f62838610b0fc09340f68",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 29,
+      "hasStructuralAnalysis": false
+    },
+    "tests/fixtures/dnd/common.css": {
+      "filePath": "tests/fixtures/dnd/common.css",
+      "contentHash": "5486aca609540d660b854ff59a84aa2759e9e18045f7e9752f0d7989852fd43a",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 8,
+      "hasStructuralAnalysis": false
+    },
+    "tests/fixtures/dnd/hold.html": {
+      "filePath": "tests/fixtures/dnd/hold.html",
+      "contentHash": "112288598cc3f955515e26ebec74e7df592c6d97dcc971c61f6c6216cf42e16f",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 28,
+      "hasStructuralAnalysis": false
+    },
+    "tests/fixtures/dnd/html5.html": {
+      "filePath": "tests/fixtures/dnd/html5.html",
+      "contentHash": "c97614b34c2612c39f24c5e71e30ca93166cf6b26d427911675ae7de66e3ccc4",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 11,
+      "hasStructuralAnalysis": false
+    },
+    "tests/fixtures/dnd/iframe.html": {
+      "filePath": "tests/fixtures/dnd/iframe.html",
+      "contentHash": "b1a16e0dfc3ffa0ad57c0a819d60c231d31b1b7a0902927d8c8befdf62337007",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 11,
+      "hasStructuralAnalysis": false
+    },
+    "tests/fixtures/dnd/interact.html": {
+      "filePath": "tests/fixtures/dnd/interact.html",
+      "contentHash": "5092a4dcb81828a9f5f84b684d6cf45d4f608714682a929f766e6b9eec10a8be",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 16,
+      "hasStructuralAnalysis": false
+    },
+    "tests/fixtures/dnd/jqueryui.html": {
+      "filePath": "tests/fixtures/dnd/jqueryui.html",
+      "contentHash": "f853e3bdf4434b5a8784f41de84ccd88e89f4456355c406dc01ffd66d1185fc0",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 13,
+      "hasStructuralAnalysis": false
+    },
+    "tests/fixtures/dnd/mouse.html": {
+      "filePath": "tests/fixtures/dnd/mouse.html",
+      "contentHash": "00eba77bad74cbe30807cc0a40981734d591a9f87bb2061e82032f784a0c2718",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 32,
+      "hasStructuralAnalysis": false
+    },
+    "tests/fixtures/dnd/pointer.html": {
+      "filePath": "tests/fixtures/dnd/pointer.html",
+      "contentHash": "2e1f49631378e0429d8c20c7069d965ba93f5ee07519e619603a70012f721c8c",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 31,
+      "hasStructuralAnalysis": false
+    },
+    "tests/fixtures/dnd/sortable.html": {
+      "filePath": "tests/fixtures/dnd/sortable.html",
+      "contentHash": "b1419bc69987ed5df80a7f99c79113c29fbaad9d672137e16bac2b71ea7fcc39",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 16,
+      "hasStructuralAnalysis": false
+    },
+    "tests/fixtures/dnd/taptap.html": {
+      "filePath": "tests/fixtures/dnd/taptap.html",
+      "contentHash": "1d3d2708b361c3784c1c8feb7f8f37bdae2d1b40cbc915cdd00e856a44b31e60",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 16,
+      "hasStructuralAnalysis": false
+    },
+    "tests/fixtures/dnd/touch.html": {
+      "filePath": "tests/fixtures/dnd/touch.html",
+      "contentHash": "aa5580f6d2610f6e03b36bc5c8ec7dc4e015a60b32973ed6ac69ec417acf58cf",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 20,
+      "hasStructuralAnalysis": false
+    },
+    "tests/fixtures/listening.html": {
+      "filePath": "tests/fixtures/listening.html",
+      "contentHash": "344eabdf56b5298c7e4022e71788ca31db0f15b5d45aac6f03483deadc5fdf50",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 23,
+      "hasStructuralAnalysis": false
+    },
+    "tests/fixtures/long_form.html": {
+      "filePath": "tests/fixtures/long_form.html",
+      "contentHash": "7a16051ea8998ed856911189fd01211ca6792966c894670e6ce8b92ab5405a6d",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 67,
+      "hasStructuralAnalysis": false
+    },
+    "tests/fixtures/perf.html": {
+      "filePath": "tests/fixtures/perf.html",
+      "contentHash": "c108bb5823ec31ed0f8a526f3820b91b94fb7bad55ff7320b66007d653fa5dfd",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 17,
+      "hasStructuralAnalysis": false
+    },
+    "tests/fixtures/quiz.html": {
+      "filePath": "tests/fixtures/quiz.html",
+      "contentHash": "b756c154fd442e70cc1f85833b8fd98a4018b7f02649d24963fbd87891ab1eed",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 36,
+      "hasStructuralAnalysis": false
+    },
+    "tests/test_agent.py": {
+      "filePath": "tests/test_agent.py",
+      "contentHash": "ef28d8f5c03d1884d08596c405b5ee53aeadd2f63a3228089d999916fc273d34",
+      "functions": [
+        {
+          "name": "_id",
+          "params": [
+            "prompt",
+            "needle"
+          ],
+          "returnType": "int",
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "make_ai",
+          "params": [
+            "browser",
+            "bus"
+          ],
+          "exported": true,
+          "lineCount": 8
+        },
+        {
+          "name": "_run",
+          "params": [
+            "ai",
+            "cmd",
+            "**overrides"
+          ],
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "_page_result",
+          "params": [
+            "browser"
+          ],
+          "exported": true,
+          "lineCount": 2
+        },
+        {
+          "name": "test_agent_solves_mixed_quiz_and_verifies",
+          "params": [
+            "make_ai",
+            "goto",
+            "browser"
+          ],
+          "exported": true,
+          "lineCount": 28
+        },
+        {
+          "name": "test_agent_stops_when_screen_never_changes",
+          "params": [
+            "make_ai",
+            "goto"
+          ],
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "test_suggest_mode_never_touches_the_page",
+          "params": [
+            "make_ai",
+            "goto",
+            "browser"
+          ],
+          "exported": true,
+          "lineCount": 13
+        },
+        {
+          "name": "test_run_overrides_do_not_change_saved_settings",
+          "params": [
+            "make_ai",
+            "goto"
+          ],
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "test_failed_drag_is_reported_to_the_model",
+          "params": [
+            "make_ai",
+            "goto"
+          ],
+          "exported": true,
+          "lineCount": 14
+        },
+        {
+          "name": "test_local_commands_do_not_call_the_llm",
+          "params": [
+            "make_ai",
+            "goto",
+            "browser"
+          ],
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "test_missing_key_gives_clear_warning",
+          "params": [
+            "make_ai",
+            "goto"
+          ],
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "test_llm_error_is_shown_not_hidden",
+          "params": [
+            "make_ai",
+            "goto"
+          ],
+          "exported": true,
+          "lineCount": 11
+        },
+        {
+          "name": "test_parse_json_response",
+          "params": [
+            "raw",
+            "expected"
+          ],
+          "exported": true,
+          "lineCount": 2
+        },
+        {
+          "name": "test_parse_json_response_rejects_garbage",
+          "params": [],
+          "exported": true,
+          "lineCount": 3
+        }
+      ],
+      "classes": [
+        {
+          "name": "FakeLLM",
+          "methods": [
+            "__init__",
+            "generate"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 12
+        }
+      ],
+      "imports": [
+        {
+          "source": "json",
+          "specifiers": [
+            "json"
+          ]
+        },
+        {
+          "source": "re",
+          "specifiers": [
+            "re"
+          ]
+        },
+        {
+          "source": "pytest",
+          "specifiers": [
+            "pytest"
+          ]
+        },
+        {
+          "source": "ai_controller",
+          "specifiers": [
+            "AIController"
+          ]
+        },
+        {
+          "source": "llm",
+          "specifiers": [
+            "LLMError",
+            "parse_json_response"
+          ]
+        }
+      ],
+      "exports": [
+        "_id",
+        "FakeLLM",
+        "make_ai",
+        "_run",
+        "_page_result",
+        "test_agent_solves_mixed_quiz_and_verifies",
+        "test_agent_stops_when_screen_never_changes",
+        "test_suggest_mode_never_touches_the_page",
+        "test_run_overrides_do_not_change_saved_settings",
+        "test_failed_drag_is_reported_to_the_model",
+        "test_local_commands_do_not_call_the_llm",
+        "test_missing_key_gives_clear_warning",
+        "test_llm_error_is_shown_not_hidden",
+        "test_parse_json_response",
+        "test_parse_json_response_rejects_garbage"
+      ],
+      "totalLines": 175,
+      "hasStructuralAnalysis": true
+    },
+    "tests/test_browser.py": {
+      "filePath": "tests/test_browser.py",
+      "contentHash": "005c84058ce9f8b2ac6deeba30b095b63c591bdcad4cc89275757dfecdf253bf",
+      "functions": [
+        {
+          "name": "_ev",
+          "params": [
+            "browser",
+            "script"
+          ],
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "_center",
+          "params": [
+            "browser",
+            "selector"
+          ],
+          "exported": true,
+          "lineCount": 2
+        },
+        {
+          "name": "test_typing_keys_and_unicode",
+          "params": [
+            "browser",
+            "goto"
+          ],
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "test_double_click_selection_is_readable",
+          "params": [
+            "browser",
+            "goto"
+          ],
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "test_page_text_includes_iframe_and_div_rows",
+          "params": [
+            "browser",
+            "goto"
+          ],
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "test_observe_describes_exercise_elements",
+          "params": [
+            "browser",
+            "goto"
+          ],
+          "exported": true,
+          "lineCount": 14
+        },
+        {
+          "name": "test_ai_act_fill_select_click_and_iframe",
+          "params": [
+            "browser",
+            "goto"
+          ],
+          "exported": true,
+          "lineCount": 17
+        },
+        {
+          "name": "test_stale_element_is_reported",
+          "params": [
+            "browser",
+            "goto"
+          ],
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "test_audio_detected_from_network_and_fetched",
+          "params": [
+            "browser",
+            "goto"
+          ],
+          "exported": true,
+          "lineCount": 11
+        },
+        {
+          "name": "test_fetch_media_refuses_non_audio_local_files",
+          "params": [
+            "browser"
+          ],
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "test_tabs_new_switch_close_and_popup",
+          "params": [
+            "browser",
+            "goto",
+            "site"
+          ],
+          "exported": true,
+          "lineCount": 16
+        },
+        {
+          "name": "test_viewport_change_restarts_stream",
+          "params": [
+            "browser"
+          ],
+          "exported": true,
+          "lineCount": 7
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "time",
+          "specifiers": [
+            "time"
+          ]
+        },
+        {
+          "source": "conftest",
+          "specifiers": [
+            "frames_eval"
+          ]
+        }
+      ],
+      "exports": [
+        "_ev",
+        "_center",
+        "test_typing_keys_and_unicode",
+        "test_double_click_selection_is_readable",
+        "test_page_text_includes_iframe_and_div_rows",
+        "test_observe_describes_exercise_elements",
+        "test_ai_act_fill_select_click_and_iframe",
+        "test_stale_element_is_reported",
+        "test_audio_detected_from_network_and_fetched",
+        "test_fetch_media_refuses_non_audio_local_files",
+        "test_tabs_new_switch_close_and_popup",
+        "test_viewport_change_restarts_stream"
+      ],
+      "totalLines": 135,
+      "hasStructuralAnalysis": true
+    },
+    "tests/test_claude.py": {
+      "filePath": "tests/test_claude.py",
+      "contentHash": "4a1fb033435d6877ba903164509250469e5d7b8e238657658cd6f1634e564abf",
+      "functions": [
+        {
+          "name": "_text_response",
+          "params": [
+            "text",
+            "stop_reason",
+            "model"
+          ],
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "_client_with",
+          "params": [
+            "fake"
+          ],
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "_api_error",
+          "params": [
+            "status"
+          ],
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "test_request_shape_follows_current_api",
+          "params": [],
+          "exported": true,
+          "lineCount": 15
+        },
+        {
+          "name": "test_models_without_server_fallback_use_plain_endpoint",
+          "params": [],
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "test_refusal_is_reported_not_returned_as_answer",
+          "params": [],
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "test_bad_key_gives_friendly_error",
+          "params": [],
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "test_rate_limit_moves_to_fallback_model",
+          "params": [],
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "test_audio_is_rejected_with_explanation",
+          "params": [],
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "test_agent_schema_is_strict",
+          "params": [],
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "test_agent_uses_claude_when_selected",
+          "params": [
+            "browser",
+            "bus",
+            "goto"
+          ],
+          "exported": true,
+          "lineCount": 12
+        },
+        {
+          "name": "test_listening_with_claude_transcribes_on_gemini",
+          "params": [
+            "browser",
+            "bus",
+            "goto"
+          ],
+          "exported": true,
+          "lineCount": 15
+        },
+        {
+          "name": "test_listening_without_gemini_key_warns",
+          "params": [
+            "browser",
+            "bus",
+            "goto"
+          ],
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "test_config_never_exposes_either_key",
+          "params": [
+            "browser",
+            "bus"
+          ],
+          "exported": true,
+          "lineCount": 8
+        }
+      ],
+      "classes": [
+        {
+          "name": "FakeAnthropic",
+          "methods": [
+            "__init__",
+            "_create"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 16
+        },
+        {
+          "name": "RecordingLLM",
+          "methods": [
+            "__init__",
+            "generate"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 10
+        }
+      ],
+      "imports": [
+        {
+          "source": "json",
+          "specifiers": [
+            "json"
+          ]
+        },
+        {
+          "source": "types",
+          "specifiers": [
+            "SimpleNamespace"
+          ]
+        },
+        {
+          "source": "anthropic",
+          "specifiers": [
+            "anthropic"
+          ]
+        },
+        {
+          "source": "httpx2",
+          "specifiers": [
+            "httpx2"
+          ]
+        },
+        {
+          "source": "pytest",
+          "specifiers": [
+            "pytest"
+          ]
+        },
+        {
+          "source": "ai_controller",
+          "specifiers": [
+            "AGENT_SCHEMA",
+            "AIController"
+          ]
+        },
+        {
+          "source": "llm",
+          "specifiers": [
+            "CLAUDE_FALLBACK_BETA",
+            "ClaudeClient",
+            "LLMError"
+          ]
+        }
+      ],
+      "exports": [
+        "_text_response",
+        "FakeAnthropic",
+        "_client_with",
+        "_api_error",
+        "test_request_shape_follows_current_api",
+        "test_models_without_server_fallback_use_plain_endpoint",
+        "test_refusal_is_reported_not_returned_as_answer",
+        "test_bad_key_gives_friendly_error",
+        "test_rate_limit_moves_to_fallback_model",
+        "test_audio_is_rejected_with_explanation",
+        "test_agent_schema_is_strict",
+        "RecordingLLM",
+        "test_agent_uses_claude_when_selected",
+        "test_listening_with_claude_transcribes_on_gemini",
+        "test_listening_without_gemini_key_warns",
+        "test_config_never_exposes_either_key"
+      ],
+      "totalLines": 177,
+      "hasStructuralAnalysis": true
+    },
+    "tests/test_dnd.py": {
+      "filePath": "tests/test_dnd.py",
+      "contentHash": "23960e6c07c924bd577fa02bbff336d9ba5720b2ffd9ff6663b1b909a08c1e84",
+      "functions": [
+        {
+          "name": "_observe_pair",
+          "params": [
+            "browser"
+          ],
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "_result",
+          "params": [
+            "browser"
+          ],
+          "exported": true,
+          "lineCount": 2
+        },
+        {
+          "name": "test_drag_auto",
+          "params": [
+            "browser",
+            "goto",
+            "path",
+            "label"
+          ],
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "test_drag_preference_is_remembered",
+          "params": [
+            "browser",
+            "goto"
+          ],
+          "exported": true,
+          "lineCount": 11
+        },
+        {
+          "name": "test_drag_reports_failure_honestly",
+          "params": [
+            "browser",
+            "goto"
+          ],
+          "exported": true,
+          "lineCount": 9
+        },
+        {
+          "name": "test_drag_matrix",
+          "params": [
+            "browser",
+            "goto"
+          ],
+          "exported": true,
+          "lineCount": 21
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "time",
+          "specifiers": [
+            "time"
+          ]
+        },
+        {
+          "source": "pytest",
+          "specifiers": [
+            "pytest"
+          ]
+        },
+        {
+          "source": "browser_manager",
+          "specifiers": [
+            "BrowserManager"
+          ]
+        },
+        {
+          "source": "conftest",
+          "specifiers": [
+            "REPORTS",
+            "frames_eval"
+          ]
+        }
+      ],
+      "exports": [
+        "_observe_pair",
+        "_result",
+        "test_drag_auto",
+        "test_drag_preference_is_remembered",
+        "test_drag_reports_failure_honestly",
+        "test_drag_matrix"
+      ],
+      "totalLines": 100,
+      "hasStructuralAnalysis": true
+    },
+    "tests/test_fast_input.py": {
+      "filePath": "tests/test_fast_input.py",
+      "contentHash": "016a3d83b09e74d182eb0e5da0572db92cdf14b1cfee76d56c8fcb5d8ea5932a",
+      "functions": [
+        {
+          "name": "_ev",
+          "params": [
+            "browser",
+            "script"
+          ],
+          "exported": true,
+          "lineCount": 2
+        },
+        {
+          "name": "test_fast_channel_is_used_for_stream_mode",
+          "params": [
+            "browser"
+          ],
+          "exported": true,
+          "lineCount": 2
+        },
+        {
+          "name": "test_typing_through_fast_channel",
+          "params": [
+            "browser",
+            "goto"
+          ],
+          "exported": true,
+          "lineCount": 12
+        },
+        {
+          "name": "test_enter_submits_and_drag_selects_text",
+          "params": [
+            "browser",
+            "goto"
+          ],
+          "exported": true,
+          "lineCount": 8
+        },
+        {
+          "name": "test_user_can_drag_and_drop_by_hand",
+          "params": [
+            "browser",
+            "goto",
+            "page"
+          ],
+          "exported": true,
+          "lineCount": 16
+        },
+        {
+          "name": "test_unknown_key_is_an_error_not_a_crash",
+          "params": [
+            "browser"
+          ],
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "test_key_event_params",
+          "params": [
+            "combo",
+            "expect"
+          ],
+          "exported": true,
+          "lineCount": 3
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "pytest",
+          "specifiers": [
+            "pytest"
+          ]
+        },
+        {
+          "source": "cdp_fast",
+          "specifiers": [
+            "key_event_params"
+          ]
+        }
+      ],
+      "exports": [
+        "_ev",
+        "test_fast_channel_is_used_for_stream_mode",
+        "test_typing_through_fast_channel",
+        "test_enter_submits_and_drag_selects_text",
+        "test_user_can_drag_and_drop_by_hand",
+        "test_unknown_key_is_an_error_not_a_crash",
+        "test_key_event_params"
+      ],
+      "totalLines": 76,
+      "hasStructuralAnalysis": true
+    },
+    "tests/test_gemini_quota.py": {
+      "filePath": "tests/test_gemini_quota.py",
+      "contentHash": "94db212764566303b7c469f13c92645740fa919f4b426210aee0cddf74d6f0f7",
+      "functions": [
+        {
+          "name": "test_parse_quota",
+          "params": [],
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "_client",
+          "params": [
+            "fake"
+          ],
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "test_daily_quota_switches_immediately_without_retries",
+          "params": [],
+          "exported": true,
+          "lineCount": 15
+        },
+        {
+          "name": "test_per_minute_limit_waits_then_retries_same_model",
+          "params": [],
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "test_discovers_other_models_when_all_configured_are_exhausted",
+          "params": [],
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "test_all_exhausted_gives_clear_message_with_reset_time",
+          "params": [],
+          "exported": true,
+          "lineCount": 4
+        }
+      ],
+      "classes": [
+        {
+          "name": "FakeGenai",
+          "methods": [
+            "__init__",
+            "_gen",
+            "_list"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 19
+        }
+      ],
+      "imports": [
+        {
+          "source": "time",
+          "specifiers": [
+            "time"
+          ]
+        },
+        {
+          "source": "types",
+          "specifiers": [
+            "SimpleNamespace"
+          ]
+        },
+        {
+          "source": "pytest",
+          "specifiers": [
+            "pytest"
+          ]
+        },
+        {
+          "source": "google.genai",
+          "specifiers": [
+            "types"
+          ]
+        },
+        {
+          "source": "llm",
+          "specifiers": [
+            "GeminiClient",
+            "LLMError",
+            "_parse_quota"
+          ]
+        }
+      ],
+      "exports": [
+        "test_parse_quota",
+        "FakeGenai",
+        "_client",
+        "test_daily_quota_switches_immediately_without_retries",
+        "test_per_minute_limit_waits_then_retries_same_model",
+        "test_discovers_other_models_when_all_configured_are_exhausted",
+        "test_all_exhausted_gives_clear_message_with_reset_time"
+      ],
+      "totalLines": 91,
+      "hasStructuralAnalysis": true
+    },
+    "tests/test_llm_e2e.py": {
+      "filePath": "tests/test_llm_e2e.py",
+      "contentHash": "41bcdf54f57ce99e4d12602041afb16e5c3b1f69e726f150d5b23459016971e9",
+      "functions": [
+        {
+          "name": "real_ai",
+          "params": [
+            "browser",
+            "bus"
+          ],
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "_run",
+          "params": [
+            "ai",
+            "cmd"
+          ],
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "_result",
+          "params": [
+            "browser"
+          ],
+          "exported": true,
+          "lineCount": 2
+        },
+        {
+          "name": "test_agent_solves_mixed_quiz",
+          "params": [
+            "real_ai",
+            "goto",
+            "browser"
+          ],
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "test_agent_solves_listening_exercise",
+          "params": [
+            "real_ai",
+            "goto",
+            "browser"
+          ],
+          "exported": true,
+          "lineCount": 5
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "json",
+          "specifiers": [
+            "json"
+          ]
+        },
+        {
+          "source": "pytest",
+          "specifiers": [
+            "pytest"
+          ]
+        },
+        {
+          "source": "ai_controller",
+          "specifiers": [
+            "AIController"
+          ]
+        },
+        {
+          "source": "conftest",
+          "specifiers": [
+            "REAL_AI_CONFIG"
+          ]
+        }
+      ],
+      "exports": [
+        "real_ai",
+        "_run",
+        "_result",
+        "test_agent_solves_mixed_quiz",
+        "test_agent_solves_listening_exercise"
+      ],
+      "totalLines": 49,
+      "hasStructuralAnalysis": true
+    },
+    "tests/test_long_pages.py": {
+      "filePath": "tests/test_long_pages.py",
+      "contentHash": "473fc6fa776d4cefaee1d29adbc10a76ef48ca0b7ab5bad6f61db36c67051e9a",
+      "functions": [
+        {
+          "name": "_ev",
+          "params": [
+            "browser",
+            "script"
+          ],
+          "exported": true,
+          "lineCount": 2
+        },
+        {
+          "name": "_state",
+          "params": [
+            "browser"
+          ],
+          "exported": true,
+          "lineCount": 2
+        },
+        {
+          "name": "test_observe_covers_the_whole_page",
+          "params": [
+            "browser",
+            "goto"
+          ],
+          "exported": true,
+          "lineCount": 15
+        },
+        {
+          "name": "test_offscreen_fields_can_be_answered_directly",
+          "params": [
+            "browser",
+            "goto"
+          ],
+          "exported": true,
+          "lineCount": 12
+        },
+        {
+          "name": "_ids",
+          "params": [
+            "prompt",
+            "pattern"
+          ],
+          "exported": true,
+          "lineCount": 2
+        },
+        {
+          "name": "_plan",
+          "params": [
+            "actions",
+            "status"
+          ],
+          "exported": true,
+          "lineCount": 2
+        },
+        {
+          "name": "test_guard_blocks_submit_with_blanks_then_allows_when_complete",
+          "params": [
+            "browser",
+            "bus",
+            "goto"
+          ],
+          "exported": true,
+          "lineCount": 32
+        },
+        {
+          "name": "test_guard_also_blocks_the_confirm_dialog_submit",
+          "params": [
+            "browser",
+            "bus",
+            "goto"
+          ],
+          "exported": true,
+          "lineCount": 14
+        }
+      ],
+      "classes": [
+        {
+          "name": "Script",
+          "methods": [
+            "__init__",
+            "generate"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 11
+        }
+      ],
+      "imports": [
+        {
+          "source": "json",
+          "specifiers": [
+            "json"
+          ]
+        },
+        {
+          "source": "re",
+          "specifiers": [
+            "re"
+          ]
+        },
+        {
+          "source": "ai_controller",
+          "specifiers": [
+            "AIController"
+          ]
+        }
+      ],
+      "exports": [
+        "_ev",
+        "_state",
+        "test_observe_covers_the_whole_page",
+        "test_offscreen_fields_can_be_answered_directly",
+        "_ids",
+        "Script",
+        "_plan",
+        "test_guard_blocks_submit_with_blanks_then_allows_when_complete",
+        "test_guard_also_blocks_the_confirm_dialog_submit"
+      ],
+      "totalLines": 116,
+      "hasStructuralAnalysis": true
+    },
+    "tests/test_model_pool.py": {
+      "filePath": "tests/test_model_pool.py",
+      "contentHash": "dd14888f29190beaecde32c0d3cdd40d9d563e8edddc42d26b86b4c7c4fc4036",
+      "functions": [
+        {
+          "name": "test_pool_order_flash_then_lite_then_gemma",
+          "params": [],
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "test_gemma_gets_system_prompt_inline_and_no_json_mode",
+          "params": [],
+          "exported": true,
+          "lineCount": 17
+        },
+        {
+          "name": "test_whole_pool_exhausted_raises_quota_exhausted",
+          "params": [],
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "ollama_url",
+          "params": [],
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "test_ollama_request_shape",
+          "params": [
+            "ollama_url"
+          ],
+          "exported": true,
+          "lineCount": 12
+        },
+        {
+          "name": "test_ollama_unreachable_is_explained",
+          "params": [],
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "test_ollama_rejects_audio",
+          "params": [
+            "ollama_url"
+          ],
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "test_agent_switches_to_local_model_when_cloud_pool_is_exhausted",
+          "params": [
+            "browser",
+            "bus",
+            "goto",
+            "ollama_url"
+          ],
+          "exported": true,
+          "lineCount": 21
+        },
+        {
+          "name": "test_no_local_fallback_when_disabled",
+          "params": [
+            "browser",
+            "bus",
+            "goto",
+            "ollama_url"
+          ],
+          "exported": true,
+          "lineCount": 12
+        },
+        {
+          "name": "test_local_provider_needs_no_key",
+          "params": [
+            "browser",
+            "bus",
+            "goto",
+            "ollama_url"
+          ],
+          "exported": true,
+          "lineCount": 12
+        }
+      ],
+      "classes": [
+        {
+          "name": "FakeOllama",
+          "methods": [
+            "log_message",
+            "_json",
+            "do_GET",
+            "do_POST"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 25
+        }
+      ],
+      "imports": [
+        {
+          "source": "http.server",
+          "specifiers": [
+            "http.server"
+          ]
+        },
+        {
+          "source": "json",
+          "specifiers": [
+            "json"
+          ]
+        },
+        {
+          "source": "threading",
+          "specifiers": [
+            "threading"
+          ]
+        },
+        {
+          "source": "time",
+          "specifiers": [
+            "time"
+          ]
+        },
+        {
+          "source": "types",
+          "specifiers": [
+            "SimpleNamespace"
+          ]
+        },
+        {
+          "source": "pytest",
+          "specifiers": [
+            "pytest"
+          ]
+        },
+        {
+          "source": "ai_controller",
+          "specifiers": [
+            "AGENT_SCHEMA",
+            "AIController"
+          ]
+        },
+        {
+          "source": "llm",
+          "specifiers": [
+            "GeminiClient",
+            "LLMError",
+            "OllamaClient",
+            "QuotaExhausted"
+          ]
+        },
+        {
+          "source": "test_gemini_quota",
+          "specifiers": [
+            "DAILY",
+            "FakeGenai"
+          ]
+        }
+      ],
+      "exports": [
+        "test_pool_order_flash_then_lite_then_gemma",
+        "test_gemma_gets_system_prompt_inline_and_no_json_mode",
+        "test_whole_pool_exhausted_raises_quota_exhausted",
+        "FakeOllama",
+        "ollama_url",
+        "test_ollama_request_shape",
+        "test_ollama_unreachable_is_explained",
+        "test_ollama_rejects_audio",
+        "test_agent_switches_to_local_model_when_cloud_pool_is_exhausted",
+        "test_no_local_fallback_when_disabled",
+        "test_local_provider_needs_no_key"
+      ],
+      "totalLines": 161,
+      "hasStructuralAnalysis": true
+    },
+    "tests/test_navigation.py": {
+      "filePath": "tests/test_navigation.py",
+      "contentHash": "fc64114d448497e78484513f3bbd3602d1db364d3609b898e4721dcc34f2aaba",
+      "functions": [
+        {
+          "name": "_ev",
+          "params": [
+            "browser",
+            "script"
+          ],
+          "exported": true,
+          "lineCount": 2
+        },
+        {
+          "name": "ai_nokey",
+          "params": [
+            "browser",
+            "bus"
+          ],
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "_run",
+          "params": [
+            "ai",
+            "cmd"
+          ],
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "test_opens_lesson_far_down_the_sidebar",
+          "params": [
+            "browser",
+            "goto",
+            "ai_nokey"
+          ],
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "test_lesson_1_is_not_confused_with_lesson_10",
+          "params": [
+            "browser",
+            "goto",
+            "ai_nokey"
+          ],
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "test_diacritics_and_case_do_not_matter",
+          "params": [
+            "browser",
+            "goto",
+            "ai_nokey",
+            "cmd"
+          ],
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "test_unaccented_open_command",
+          "params": [
+            "browser",
+            "goto",
+            "ai_nokey"
+          ],
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "test_ambiguous_query_lists_candidates",
+          "params": [
+            "browser",
+            "goto",
+            "ai_nokey"
+          ],
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "test_not_found_is_explained",
+          "params": [
+            "browser",
+            "goto",
+            "ai_nokey"
+          ],
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "test_task_with_extra_steps_goes_to_the_agent",
+          "params": [
+            "browser",
+            "goto",
+            "ai_nokey"
+          ],
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "test_offscreen_links_reach_the_agent",
+          "params": [
+            "browser",
+            "goto"
+          ],
+          "exported": true,
+          "lineCount": 6
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "pytest",
+          "specifiers": [
+            "pytest"
+          ]
+        },
+        {
+          "source": "ai_controller",
+          "specifiers": [
+            "AIController"
+          ]
+        }
+      ],
+      "exports": [
+        "_ev",
+        "ai_nokey",
+        "_run",
+        "test_opens_lesson_far_down_the_sidebar",
+        "test_lesson_1_is_not_confused_with_lesson_10",
+        "test_diacritics_and_case_do_not_matter",
+        "test_unaccented_open_command",
+        "test_ambiguous_query_lists_candidates",
+        "test_not_found_is_explained",
+        "test_task_with_extra_steps_goes_to_the_agent",
+        "test_offscreen_links_reach_the_agent"
+      ],
+      "totalLines": 78,
+      "hasStructuralAnalysis": true
+    },
+    "tests/test_server.py": {
+      "filePath": "tests/test_server.py",
+      "contentHash": "4100e7bdd8a097345042020586c1b1478b611e9a55d328e88d346378f2135b47",
+      "functions": [
+        {
+          "name": "test_ui_is_served_with_primer",
+          "params": [
+            "server"
+          ],
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "test_path_traversal_blocked",
+          "params": [
+            "server"
+          ],
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "test_frame_stream_sends_jpeg",
+          "params": [
+            "server"
+          ],
+          "exported": true,
+          "lineCount": 8
+        },
+        {
+          "name": "test_sse_hello_contains_state_and_chat",
+          "params": [
+            "server"
+          ],
+          "exported": true,
+          "lineCount": 13
+        },
+        {
+          "name": "test_input_endpoint_and_navigation",
+          "params": [
+            "server"
+          ],
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "test_cross_origin_and_rebinding_blocked",
+          "params": [
+            "server"
+          ],
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "test_command_whitelist",
+          "params": [
+            "server"
+          ],
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "test_api_key_is_never_returned",
+          "params": [
+            "server"
+          ],
+          "exported": true,
+          "lineCount": 9
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "http.client",
+          "specifiers": [
+            "http.client"
+          ]
+        },
+        {
+          "source": "json",
+          "specifiers": [
+            "json"
+          ]
+        },
+        {
+          "source": "struct",
+          "specifiers": [
+            "struct"
+          ]
+        },
+        {
+          "source": "urllib.error",
+          "specifiers": [
+            "urllib.error"
+          ]
+        },
+        {
+          "source": "urllib.request",
+          "specifiers": [
+            "urllib.request"
+          ]
+        },
+        {
+          "source": "pytest",
+          "specifiers": [
+            "pytest"
+          ]
+        },
+        {
+          "source": "conftest",
+          "specifiers": [
+            "ROOT",
+            "_get",
+            "_post"
+          ]
+        }
+      ],
+      "exports": [
+        "test_ui_is_served_with_primer",
+        "test_path_traversal_blocked",
+        "test_frame_stream_sends_jpeg",
+        "test_sse_hello_contains_state_and_chat",
+        "test_input_endpoint_and_navigation",
+        "test_cross_origin_and_rebinding_blocked",
+        "test_command_whitelist",
+        "test_api_key_is_never_returned"
+      ],
+      "totalLines": 84,
+      "hasStructuralAnalysis": true
+    },
+    "tests/test_ui.py": {
+      "filePath": "tests/test_ui.py",
+      "contentHash": "92fb1a2819ae7071ea29a5c3dc80d2583882fc70671aae47160a87b3fed860fa",
+      "functions": [
+        {
+          "name": "ui",
+          "params": [
+            "server"
+          ],
+          "exported": true,
+          "lineCount": 15
+        },
+        {
+          "name": "_remote",
+          "params": [
+            "server",
+            "script"
+          ],
+          "exported": true,
+          "lineCount": 2
+        },
+        {
+          "name": "test_loads_without_errors_and_uses_primer",
+          "params": [
+            "ui"
+          ],
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "test_click_and_type_through_canvas",
+          "params": [
+            "ui",
+            "server"
+          ],
+          "exported": true,
+          "lineCount": 13
+        },
+        {
+          "name": "test_settings_dialog_and_theme",
+          "params": [
+            "ui"
+          ],
+          "exported": true,
+          "lineCount": 16
+        },
+        {
+          "name": "test_text_drawer_lists_iframe_text",
+          "params": [
+            "ui"
+          ],
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "test_run_without_key_shows_warning",
+          "params": [
+            "ui"
+          ],
+          "exported": true,
+          "lineCount": 6
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "pytest",
+          "specifiers": [
+            "pytest"
+          ]
+        },
+        {
+          "source": "playwright.sync_api",
+          "specifiers": [
+            "sync_playwright"
+          ]
+        },
+        {
+          "source": "conftest",
+          "specifiers": [
+            "REPORTS",
+            "ROOT",
+            "api_post"
+          ]
+        }
+      ],
+      "exports": [
+        "ui",
+        "_remote",
+        "test_loads_without_errors_and_uses_primer",
+        "test_click_and_type_through_canvas",
+        "test_settings_dialog_and_theme",
+        "test_text_drawer_lists_iframe_text",
+        "test_run_without_key_shows_warning"
+      ],
+      "totalLines": 86,
+      "hasStructuralAnalysis": true
+    },
+    "tests/test_updater.py": {
+      "filePath": "tests/test_updater.py",
+      "contentHash": "5b429e4c26028f54e82933badd1bbae47f293e23a1106f3a69b4e9e12b9e47dc",
+      "functions": [
+        {
+          "name": "test_version_comparison",
+          "params": [],
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "_release",
+          "params": [
+            "tag",
+            "body",
+            "digest"
+          ],
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "fake_net",
+          "params": [
+            "monkeypatch"
+          ],
+          "exported": true,
+          "lineCount": 12
+        },
+        {
+          "name": "test_check_reports_newer_release",
+          "params": [
+            "fake_net",
+            "monkeypatch"
+          ],
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "test_private_repo_error_is_explained",
+          "params": [
+            "monkeypatch"
+          ],
+          "exported": true,
+          "lineCount": 9
+        },
+        {
+          "name": "test_apply_verifies_checksum_and_runs_silent_installer",
+          "params": [
+            "fake_net",
+            "monkeypatch"
+          ],
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "test_apply_refuses_tampered_download",
+          "params": [
+            "fake_net",
+            "monkeypatch"
+          ],
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "test_docker_and_source_get_instructions",
+          "params": [
+            "fake_net",
+            "monkeypatch"
+          ],
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "test_token_is_sent_only_when_configured",
+          "params": [
+            "fake_net",
+            "monkeypatch"
+          ],
+          "exported": true,
+          "lineCount": 6
+        }
+      ],
+      "classes": [
+        {
+          "name": "FakeResp",
+          "methods": [
+            "__enter__",
+            "__exit__"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 6
+        }
+      ],
+      "imports": [
+        {
+          "source": "hashlib",
+          "specifiers": [
+            "hashlib"
+          ]
+        },
+        {
+          "source": "io",
+          "specifiers": [
+            "io"
+          ]
+        },
+        {
+          "source": "json",
+          "specifiers": [
+            "json"
+          ]
+        },
+        {
+          "source": "pytest",
+          "specifiers": [
+            "pytest"
+          ]
+        },
+        {
+          "source": "updater",
+          "specifiers": [
+            "upd"
+          ]
+        }
+      ],
+      "exports": [
+        "test_version_comparison",
+        "FakeResp",
+        "_release",
+        "fake_net",
+        "test_check_reports_newer_release",
+        "test_private_repo_error_is_explained",
+        "test_apply_verifies_checksum_and_runs_silent_installer",
+        "test_apply_refuses_tampered_download",
+        "test_docker_and_source_get_instructions",
+        "test_token_is_sent_only_when_configured"
+      ],
+      "totalLines": 102,
+      "hasStructuralAnalysis": true
+    },
+    "tools/bench_chromium_modes.py": {
+      "filePath": "tools/bench_chromium_modes.py",
+      "contentHash": "6442c0b443f8433a8c9573ccd1b0c0d37b4d31f0730b737ac78c25192a65644b",
+      "functions": [
+        {
+          "name": "cpu_seconds",
+          "params": [
+            "pids"
+          ],
+          "exported": true,
+          "lineCount": 14
+        },
+        {
+          "name": "chrome_pids",
+          "params": [],
+          "exported": true,
+          "lineCount": 9
+        },
+        {
+          "name": "run_mode",
+          "params": [
+            "p",
+            "name",
+            "mode"
+          ],
+          "exported": true,
+          "lineCount": 66
+        },
+        {
+          "name": "main",
+          "params": [],
+          "exported": true,
+          "lineCount": 11
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "os",
+          "specifiers": [
+            "os"
+          ]
+        },
+        {
+          "source": "pathlib",
+          "specifiers": [
+            "pathlib"
+          ]
+        },
+        {
+          "source": "statistics",
+          "specifiers": [
+            "statistics"
+          ]
+        },
+        {
+          "source": "sys",
+          "specifiers": [
+            "sys"
+          ]
+        },
+        {
+          "source": "tempfile",
+          "specifiers": [
+            "tempfile"
+          ]
+        },
+        {
+          "source": "threading",
+          "specifiers": [
+            "threading"
+          ]
+        },
+        {
+          "source": "time",
+          "specifiers": [
+            "time"
+          ]
+        },
+        {
+          "source": "playwright.sync_api",
+          "specifiers": [
+            "sync_playwright"
+          ]
+        },
+        {
+          "source": "config",
+          "specifiers": [
+            "config"
+          ]
+        },
+        {
+          "source": "cdp_fast",
+          "specifiers": [
+            "FastCDP"
+          ]
+        }
+      ],
+      "exports": [
+        "cpu_seconds",
+        "chrome_pids",
+        "run_mode",
+        "main"
+      ],
+      "totalLines": 147,
+      "hasStructuralAnalysis": true
+    },
+    "tools/bench_smoothness.py": {
+      "filePath": "tools/bench_smoothness.py",
+      "contentHash": "943bf4e3ad0aaf0c3d7b0f329462b309afaa2de2e20b801b7dd463e999aaef7c",
+      "functions": [
+        {
+          "name": "_free_port",
+          "params": [],
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "_post",
+          "params": [
+            "base",
+            "path",
+            "body"
+          ],
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "pct",
+          "params": [
+            "values",
+            "p"
+          ],
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "main",
+          "params": [],
+          "exported": true,
+          "lineCount": 49
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "json",
+          "specifiers": [
+            "json"
+          ]
+        },
+        {
+          "source": "os",
+          "specifiers": [
+            "os"
+          ]
+        },
+        {
+          "source": "pathlib",
+          "specifiers": [
+            "pathlib"
+          ]
+        },
+        {
+          "source": "socket",
+          "specifiers": [
+            "socket"
+          ]
+        },
+        {
+          "source": "statistics",
+          "specifiers": [
+            "statistics"
+          ]
+        },
+        {
+          "source": "subprocess",
+          "specifiers": [
+            "subprocess"
+          ]
+        },
+        {
+          "source": "sys",
+          "specifiers": [
+            "sys"
+          ]
+        },
+        {
+          "source": "tempfile",
+          "specifiers": [
+            "tempfile"
+          ]
+        },
+        {
+          "source": "time",
+          "specifiers": [
+            "time"
+          ]
+        },
+        {
+          "source": "urllib.request",
+          "specifiers": [
+            "urllib.request"
+          ]
+        },
+        {
+          "source": "playwright.sync_api",
+          "specifiers": [
+            "sync_playwright"
+          ]
+        }
+      ],
+      "exports": [
+        "_free_port",
+        "_post",
+        "pct",
+        "main"
+      ],
+      "totalLines": 171,
+      "hasStructuralAnalysis": true
+    },
+    "tools/build_exe.py": {
+      "filePath": "tools/build_exe.py",
+      "contentHash": "8581d7c85c38913e2b5f927522d41877ca21195d15f9a6948be3d3a0f2e4e024",
+      "functions": [
+        {
+          "name": "build_app",
+          "params": [],
+          "exported": true,
+          "lineCount": 24
+        },
+        {
+          "name": "write_version_file",
+          "params": [],
+          "exported": true,
+          "lineCount": 16
+        },
+        {
+          "name": "find_iscc",
+          "params": [],
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "build_installer",
+          "params": [],
+          "exported": true,
+          "lineCount": 9
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "os",
+          "specifiers": [
+            "os"
+          ]
+        },
+        {
+          "source": "pathlib",
+          "specifiers": [
+            "pathlib"
+          ]
+        },
+        {
+          "source": "shutil",
+          "specifiers": [
+            "shutil"
+          ]
+        },
+        {
+          "source": "subprocess",
+          "specifiers": [
+            "subprocess"
+          ]
+        },
+        {
+          "source": "sys",
+          "specifiers": [
+            "sys"
+          ]
+        },
+        {
+          "source": "version",
+          "specifiers": [
+            "VERSION"
+          ]
+        }
+      ],
+      "exports": [
+        "build_app",
+        "write_version_file",
+        "find_iscc",
+        "build_installer"
+      ],
+      "totalLines": 93,
+      "hasStructuralAnalysis": true
+    },
+    "tools/build_icons.py": {
+      "filePath": "tools/build_icons.py",
+      "contentHash": "3cd26d53cffb7e3bad77b47f6c601bf9af93a2da2eb845901daa59732cd9d17e",
+      "functions": [
+        {
+          "name": "main",
+          "params": [],
+          "exported": true,
+          "lineCount": 13
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "json",
+          "specifiers": [
+            "json"
+          ]
+        },
+        {
+          "source": "pathlib",
+          "specifiers": [
+            "pathlib"
+          ]
+        },
+        {
+          "source": "urllib.request",
+          "specifiers": [
+            "urllib.request"
+          ]
+        }
+      ],
+      "exports": [
+        "main"
+      ],
+      "totalLines": 39,
+      "hasStructuralAnalysis": true
+    },
+    "tools/make_icon.py": {
+      "filePath": "tools/make_icon.py",
+      "contentHash": "11b69c564772ecca62fb348d041e73f5516cd6b96a485820cd83e2f3e4e35c77",
+      "functions": [
+        {
+          "name": "render_pngs",
+          "params": [],
+          "exported": true,
+          "lineCount": 13
+        },
+        {
+          "name": "write_ico",
+          "params": [
+            "pngs"
+          ],
+          "exported": true,
+          "lineCount": 11
+        },
+        {
+          "name": "main",
+          "params": [],
+          "exported": true,
+          "lineCount": 6
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "pathlib",
+          "specifiers": [
+            "pathlib"
+          ]
+        },
+        {
+          "source": "shutil",
+          "specifiers": [
+            "shutil"
+          ]
+        },
+        {
+          "source": "struct",
+          "specifiers": [
+            "struct"
+          ]
+        },
+        {
+          "source": "playwright.sync_api",
+          "specifiers": [
+            "sync_playwright"
+          ]
+        }
+      ],
+      "exports": [
+        "render_pngs",
+        "write_ico",
+        "main"
+      ],
+      "totalLines": 57,
+      "hasStructuralAnalysis": true
+    },
+    "tools/test_desktop_exe.py": {
+      "filePath": "tools/test_desktop_exe.py",
+      "contentHash": "0ee27ca886651230aab5ef35a0256ed1f5ab32fc81c2553004713f2dfb3bdb34",
+      "functions": [
+        {
+          "name": "windows",
+          "params": [],
+          "exported": true,
+          "lineCount": 17
+        },
+        {
+          "name": "api",
+          "params": [
+            "port",
+            "path",
+            "body",
+            "timeout"
+          ],
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "chromium_count",
+          "params": [],
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "main",
+          "params": [],
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "run",
+          "params": [
+            "close"
+          ],
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "_run",
+          "params": [
+            "proc",
+            "close"
+          ],
+          "exported": true,
+          "lineCount": 71
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "ctypes",
+          "specifiers": [
+            "ctypes"
+          ]
+        },
+        {
+          "source": "json",
+          "specifiers": [
+            "json"
+          ]
+        },
+        {
+          "source": "pathlib",
+          "specifiers": [
+            "pathlib"
+          ]
+        },
+        {
+          "source": "subprocess",
+          "specifiers": [
+            "subprocess"
+          ]
+        },
+        {
+          "source": "sys",
+          "specifiers": [
+            "sys"
+          ]
+        },
+        {
+          "source": "time",
+          "specifiers": [
+            "time"
+          ]
+        },
+        {
+          "source": "urllib.request",
+          "specifiers": [
+            "urllib.request"
+          ]
+        },
+        {
+          "source": "ctypes",
+          "specifiers": [
+            "wintypes"
+          ]
+        }
+      ],
+      "exports": [
+        "windows",
+        "api",
+        "chromium_count",
+        "main",
+        "run",
+        "_run"
+      ],
+      "totalLines": 145,
+      "hasStructuralAnalysis": true
+    },
+    "updater.py": {
+      "filePath": "updater.py",
+      "contentHash": "0922764819cb6094805f6a86f911e94a0602320d27df5777a213102b08e5e9e8",
+      "functions": [
+        {
+          "name": "runtime_mode",
+          "params": [],
+          "returnType": "str",
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "_vtuple",
+          "params": [
+            "v"
+          ],
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "is_newer",
+          "params": [
+            "latest",
+            "current"
+          ],
+          "returnType": "bool",
+          "exported": true,
+          "lineCount": 2
+        }
+      ],
+      "classes": [
+        {
+          "name": "Updater",
+          "methods": [
+            "__init__",
+            "_get",
+            "check",
+            "apply",
+            "instructions"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 80
+        }
+      ],
+      "imports": [
+        {
+          "source": "hashlib",
+          "specifiers": [
+            "hashlib"
+          ]
+        },
+        {
+          "source": "json",
+          "specifiers": [
+            "json"
+          ]
+        },
+        {
+          "source": "os",
+          "specifiers": [
+            "os"
+          ]
+        },
+        {
+          "source": "re",
+          "specifiers": [
+            "re"
+          ]
+        },
+        {
+          "source": "subprocess",
+          "specifiers": [
+            "subprocess"
+          ]
+        },
+        {
+          "source": "sys",
+          "specifiers": [
+            "sys"
+          ]
+        },
+        {
+          "source": "tempfile",
+          "specifiers": [
+            "tempfile"
+          ]
+        },
+        {
+          "source": "threading",
+          "specifiers": [
+            "threading"
+          ]
+        },
+        {
+          "source": "time",
+          "specifiers": [
+            "time"
+          ]
+        },
+        {
+          "source": "urllib.request",
+          "specifiers": [
+            "urllib.request"
+          ]
+        },
+        {
+          "source": "config",
+          "specifiers": [
+            "config"
+          ]
+        },
+        {
+          "source": "version",
+          "specifiers": [
+            "REPO",
+            "__version__"
+          ]
+        }
+      ],
+      "exports": [
+        "runtime_mode",
+        "_vtuple",
+        "is_newer",
+        "Updater"
+      ],
+      "totalLines": 126,
+      "hasStructuralAnalysis": true
+    },
+    "version.py": {
+      "filePath": "version.py",
+      "contentHash": "8deae6693fe59afa6e35b708b6949fdd3b494398459a28403f966de7815ebb24",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 4,
+      "hasStructuralAnalysis": true
+    }
+  }
+}

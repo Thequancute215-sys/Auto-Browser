@@ -5,7 +5,8 @@
 static/vendor/
 tests/fixtures/vendor/
 
-# Generated or binary output
+# Generated or binary output (audio test fixtures included)
+*.wav
 tests/reports/
 assets/
 dist/
@@ -15,3 +16,6 @@ build/
 ai_config.json
 .ai_browser_profile/
 run_*/
+
+# Understand-Anything data directory itself
+.ua/

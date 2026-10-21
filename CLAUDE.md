@@ -70,6 +70,7 @@ Nếu `claude` không có trong PATH, dùng file `claude.exe` trong `%USERPROFIL
 7. Mọi nội dung đưa vào HTML phải được escape (`escapeHtml` / `md()` trong `app.js`).
 8. Độ mượt: mọi thay đổi ở luồng hình/input phải chạy lại `tools/bench_smoothness.py` và so với bảng trong HANDOVER §3c (click p50 ≤ 50 ms, cuộn ≥ 40 khung/giây ở chế độ stream). Ở chế độ window, không được ép `set_viewport_size`: trang phải theo kích thước cửa sổ.
 9. Sửa xong thì chạy `python -m pytest`. Thêm cơ chế kéo thả mới thì thêm một trang thử vào `tests/fixtures/dnd/` và vào danh sách `PAGES` trong `tests/test_dnd.py`.
+10. **Mỗi lần cập nhật đều phải cập nhật bản đồ mã**, không cần hỏi: sau khi commit, chạy `/understand` (bản tăng dần; `.ua/config.json` đã bật `autoUpdate` nên hook của plugin sẽ nhắc), rồi commit `.ua/knowledge-graph.json`, `.ua/meta.json`, `.ua/fingerprints.json` cùng với code. Nội dung bản đồ viết bằng tiếng Việt.
 
 ## Kéo thả: 7 chiến lược, thử theo thứ tự
 

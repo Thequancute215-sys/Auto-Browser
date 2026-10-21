@@ -82,6 +82,8 @@ Mở **⚙️ Cài đặt** trong bảng AI và chọn một trong ba:
    ollama pull gemma4:e4b
    ```
    Máy yếu (8 GB RAM) có thể dùng `gemma4:e2b` (nhỏ hơn, kém chính xác hơn).
+
+   Đo thực tế (22/10/2026, laptop i5-13500H, 24 GB RAM, chỉ có card đồ họa tích hợp Intel Iris Xe nên Ollama chạy 100% bằng CPU): `gemma4:e4b` giải đúng 5/5 câu của bài trắc nghiệm mẫu ở cả 3 lần thử, nhưng mỗi bước suy nghĩ mất **3 đến 4,5 phút** (Gemini Flash-Lite trên mạng: khoảng 6 giây). Vì vậy AI trên máy phù hợp nhất làm phương án dự phòng khi hết lượt miễn phí, để tác vụ dài không bị dừng. Máy có card NVIDIA rời sẽ nhanh hơn nhiều.
 3. Trong ⚙️ Cài đặt chọn **Trên máy (Ollama)**, hoặc giữ Gemini và bật **"Khi Gemini/Gemma đám mây hết lượt miễn phí, tự chuyển sang AI trên máy"**. Với lựa chọn sau, các tác vụ dài không bị dừng giữa chừng khi hết lượt.
 
 ## Cách dùng nhanh

@@ -24,6 +24,8 @@ run_*/
 # Understand-Anything: commit .ua/knowledge-graph.json and .ua/config.json, not the scratch files
 .ua/intermediate/
 .ua/diff-overlay.json
+.ua/.trash-*/
+.ua/tmp/
 
 # Claude Code: personal overrides stay local (.claude/settings.json is shared)
 .claude/settings.local.json
