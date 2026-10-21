@@ -14,6 +14,7 @@
       "markdown",
       "python",
       "txt",
+      "unknown",
       "yaml"
     ],
     "frameworks": [
@@ -24,8 +25,8 @@
       "GitHub Actions"
     ],
     "description": "Trình duyệt viết bằng Python/Playwright có trợ lý AI (Google Gemini/Gemma, Claude hoặc mô hình chạy cục bộ qua Ollama) tự đọc đề, làm bài (điền từ, trắc nghiệm, kéo thả, bài nghe) và kiểm tra lại kết quả trên Cambridge One, Rikkei LMS và các trang học trực tuyến khác. Dự án gồm giao diện web vanilla JS theo phong cách GitHub Primer, launcher desktop cho Windows kèm bộ cài Inno Setup, image Docker và cơ chế tự cập nhật.",
-    "analyzedAt": "2026-10-21T19:41:03Z",
-    "gitCommitHash": "6a2247e76a3a534f7e3d74bae64409e224a12ec8"
+    "analyzedAt": "2026-10-21T19:43:43.124Z",
+    "gitCommitHash": "1d6e1f6a8ff8f94841aff3786f9925d012236fa9"
   },
   "nodes": [
     {
@@ -2903,35 +2904,6 @@
       "languageNotes": "Tài liệu kiểu CLAUDE.md được Claude Code tự nạp làm ngữ cảnh dự án; nội dung tập trung vào các ràng buộc bất biến (luồng worker duy nhất, giữ tương thích dữ liệu cũ khi tự cập nhật) hơn là mô tả chi tiết."
     },
     {
-      "id": "document:HANDOVER.md",
-      "type": "document",
-      "name": "HANDOVER.md",
-      "filePath": "HANDOVER.md",
-      "summary": "Tài liệu bàn giao v6.2.0 mô tả chi tiết kiến trúc (server ↔ BrowserManager ↔ AIController), vòng lặp agent Quan sát → Suy luận → Thao tác → Kiểm tra lại, các provider AI và xoay vòng mô hình, Docker và cập nhật tại chỗ, engine kéo thả 7 chiến lược, chế độ window/stream kèm số đo độ mượt, bảng API, kết quả kiểm thử và giới hạn đã biết.",
-      "tags": [
-        "documentation",
-        "kiến-trúc",
-        "api-reference",
-        "bàn-giao",
-        "kiểm-thử"
-      ],
-      "complexity": "complex"
-    },
-    {
-      "id": "document:INSTALL.md",
-      "type": "document",
-      "name": "INSTALL.md",
-      "filePath": "INSTALL.md",
-      "summary": "Hướng dẫn cài đặt cho người dùng cuối theo ba cách (bộ cài Windows, Docker, mã nguồn), cách chọn AI (Gemini/Gemma, Claude, Ollama trên máy), cách dùng nhanh, cơ chế cập nhật không cần gỡ app, vị trí lưu dữ liệu và bảng xử lý sự cố.",
-      "tags": [
-        "documentation",
-        "cài-đặt",
-        "deployment",
-        "hướng-dẫn-người-dùng"
-      ],
-      "complexity": "moderate"
-    },
-    {
       "id": "document:README.md",
       "type": "document",
       "name": "README.md",
@@ -4205,6 +4177,37 @@
         "assertions"
       ],
       "complexity": "complex"
+    },
+    {
+      "id": "document:HANDOVER.md",
+      "type": "document",
+      "name": "HANDOVER.md",
+      "filePath": "HANDOVER.md",
+      "summary": "Tài liệu bàn giao v6.2.0 mô tả kiến trúc (server ↔ BrowserManager ↔ AIController), vòng lặp agent Quan sát → Suy luận → Thao tác → Kiểm tra lại, ba provider AI (Gemini, Claude, Ollama) kèm số đo tốc độ từng mô hình (AI trên máy chỉ CPU mất 181–279 giây mỗi bước nên hợp làm dự phòng khi hết quota), Docker/CI/cập nhật tại chỗ, engine kéo thả 7 chiến lược, chế độ window/stream, bảng API, quy trình Understand-Anything, kết quả kiểm thử và giới hạn đã biết.",
+      "tags": [
+        "documentation",
+        "kiến-trúc",
+        "api-reference",
+        "bàn-giao",
+        "benchmark"
+      ],
+      "complexity": "complex",
+      "languageNotes": "Tài liệu Markdown dùng nhiều bảng so sánh (provider, chiến lược kéo thả, độ trễ A/B) và sơ đồ ASCII cho luồng dữ liệu."
+    },
+    {
+      "id": "document:INSTALL.md",
+      "type": "document",
+      "name": "INSTALL.md",
+      "filePath": "INSTALL.md",
+      "summary": "Hướng dẫn cài đặt cho người dùng cuối theo ba cách (bộ cài Windows, Docker, mã nguồn), cách chọn AI (Gemini/Gemma, Claude, Ollama) kèm số đo thực tế gemma4:e4b trên CPU i5-13500H (đúng 5/5 nhưng 3–4,5 phút mỗi bước so với ~6 giây của Gemini Flash-Lite, nên AI trên máy hợp làm dự phòng khi hết lượt), cách dùng nhanh, cập nhật không cần gỡ app, vị trí lưu dữ liệu và bảng xử lý sự cố.",
+      "tags": [
+        "documentation",
+        "cài-đặt",
+        "deployment",
+        "hướng-dẫn-người-dùng",
+        "ollama"
+      ],
+      "complexity": "moderate"
     }
   ],
   "edges": [
@@ -4213,7 +4216,7 @@
       "target": "function:ai_browser.py:call_api",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:ai_browser.py",
@@ -4227,7 +4230,7 @@
       "target": "function:ai_browser.py:get_state",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:ai_browser.py",
@@ -4241,7 +4244,7 @@
       "target": "function:ai_browser.py:print_help",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:ai_browser.py",
@@ -4255,7 +4258,7 @@
       "target": "function:ai_browser.py:main",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:ai_browser.py",
@@ -4297,7 +4300,7 @@
       "target": "function:config.py:_saved_start_url",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:config.py",
@@ -4311,7 +4314,7 @@
       "target": "class:events.py:EventBus",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:events.py",
@@ -4325,7 +4328,7 @@
       "target": "function:server.py:cleanup_zombie_processes",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:server.py",
@@ -4339,7 +4342,7 @@
       "target": "function:server.py:setup_windows_job_object",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:server.py",
@@ -4353,7 +4356,7 @@
       "target": "class:server.py:AppRequestHandler",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:server.py",
@@ -4367,7 +4370,7 @@
       "target": "class:server.py:Server",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:server.py",
@@ -4381,7 +4384,7 @@
       "target": "function:server.py:main",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:server.py",
@@ -4437,7 +4440,7 @@
       "target": "function:tests/test_updater.py:test_version_comparison",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:tests/test_updater.py",
@@ -4451,7 +4454,7 @@
       "target": "class:tests/test_updater.py:FakeResp",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:tests/test_updater.py",
@@ -4465,7 +4468,7 @@
       "target": "function:tests/test_updater.py:fake_net",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:tests/test_updater.py",
@@ -4479,7 +4482,7 @@
       "target": "function:tests/test_updater.py:test_check_reports_newer_release",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:tests/test_updater.py",
@@ -4493,7 +4496,7 @@
       "target": "function:tests/test_updater.py:test_private_repo_error_is_explained",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:tests/test_updater.py",
@@ -4507,7 +4510,7 @@
       "target": "function:tests/test_updater.py:test_apply_verifies_checksum_and_runs_silent_installer",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:tests/test_updater.py",
@@ -4521,7 +4524,7 @@
       "target": "function:tests/test_updater.py:test_apply_refuses_tampered_download",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:tests/test_updater.py",
@@ -4535,7 +4538,7 @@
       "target": "function:tests/test_updater.py:test_docker_and_source_get_instructions",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:tests/test_updater.py",
@@ -4549,7 +4552,7 @@
       "target": "function:tests/test_updater.py:test_token_is_sent_only_when_configured",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:tests/test_updater.py",
@@ -4619,7 +4622,7 @@
       "target": "function:tools/build_exe.py:build_app",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:tools/build_exe.py",
@@ -4633,7 +4636,7 @@
       "target": "function:tools/build_exe.py:write_version_file",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:tools/build_exe.py",
@@ -4647,7 +4650,7 @@
       "target": "function:tools/build_exe.py:find_iscc",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:tools/build_exe.py",
@@ -4661,7 +4664,7 @@
       "target": "function:tools/build_exe.py:build_installer",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:tools/build_exe.py",
@@ -4703,7 +4706,7 @@
       "target": "function:updater.py:runtime_mode",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:updater.py",
@@ -4717,7 +4720,7 @@
       "target": "function:updater.py:is_newer",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:updater.py",
@@ -4731,7 +4734,7 @@
       "target": "class:updater.py:Updater",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:updater.py",
@@ -4829,7 +4832,7 @@
       "target": "class:ai_controller.py:AIController",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:ai_controller.py",
@@ -4843,189 +4846,189 @@
       "target": "function:ai_controller.py:AIController.save_config",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "class:ai_controller.py:AIController",
       "target": "function:ai_controller.py:AIController.save_config",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:ai_controller.py",
       "target": "function:ai_controller.py:AIController.get_config",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "class:ai_controller.py:AIController",
       "target": "function:ai_controller.py:AIController.get_config",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:ai_controller.py",
       "target": "function:ai_controller.py:AIController.run_command",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "class:ai_controller.py:AIController",
       "target": "function:ai_controller.py:AIController.run_command",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:ai_controller.py",
       "target": "function:ai_controller.py:AIController._execute_pipeline",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "class:ai_controller.py:AIController",
       "target": "function:ai_controller.py:AIController._execute_pipeline",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:ai_controller.py",
       "target": "function:ai_controller.py:AIController._try_local_command",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "class:ai_controller.py:AIController",
       "target": "function:ai_controller.py:AIController._try_local_command",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:ai_controller.py",
       "target": "function:ai_controller.py:AIController._try_find_and_go",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "class:ai_controller.py:AIController",
       "target": "function:ai_controller.py:AIController._try_find_and_go",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:ai_controller.py",
       "target": "function:ai_controller.py:AIController._rules_for_settings",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "class:ai_controller.py:AIController",
       "target": "function:ai_controller.py:AIController._rules_for_settings",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:ai_controller.py",
       "target": "function:ai_controller.py:AIController._format_element",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "class:ai_controller.py:AIController",
       "target": "function:ai_controller.py:AIController._format_element",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:ai_controller.py",
       "target": "function:ai_controller.py:AIController._build_prompt",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "class:ai_controller.py:AIController",
       "target": "function:ai_controller.py:AIController._build_prompt",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:ai_controller.py",
       "target": "function:ai_controller.py:AIController._describe_action",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "class:ai_controller.py:AIController",
       "target": "function:ai_controller.py:AIController._describe_action",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:ai_controller.py",
       "target": "function:ai_controller.py:AIController._submit_guard",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "class:ai_controller.py:AIController",
       "target": "function:ai_controller.py:AIController._submit_guard",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:ai_controller.py",
       "target": "function:ai_controller.py:AIController._ensure_transcripts",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "class:ai_controller.py:AIController",
       "target": "function:ai_controller.py:AIController._ensure_transcripts",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:ai_controller.py",
       "target": "function:ai_controller.py:AIController._agent_loop",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "class:ai_controller.py:AIController",
       "target": "function:ai_controller.py:AIController._agent_loop",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:llm.py",
       "target": "class:llm.py:LLMError",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:llm.py",
@@ -5039,7 +5042,7 @@
       "target": "class:llm.py:QuotaExhausted",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:llm.py",
@@ -5060,7 +5063,7 @@
       "target": "function:llm.py:_parse_quota",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:llm.py",
@@ -5074,7 +5077,7 @@
       "target": "function:llm.py:parse_json_response",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:llm.py",
@@ -5088,7 +5091,7 @@
       "target": "class:llm.py:GeminiClient",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:llm.py",
@@ -5102,7 +5105,7 @@
       "target": "class:llm.py:ClaudeClient",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:llm.py",
@@ -5116,7 +5119,7 @@
       "target": "class:llm.py:OllamaClient",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:llm.py",
@@ -5130,70 +5133,70 @@
       "target": "function:llm.py:GeminiClient.generate",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "class:llm.py:GeminiClient",
       "target": "function:llm.py:GeminiClient.generate",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:llm.py",
       "target": "function:llm.py:GeminiClient._try_model",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "class:llm.py:GeminiClient",
       "target": "function:llm.py:GeminiClient._try_model",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:llm.py",
       "target": "function:llm.py:GeminiClient._discover_alternatives",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "class:llm.py:GeminiClient",
       "target": "function:llm.py:GeminiClient._discover_alternatives",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:llm.py",
       "target": "function:llm.py:ClaudeClient.generate",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "class:llm.py:ClaudeClient",
       "target": "function:llm.py:ClaudeClient.generate",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:llm.py",
       "target": "function:llm.py:OllamaClient.generate",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "class:llm.py:OllamaClient",
       "target": "function:llm.py:OllamaClient.generate",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "function:llm.py:GeminiClient.generate",
@@ -5326,7 +5329,7 @@
       "target": "class:tests/test_agent.py:FakeLLM",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:tests/test_agent.py",
@@ -5340,7 +5343,7 @@
       "target": "function:tests/test_agent.py:test_agent_solves_mixed_quiz_and_verifies",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:tests/test_agent.py",
@@ -5354,7 +5357,7 @@
       "target": "function:tests/test_agent.py:test_suggest_mode_never_touches_the_page",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:tests/test_agent.py",
@@ -5368,7 +5371,7 @@
       "target": "function:tests/test_agent.py:test_failed_drag_is_reported_to_the_model",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:tests/test_agent.py",
@@ -5382,7 +5385,7 @@
       "target": "function:tests/test_agent.py:test_llm_error_is_shown_not_hidden",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:tests/test_agent.py",
@@ -5424,7 +5427,7 @@
       "target": "class:tests/test_claude.py:FakeAnthropic",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:tests/test_claude.py",
@@ -5438,7 +5441,7 @@
       "target": "class:tests/test_claude.py:RecordingLLM",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:tests/test_claude.py",
@@ -5452,7 +5455,7 @@
       "target": "function:tests/test_claude.py:test_request_shape_follows_current_api",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:tests/test_claude.py",
@@ -5466,7 +5469,7 @@
       "target": "function:tests/test_claude.py:test_agent_schema_is_strict",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:tests/test_claude.py",
@@ -5480,7 +5483,7 @@
       "target": "function:tests/test_claude.py:test_agent_uses_claude_when_selected",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:tests/test_claude.py",
@@ -5494,7 +5497,7 @@
       "target": "function:tests/test_claude.py:test_listening_with_claude_transcribes_on_gemini",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:tests/test_claude.py",
@@ -5634,7 +5637,7 @@
       "target": "class:tests/test_gemini_quota.py:FakeGenai",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:tests/test_gemini_quota.py",
@@ -5648,7 +5651,7 @@
       "target": "function:tests/test_gemini_quota.py:test_daily_quota_switches_immediately_without_retries",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:tests/test_gemini_quota.py",
@@ -5669,7 +5672,7 @@
       "target": "class:tests/test_long_pages.py:Script",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:tests/test_long_pages.py",
@@ -5683,7 +5686,7 @@
       "target": "function:tests/test_long_pages.py:test_observe_covers_the_whole_page",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:tests/test_long_pages.py",
@@ -5697,7 +5700,7 @@
       "target": "function:tests/test_long_pages.py:test_offscreen_fields_can_be_answered_directly",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:tests/test_long_pages.py",
@@ -5711,7 +5714,7 @@
       "target": "function:tests/test_long_pages.py:test_guard_blocks_submit_with_blanks_then_allows_when_complete",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:tests/test_long_pages.py",
@@ -5725,7 +5728,7 @@
       "target": "function:tests/test_long_pages.py:test_guard_also_blocks_the_confirm_dialog_submit",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:tests/test_long_pages.py",
@@ -5753,7 +5756,7 @@
       "target": "class:tests/test_model_pool.py:FakeOllama",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:tests/test_model_pool.py",
@@ -5767,7 +5770,7 @@
       "target": "function:tests/test_model_pool.py:test_gemma_gets_system_prompt_inline_and_no_json_mode",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:tests/test_model_pool.py",
@@ -5781,7 +5784,7 @@
       "target": "function:tests/test_model_pool.py:test_ollama_request_shape",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:tests/test_model_pool.py",
@@ -5795,7 +5798,7 @@
       "target": "function:tests/test_model_pool.py:test_agent_switches_to_local_model_when_cloud_pool_is_exhausted",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:tests/test_model_pool.py",
@@ -5809,7 +5812,7 @@
       "target": "function:tests/test_model_pool.py:test_no_local_fallback_when_disabled",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:tests/test_model_pool.py",
@@ -5900,7 +5903,7 @@
       "target": "class:browser_manager.py:BrowserManager",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:browser_manager.py",
@@ -5914,7 +5917,7 @@
       "target": "function:browser_manager.py:_short_err",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:browser_manager.py",
@@ -5928,161 +5931,161 @@
       "target": "function:browser_manager.py:BrowserManager.__init__",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:browser_manager.py",
       "target": "function:browser_manager.py:BrowserManager.execute",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:browser_manager.py",
       "target": "function:browser_manager.py:BrowserManager.input_events",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:browser_manager.py",
       "target": "function:browser_manager.py:BrowserManager._worker_main",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:browser_manager.py",
       "target": "function:browser_manager.py:BrowserManager._launch",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:browser_manager.py",
       "target": "function:browser_manager.py:BrowserManager._read_devtools_port",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:browser_manager.py",
       "target": "function:browser_manager.py:BrowserManager._run",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:browser_manager.py",
       "target": "function:browser_manager.py:BrowserManager._drain_commands",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:browser_manager.py",
       "target": "function:browser_manager.py:BrowserManager._on_response",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:browser_manager.py",
       "target": "function:browser_manager.py:BrowserManager._attach",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:browser_manager.py",
       "target": "function:browser_manager.py:BrowserManager._recover_page",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:browser_manager.py",
       "target": "function:browser_manager.py:BrowserManager._start_screencast",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:browser_manager.py",
       "target": "function:browser_manager.py:BrowserManager._sync_tabs",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:browser_manager.py",
       "target": "function:browser_manager.py:BrowserManager._update_scroll",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:browser_manager.py",
       "target": "function:browser_manager.py:BrowserManager._visible_frames",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:browser_manager.py",
       "target": "function:browser_manager.py:BrowserManager._cmd_input",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:browser_manager.py",
       "target": "function:browser_manager.py:BrowserManager._cmd_set_viewport",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:browser_manager.py",
       "target": "function:browser_manager.py:BrowserManager._cmd_fetch_media",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:browser_manager.py",
       "target": "function:browser_manager.py:BrowserManager._cmd_find_and_go",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:browser_manager.py",
       "target": "function:browser_manager.py:BrowserManager._drag",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:browser_manager.py",
       "target": "function:browser_manager.py:BrowserManager._dnd_touch",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:browser_manager.py",
       "target": "function:browser_manager.py:BrowserManager._cmd_ai_observe",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:browser_manager.py",
       "target": "function:browser_manager.py:BrowserManager._cmd_ai_act",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:browser_manager.py",
@@ -6250,63 +6253,63 @@
       "target": "class:tests/conftest.py:_DualStackServer",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:tests/conftest.py",
       "target": "function:tests/conftest.py:site",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:tests/conftest.py",
       "target": "function:tests/conftest.py:browser",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:tests/conftest.py",
       "target": "function:tests/conftest.py:goto",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:tests/conftest.py",
       "target": "function:tests/conftest.py:server",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:tests/conftest.py",
       "target": "function:tests/conftest.py:api_post",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:tests/conftest.py",
       "target": "function:tests/conftest.py:pytest_collection_modifyitems",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:tests/conftest.py",
       "target": "function:tests/conftest.py:bus",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:tests/conftest.py",
       "target": "function:tests/conftest.py:frames_eval",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:tests/conftest.py",
@@ -6425,7 +6428,7 @@
       "target": "function:tests/test_browser.py:test_typing_keys_and_unicode",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:tests/test_browser.py",
@@ -6446,7 +6449,7 @@
       "target": "function:tests/test_browser.py:test_double_click_selection_is_readable",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:tests/test_browser.py",
@@ -6467,7 +6470,7 @@
       "target": "function:tests/test_browser.py:test_observe_describes_exercise_elements",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:tests/test_browser.py",
@@ -6488,7 +6491,7 @@
       "target": "function:tests/test_browser.py:test_ai_act_fill_select_click_and_iframe",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:tests/test_browser.py",
@@ -6509,7 +6512,7 @@
       "target": "function:tests/test_browser.py:test_audio_detected_from_network_and_fetched",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:tests/test_browser.py",
@@ -6530,7 +6533,7 @@
       "target": "function:tests/test_browser.py:test_tabs_new_switch_close_and_popup",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:tests/test_browser.py",
@@ -6565,7 +6568,7 @@
       "target": "function:tests/test_dnd.py:test_drag_auto",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:tests/test_dnd.py",
@@ -6586,7 +6589,7 @@
       "target": "function:tests/test_dnd.py:test_drag_preference_is_remembered",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:tests/test_dnd.py",
@@ -6607,7 +6610,7 @@
       "target": "function:tests/test_dnd.py:test_drag_matrix",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:tests/test_dnd.py",
@@ -6656,7 +6659,7 @@
       "target": "function:tests/test_llm_e2e.py:real_ai",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:tests/test_llm_e2e.py",
@@ -6684,7 +6687,7 @@
       "target": "function:tests/test_server.py:test_sse_hello_contains_state_and_chat",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:tests/test_server.py",
@@ -6705,7 +6708,7 @@
       "target": "function:tests/test_ui.py:ui",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:tests/test_ui.py",
@@ -6719,7 +6722,7 @@
       "target": "function:tests/test_ui.py:test_click_and_type_through_canvas",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:tests/test_ui.py",
@@ -6733,7 +6736,7 @@
       "target": "function:tests/test_ui.py:test_settings_dialog_and_theme",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:tests/test_ui.py",
@@ -6775,7 +6778,7 @@
       "target": "function:cdp_fast.py:key_event_params",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:cdp_fast.py",
@@ -6789,7 +6792,7 @@
       "target": "class:cdp_fast.py:FastCDP",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:cdp_fast.py",
@@ -6803,7 +6806,7 @@
       "target": "function:tests/test_fast_input.py:test_fast_channel_is_used_for_stream_mode",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:tests/test_fast_input.py",
@@ -6817,7 +6820,7 @@
       "target": "function:tests/test_fast_input.py:test_typing_through_fast_channel",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:tests/test_fast_input.py",
@@ -6831,7 +6834,7 @@
       "target": "function:tests/test_fast_input.py:test_enter_submits_and_drag_selects_text",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:tests/test_fast_input.py",
@@ -6845,7 +6848,7 @@
       "target": "function:tests/test_fast_input.py:test_user_can_drag_and_drop_by_hand",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:tests/test_fast_input.py",
@@ -6859,7 +6862,7 @@
       "target": "function:tests/test_fast_input.py:test_unknown_key_is_an_error_not_a_crash",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:tests/test_fast_input.py",
@@ -6873,7 +6876,7 @@
       "target": "function:tests/test_fast_input.py:test_key_event_params",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:tests/test_fast_input.py",
@@ -6887,7 +6890,7 @@
       "target": "function:tools/bench_chromium_modes.py:cpu_seconds",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:tools/bench_chromium_modes.py",
@@ -6901,7 +6904,7 @@
       "target": "function:tools/bench_chromium_modes.py:chrome_pids",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:tools/bench_chromium_modes.py",
@@ -6915,7 +6918,7 @@
       "target": "function:tools/bench_chromium_modes.py:run_mode",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:tools/bench_chromium_modes.py",
@@ -6929,7 +6932,7 @@
       "target": "function:tools/bench_chromium_modes.py:main",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:tools/bench_chromium_modes.py",
@@ -7055,21 +7058,21 @@
       "target": "service:docker-compose.yml:autobrowser",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "service:docker-compose.yml",
       "target": "service:docker-compose.yml:ollama",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "service:docker-compose.yml",
       "target": "service:docker-compose.yml:watchtower",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "service:docker-compose.yml:autobrowser",
@@ -7289,244 +7292,6 @@
       "weight": 0.5
     },
     {
-      "source": "document:HANDOVER.md",
-      "target": "file:server.py",
-      "type": "documents",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "document:HANDOVER.md",
-      "target": "file:browser_manager.py",
-      "type": "documents",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "document:HANDOVER.md",
-      "target": "file:page_scripts.py",
-      "type": "documents",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "document:HANDOVER.md",
-      "target": "file:ai_controller.py",
-      "type": "documents",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "document:HANDOVER.md",
-      "target": "file:llm.py",
-      "type": "documents",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "document:HANDOVER.md",
-      "target": "file:events.py",
-      "type": "documents",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "document:HANDOVER.md",
-      "target": "file:config.py",
-      "type": "documents",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "document:HANDOVER.md",
-      "target": "file:cdp_fast.py",
-      "type": "documents",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "document:HANDOVER.md",
-      "target": "file:updater.py",
-      "type": "documents",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "document:HANDOVER.md",
-      "target": "file:desktop_app.py",
-      "type": "documents",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "document:HANDOVER.md",
-      "target": "file:ai_browser.py",
-      "type": "documents",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "document:HANDOVER.md",
-      "target": "file:version.py",
-      "type": "documents",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "document:HANDOVER.md",
-      "target": "file:tools/build_exe.py",
-      "type": "documents",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "document:HANDOVER.md",
-      "target": "file:tools/bench_smoothness.py",
-      "type": "documents",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "document:HANDOVER.md",
-      "target": "file:tools/bench_chromium_modes.py",
-      "type": "documents",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "document:HANDOVER.md",
-      "target": "file:tools/test_desktop_exe.py",
-      "type": "documents",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "document:HANDOVER.md",
-      "target": "file:tools/build_icons.py",
-      "type": "documents",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "document:HANDOVER.md",
-      "target": "file:tools/make_icon.py",
-      "type": "documents",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "document:HANDOVER.md",
-      "target": "file:tests/test_claude.py",
-      "type": "documents",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "document:HANDOVER.md",
-      "target": "file:tests/test_long_pages.py",
-      "type": "documents",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "document:HANDOVER.md",
-      "target": "file:tests/test_gemini_quota.py",
-      "type": "documents",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "document:HANDOVER.md",
-      "target": "file:tests/test_fast_input.py",
-      "type": "documents",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "document:HANDOVER.md",
-      "target": "file:tests/test_dnd.py",
-      "type": "documents",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "document:HANDOVER.md",
-      "target": "file:tests/test_agent.py",
-      "type": "documents",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "document:HANDOVER.md",
-      "target": "file:tests/test_browser.py",
-      "type": "documents",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "document:HANDOVER.md",
-      "target": "file:tests/test_server.py",
-      "type": "documents",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "document:HANDOVER.md",
-      "target": "file:tests/test_ui.py",
-      "type": "documents",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "document:HANDOVER.md",
-      "target": "file:installer/AutoBrowser.iss",
-      "type": "documents",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "document:HANDOVER.md",
-      "target": "file:start.bat",
-      "type": "documents",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "document:HANDOVER.md",
-      "target": "service:Dockerfile",
-      "type": "documents",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "document:HANDOVER.md",
-      "target": "service:docker-compose.yml",
-      "type": "documents",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "document:HANDOVER.md",
-      "target": "pipeline:.github/workflows/ci.yml",
-      "type": "documents",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "document:HANDOVER.md",
-      "target": "pipeline:.github/workflows/release.yml",
-      "type": "documents",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "document:CLAUDE.md",
-      "target": "document:HANDOVER.md",
-      "type": "related",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
       "source": "document:CLAUDE.md",
       "target": "config:ai_config.example.json",
       "type": "related",
@@ -7557,62 +7322,6 @@
     {
       "source": "document:CLAUDE.md",
       "target": "document:requirements-dev.txt",
-      "type": "related",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "document:INSTALL.md",
-      "target": "service:docker-compose.yml",
-      "type": "documents",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "document:INSTALL.md",
-      "target": "file:start.bat",
-      "type": "documents",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "document:INSTALL.md",
-      "target": "file:updater.py",
-      "type": "documents",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "document:INSTALL.md",
-      "target": "file:server.py",
-      "type": "documents",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "document:INSTALL.md",
-      "target": "file:desktop_app.py",
-      "type": "documents",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "document:INSTALL.md",
-      "target": "document:requirements.txt",
-      "type": "related",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "document:README.md",
-      "target": "document:INSTALL.md",
-      "type": "related",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "document:README.md",
-      "target": "document:HANDOVER.md",
       "type": "related",
       "direction": "forward",
       "weight": 0.5
@@ -8126,49 +7835,49 @@
       "target": "function:desktop_app.py:_work_area",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:desktop_app.py",
       "target": "function:desktop_app.py:_find_app_browser",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:desktop_app.py",
       "target": "function:desktop_app.py:_setup_logging",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:desktop_app.py",
       "target": "function:desktop_app.py:_ensure_chromium",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:desktop_app.py",
       "target": "function:desktop_app.py:main",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:desktop_app.py",
       "target": "function:desktop_app.py:_auto_update",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:desktop_app.py",
       "target": "function:desktop_app.py:selftest",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:desktop_app.py",
@@ -8259,7 +7968,7 @@
       "target": "function:scripts/debug/check_scroll.py:eval_js",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:scripts/debug/check_scroll.py",
@@ -8273,7 +7982,7 @@
       "target": "function:scripts/debug/enter_quiz2.py:eval_js",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:scripts/debug/enter_quiz2.py",
@@ -8301,189 +8010,189 @@
       "target": "function:static/app.js:api",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:static/app.js",
       "target": "function:static/app.js:md",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:static/app.js",
       "target": "function:static/app.js:toast",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:static/app.js",
       "target": "function:static/app.js:copyText",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:static/app.js",
       "target": "function:static/app.js:setIcon",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:static/app.js",
       "target": "function:static/app.js:decodeLoop",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:static/app.js",
       "target": "function:static/app.js:runStream",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:static/app.js",
       "target": "function:static/app.js:afterSelection",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:static/app.js",
       "target": "function:static/app.js:toPlaywrightKey",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:static/app.js",
       "target": "function:static/app.js:renderScroll",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:static/app.js",
       "target": "function:static/app.js:sendRatio",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:static/app.js",
       "target": "function:static/app.js:renderTabs",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:static/app.js",
       "target": "function:static/app.js:applyState",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:static/app.js",
       "target": "function:static/app.js:showAiPointer",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:static/app.js",
       "target": "function:static/app.js:messageHtml",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:static/app.js",
       "target": "function:static/app.js:applyAiStatus",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:static/app.js",
       "target": "function:static/app.js:applyConfig",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:static/app.js",
       "target": "function:static/app.js:openSettings",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:static/app.js",
       "target": "function:static/app.js:renderLocalStatus",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:static/app.js",
       "target": "function:static/app.js:collectSettings",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:static/app.js",
       "target": "function:static/app.js:submitSettings",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:static/app.js",
       "target": "function:static/app.js:loadModels",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:static/app.js",
       "target": "function:static/app.js:openDrawer",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:static/app.js",
       "target": "function:static/app.js:renderDrawer",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:static/app.js",
       "target": "function:static/app.js:connectEvents",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:static/app.js",
       "target": "function:static/app.js:checkUpdate",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:static/app.js",
       "target": "function:static/app.js:applyMode",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:static/index.html",
@@ -8504,7 +8213,7 @@
       "target": "function:tools/bench_smoothness.py:main",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:tools/bench_smoothness.py",
@@ -8525,7 +8234,7 @@
       "target": "function:tools/build_icons.py:main",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:tools/build_icons.py",
@@ -8539,14 +8248,14 @@
       "target": "function:tools/make_icon.py:render_pngs",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:tools/make_icon.py",
       "target": "function:tools/make_icon.py:write_ico",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:tools/make_icon.py",
@@ -8560,21 +8269,21 @@
       "target": "function:tools/test_desktop_exe.py:windows",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:tools/test_desktop_exe.py",
       "target": "function:tools/test_desktop_exe.py:run",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:tools/test_desktop_exe.py",
       "target": "function:tools/test_desktop_exe.py:_run",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "file:tools/test_desktop_exe.py",
@@ -8588,161 +8297,490 @@
       "target": "function:browser_manager.py:BrowserManager.__init__",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "class:browser_manager.py:BrowserManager",
       "target": "function:browser_manager.py:BrowserManager.execute",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "class:browser_manager.py:BrowserManager",
       "target": "function:browser_manager.py:BrowserManager.input_events",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "class:browser_manager.py:BrowserManager",
       "target": "function:browser_manager.py:BrowserManager._worker_main",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "class:browser_manager.py:BrowserManager",
       "target": "function:browser_manager.py:BrowserManager._launch",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "class:browser_manager.py:BrowserManager",
       "target": "function:browser_manager.py:BrowserManager._read_devtools_port",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "class:browser_manager.py:BrowserManager",
       "target": "function:browser_manager.py:BrowserManager._run",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "class:browser_manager.py:BrowserManager",
       "target": "function:browser_manager.py:BrowserManager._drain_commands",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "class:browser_manager.py:BrowserManager",
       "target": "function:browser_manager.py:BrowserManager._on_response",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "class:browser_manager.py:BrowserManager",
       "target": "function:browser_manager.py:BrowserManager._attach",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "class:browser_manager.py:BrowserManager",
       "target": "function:browser_manager.py:BrowserManager._recover_page",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "class:browser_manager.py:BrowserManager",
       "target": "function:browser_manager.py:BrowserManager._start_screencast",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "class:browser_manager.py:BrowserManager",
       "target": "function:browser_manager.py:BrowserManager._sync_tabs",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "class:browser_manager.py:BrowserManager",
       "target": "function:browser_manager.py:BrowserManager._update_scroll",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "class:browser_manager.py:BrowserManager",
       "target": "function:browser_manager.py:BrowserManager._visible_frames",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "class:browser_manager.py:BrowserManager",
       "target": "function:browser_manager.py:BrowserManager._cmd_input",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "class:browser_manager.py:BrowserManager",
       "target": "function:browser_manager.py:BrowserManager._cmd_set_viewport",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "class:browser_manager.py:BrowserManager",
       "target": "function:browser_manager.py:BrowserManager._cmd_fetch_media",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "class:browser_manager.py:BrowserManager",
       "target": "function:browser_manager.py:BrowserManager._cmd_find_and_go",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "class:browser_manager.py:BrowserManager",
       "target": "function:browser_manager.py:BrowserManager._drag",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "class:browser_manager.py:BrowserManager",
       "target": "function:browser_manager.py:BrowserManager._dnd_touch",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "class:browser_manager.py:BrowserManager",
       "target": "function:browser_manager.py:BrowserManager._cmd_ai_observe",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
     },
     {
       "source": "class:browser_manager.py:BrowserManager",
       "target": "function:browser_manager.py:BrowserManager._cmd_ai_act",
       "type": "contains",
       "direction": "forward",
-      "weight": 1.0
+      "weight": 1
+    },
+    {
+      "source": "document:HANDOVER.md",
+      "target": "file:server.py",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:HANDOVER.md",
+      "target": "file:browser_manager.py",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:HANDOVER.md",
+      "target": "file:page_scripts.py",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:HANDOVER.md",
+      "target": "file:ai_controller.py",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:HANDOVER.md",
+      "target": "file:llm.py",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:HANDOVER.md",
+      "target": "file:events.py",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:HANDOVER.md",
+      "target": "file:config.py",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:HANDOVER.md",
+      "target": "file:cdp_fast.py",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:HANDOVER.md",
+      "target": "file:updater.py",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:HANDOVER.md",
+      "target": "file:desktop_app.py",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:HANDOVER.md",
+      "target": "file:ai_browser.py",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:HANDOVER.md",
+      "target": "file:version.py",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:HANDOVER.md",
+      "target": "file:tools/build_exe.py",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:HANDOVER.md",
+      "target": "file:tools/bench_smoothness.py",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:HANDOVER.md",
+      "target": "file:tools/bench_chromium_modes.py",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:HANDOVER.md",
+      "target": "file:tools/test_desktop_exe.py",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:HANDOVER.md",
+      "target": "file:tools/build_icons.py",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:HANDOVER.md",
+      "target": "file:tools/make_icon.py",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:HANDOVER.md",
+      "target": "file:tests/test_claude.py",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:HANDOVER.md",
+      "target": "file:tests/test_long_pages.py",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:HANDOVER.md",
+      "target": "file:tests/test_gemini_quota.py",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:HANDOVER.md",
+      "target": "file:tests/test_fast_input.py",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:HANDOVER.md",
+      "target": "file:tests/test_dnd.py",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:HANDOVER.md",
+      "target": "file:tests/test_agent.py",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:HANDOVER.md",
+      "target": "file:tests/test_browser.py",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:HANDOVER.md",
+      "target": "file:tests/test_server.py",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:HANDOVER.md",
+      "target": "file:tests/test_ui.py",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:HANDOVER.md",
+      "target": "file:installer/AutoBrowser.iss",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:HANDOVER.md",
+      "target": "file:start.bat",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:HANDOVER.md",
+      "target": "service:Dockerfile",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:HANDOVER.md",
+      "target": "service:docker-compose.yml",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:HANDOVER.md",
+      "target": "pipeline:.github/workflows/ci.yml",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:HANDOVER.md",
+      "target": "pipeline:.github/workflows/release.yml",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:INSTALL.md",
+      "target": "service:docker-compose.yml",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:INSTALL.md",
+      "target": "file:start.bat",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:INSTALL.md",
+      "target": "file:updater.py",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:INSTALL.md",
+      "target": "file:server.py",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:INSTALL.md",
+      "target": "file:desktop_app.py",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:INSTALL.md",
+      "target": "document:requirements.txt",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:HANDOVER.md",
+      "target": "document:CLAUDE.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:HANDOVER.md",
+      "target": "config:.claude/settings.json",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:HANDOVER.md",
+      "target": "file:tests/fixtures/quiz.html",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:HANDOVER.md",
+      "target": "file:static/style.css",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:HANDOVER.md",
+      "target": "file:tests/test_llm_e2e.py",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:HANDOVER.md",
+      "target": "document:requirements-dev.txt",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:HANDOVER.md",
+      "target": "document:docs/releases/v6.2.0.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:INSTALL.md",
+      "target": "service:docker-compose.yml:ollama",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
     }
   ],
   "layers": [

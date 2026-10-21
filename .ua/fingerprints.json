@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
-  "gitCommitHash": "6a2247e76a3a534f7e3d74bae64409e224a12ec8",
-  "generatedAt": "2026-10-21T19:41:26.973Z",
+  "gitCommitHash": "1d6e1f6a8ff8f94841aff3786f9925d012236fa9",
+  "generatedAt": "2026-10-21T19:43:43.234Z",
   "files": {
     ".claude/settings.json": {
       "filePath": ".claude/settings.json",
@@ -75,7 +75,7 @@
     },
     "HANDOVER.md": {
       "filePath": "HANDOVER.md",
-      "contentHash": "9256062c6f638099a07ee912f53e18582e9a95782c138d405bae36f83cda7c3a",
+      "contentHash": "4ad9c839636c430e6997ce85599345202c2403afeb48bf8c2b9174e0ed3865e1",
       "functions": [],
       "classes": [],
       "imports": [],
@@ -85,12 +85,12 @@
     },
     "INSTALL.md": {
       "filePath": "INSTALL.md",
-      "contentHash": "1921e7b562b7a01111e5d778f4994cfc0e59e043e97aef261930c5408972e832",
+      "contentHash": "e9631e645a8e404b35a16dd1a394c866ff7654e65f2979381d98899af35d711c",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 120,
+      "totalLines": 122,
       "hasStructuralAnalysis": false
     },
     "README.md": {
