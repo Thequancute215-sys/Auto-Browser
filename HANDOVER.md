@@ -200,6 +200,7 @@ Giao diện dùng **Primer CSS v22** và **Primer Octicons**, lưu sẵn trong `
 - Biến môi trường: `PORT`, `ALLOW_LAN=1`, `AIB_PROFILE_DIR` (thư mục profile khác), `AIB_AI_CONFIG` (file cài đặt AI khác), `AIB_KILL_STALE=0` (không dọn tiến trình chrome-headless-shell cũ khi khởi động), `GEMINI_API_KEY`.
 - Test: `pip install -r requirements-dev.txt`, sau đó `python -m pytest` (nhanh) hoặc `python -m pytest -m llm` (Gemini thật).
 - Đăng nhập Cambridge/Rikkei một lần trong màn hình trực tiếp; phiên đăng nhập được lưu ở `~/.ai_browser_profile`.
+- Bản đồ mã: repo bật plugin Understand-Anything qua `.claude/settings.json`. Chạy `/understand` sau khi sửa (hoặc `/understand --auto-update` một lần), `/understand-diff` trước khi phát hành, và commit `.ua/knowledge-graph.json`. Quy trình đầy đủ ở mục "Quy trình làm việc với Understand-Anything" trong `CLAUDE.md`.
 
 ## 7. Kiểm thử (21/10/2026)
 

@@ -21,6 +21,13 @@ assets/icon-256.png
 .ai_browser_profile/
 run_*/
 
+# Understand-Anything: commit .ua/knowledge-graph.json and .ua/config.json, not the scratch files
+.ua/intermediate/
+.ua/diff-overlay.json
+
+# Claude Code: personal overrides stay local (.claude/settings.json is shared)
+.claude/settings.local.json
+
 # OS / editor
 Thumbs.db
 .DS_Store

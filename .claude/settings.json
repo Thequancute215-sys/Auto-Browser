@@ -1,0 +1,13 @@
+{
+  "extraKnownMarketplaces": {
+    "understand-anything": {
+      "source": {
+        "source": "github",
+        "repo": "Thequancute215-sys/understand-anything"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "understand-anything@understand-anything": true
+  }
+}

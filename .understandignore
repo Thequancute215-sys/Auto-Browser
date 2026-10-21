@@ -1,0 +1,17 @@
+# Understand-Anything: files left out of the knowledge graph (gitignore syntax).
+# The plugin already skips node_modules, build output, minified files, images and fonts.
+
+# Vendored third-party code (GitHub Primer CSS, Octicons)
+static/vendor/
+tests/fixtures/vendor/
+
+# Generated or binary output
+tests/reports/
+assets/
+dist/
+build/
+
+# Local-only data
+ai_config.json
+.ai_browser_profile/
+run_*/

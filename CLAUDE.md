@@ -23,6 +23,18 @@ Docker: `docker build -t autobrowser .` rồi `docker run -p 127.0.0.1:8000:8000
 Biến môi trường: `PORT`, `ALLOW_LAN=1`, `AIB_PROFILE_DIR`, `AIB_AI_CONFIG`, `AIB_KILL_STALE=0`, `GEMINI_API_KEY`.
 Muốn chạy thử song song với server đang dùng: đặt `PORT=8765`, `AIB_KILL_STALE=0` và `AIB_PROFILE_DIR` trỏ tới một thư mục tạm.
 
+## Quy trình làm việc với Understand-Anything
+
+Repo dùng plugin [Understand-Anything](https://github.com/Thequancute215-sys/understand-anything) để giữ một bản đồ kiến thức (knowledge graph) của toàn bộ mã. `.claude/settings.json` đã khai báo marketplace và bật plugin, nên Claude Code sẽ đề nghị cài khi mở repo (hoặc chạy `/plugin marketplace add Thequancute215-sys/understand-anything` rồi `/plugin install understand-anything`).
+
+- **Trước khi sửa:** dùng `/understand-chat <câu hỏi>` hoặc `/understand-explain <file hoặc hàm>` để tìm đúng chỗ cần sửa, thay vì đọc mò cả repo. Người mới vào dự án: `/understand-onboard`.
+- **Sau khi sửa:** chạy `/understand` (chỉ phân tích lại các file đã đổi). Hoặc chạy một lần `/understand --auto-update` để cài hook post-commit tự cập nhật sau mỗi commit.
+- **Trước khi commit hoặc phát hành:** `/understand-diff` để xem thay đổi ảnh hưởng tới module nào (ví dụ đổi `page_scripts.py` thì kiểm tra lại `browser_manager.py` và các test liên quan).
+- **Xem trực quan:** `/understand-dashboard`. Bản đồ nghiệp vụ (luồng giải bài, cập nhật, chọn provider): `/understand-domain`.
+- Commit `.ua/knowledge-graph.json` và `.ua/config.json` cùng với thay đổi mã để bản đồ luôn khớp với code. `.ua/intermediate/` và `.ua/diff-overlay.json` là file tạm, đã nằm trong `.gitignore`.
+- Thư mục bị loại khỏi bản đồ (thư viện vendored, ảnh, báo cáo, bản build) khai báo trong `.understandignore`.
+- Bản đồ chỉ hỗ trợ việc tìm hiểu. Khi nó mâu thuẫn với code thì code đúng: chạy lại `/understand` và kiểm tra bằng `python -m pytest`.
+
 ## Kiến trúc tóm tắt
 
 - `server.py`: ThreadingHTTPServer chỉ nghe 127.0.0.1. Cung cấp `/api/stream` (luồng JPEG nhị phân), `/api/events` (SSE), `/api/input` (lô sự kiện chuột/phím) và các route REST. Mọi request đều qua kiểm tra Host/Origin.

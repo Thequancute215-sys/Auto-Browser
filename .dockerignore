@@ -13,6 +13,9 @@ assets
 tests
 tools
 scripts
+.claude
+.ua
+.understandignore
 *.md
 !README.md
 start.bat
