@@ -26,8 +26,8 @@
       "GitHub Actions"
     ],
     "description": "Trình duyệt viết bằng Python/Playwright có trợ lý AI (Google Gemini/Gemma, Claude hoặc mô hình chạy cục bộ qua Ollama) tự đọc đề, làm bài (điền từ, trắc nghiệm, kéo thả, bài nghe) và kiểm tra lại kết quả trên Cambridge One, Rikkei LMS và các trang học trực tuyến khác. Dự án gồm giao diện web vanilla JS theo phong cách GitHub Primer, launcher desktop cho Windows kèm bộ cài Inno Setup, image Docker và cơ chế tự cập nhật.",
-    "analyzedAt": "2026-10-22T19:50:27.561Z",
-    "gitCommitHash": "d085eddc50e621026bf0f10606e07d60b9227e88"
+    "analyzedAt": "2026-10-22T20:06:13.919Z",
+    "gitCommitHash": "cfcbba0044873bb5535e3f8990dc20765822dfc2"
   },
   "nodes": [
     {
@@ -5076,21 +5076,6 @@
       "complexity": "simple"
     },
     {
-      "id": "document:HANDOVER.md",
-      "type": "document",
-      "name": "HANDOVER.md",
-      "filePath": "HANDOVER.md",
-      "summary": "Tài liệu bàn giao Auto Browser v6.2.0 gồm 8 phần: kiến trúc (screencast CDP, SSE, hàng đợi input, AIController), nhà cung cấp AI Gemini/Claude/Ollama và xoay vòng mô hình, Docker và tự cập nhật, chống nộp bài sớm, danh sách lỗi sửa sau khi cho bot chạy trên trang thật (gồm trò select-and-drop của British Council), engine kéo thả, ứng dụng desktop, cấu trúc file, API, vận hành, kiểm thử (141 test) và giới hạn đã biết.",
-      "tags": [
-        "documentation",
-        "handover",
-        "architecture",
-        "changelog",
-        "testing"
-      ],
-      "complexity": "complex"
-    },
-    {
       "id": "file:tests/fixtures/dnd/select_drop.html",
       "type": "file",
       "name": "select_drop.html",
@@ -5105,6 +5090,36 @@
       ],
       "complexity": "simple",
       "languageNotes": "Click trên chip gọi stopPropagation và bật/tắt lớp btn-selected, nên bấm hai lần sẽ bỏ chọn; đây chính là hành vi khiến click_place cũ thất bại."
+    },
+    {
+      "id": "document:HANDOVER.md",
+      "type": "document",
+      "name": "HANDOVER.md",
+      "filePath": "HANDOVER.md",
+      "summary": "Tài liệu bàn giao kỹ thuật toàn diện của Auto Browser v6.2.1: sơ đồ kiến trúc (server, BrowserManager, AIController, llm.py), vòng lặp agent Quan sát → Suy luận → Thao tác → Kiểm tra lại, ba provider AI (Gemini, Claude, Ollama) kèm xoay vòng mô hình, Docker/phát hành/tự cập nhật, engine kéo thả 7 chiến lược, chế độ window/stream, danh sách sửa lỗi sau khi chạy thử trên trang thật, API, vận hành, kiểm thử và giới hạn đã biết.",
+      "tags": [
+        "tài-liệu",
+        "bàn-giao",
+        "kiến-trúc",
+        "entry-point",
+        "hướng-dẫn-vận-hành"
+      ],
+      "complexity": "complex",
+      "languageNotes": "Markdown nhiều bảng so sánh và sơ đồ ASCII; các mục 3a'', 3a''', 3a'''' được đánh số bằng dấu phẩy trên để chèn nội dung mới theo từng phiên bản mà không đổi số mục cũ."
+    },
+    {
+      "id": "document:docs/releases/v6.2.1.md",
+      "type": "document",
+      "name": "v6.2.1.md",
+      "filePath": "docs/releases/v6.2.1.md",
+      "summary": "Ghi chú phát hành bản 6.2.1 dùng làm nội dung GitHub Release: hướng dẫn cài đặt (tự cập nhật từ 6.2.0, bộ cài Windows, Docker) và các sửa lỗi tìm ra khi cho AI tự làm bài trên trang thật, gồm an toàn khi điền/nộp bài, hỗ trợ thêm dạng bài H5P và British Council, gửi song song khi Gemini quá tải, chặn quảng cáo và sửa treo lệnh.",
+      "tags": [
+        "tài-liệu",
+        "ghi-chú-phát-hành",
+        "changelog",
+        "phát-hành"
+      ],
+      "complexity": "simple"
     }
   ],
   "edges": [
@@ -9253,6 +9268,13 @@
       "weight": 0.6
     },
     {
+      "source": "file:tests/fixtures/dnd/select_drop.html",
+      "target": "file:tests/fixtures/dnd/common.css",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
       "source": "document:HANDOVER.md",
       "target": "class:ai_controller.py:AIController",
       "type": "documents",
@@ -9458,6 +9480,13 @@
     {
       "source": "document:HANDOVER.md",
       "target": "file:tests/fixtures/dnd/pointer.html",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:HANDOVER.md",
+      "target": "file:tests/fixtures/dnd/select_drop.html",
       "type": "documents",
       "direction": "forward",
       "weight": 0.5
@@ -9716,24 +9745,129 @@
     },
     {
       "source": "document:HANDOVER.md",
-      "target": "document:requirements-dev.txt",
+      "target": "document:docs/releases/v6.2.1.md",
       "type": "related",
       "direction": "forward",
       "weight": 0.5
     },
     {
       "source": "document:HANDOVER.md",
-      "target": "file:tests/fixtures/dnd/select_drop.html",
+      "target": "document:requirements-dev.txt",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/releases/v6.2.1.md",
+      "target": "file:updater.py",
       "type": "documents",
       "direction": "forward",
       "weight": 0.5
     },
     {
-      "source": "file:tests/fixtures/dnd/select_drop.html",
-      "target": "file:tests/fixtures/dnd/common.css",
-      "type": "depends_on",
+      "source": "document:docs/releases/v6.2.1.md",
+      "target": "file:ai_controller.py",
+      "type": "documents",
       "direction": "forward",
-      "weight": 0.6
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/releases/v6.2.1.md",
+      "target": "file:browser_manager.py",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/releases/v6.2.1.md",
+      "target": "file:page_scripts.py",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/releases/v6.2.1.md",
+      "target": "file:llm.py",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/releases/v6.2.1.md",
+      "target": "file:config.py",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/releases/v6.2.1.md",
+      "target": "function:llm.py:GeminiClient._hedged",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/releases/v6.2.1.md",
+      "target": "function:llm.py:_model_missing",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/releases/v6.2.1.md",
+      "target": "function:ai_controller.py:AIController._submit_guard",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/releases/v6.2.1.md",
+      "target": "function:browser_manager.py:BrowserManager._wait_network_quiet",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/releases/v6.2.1.md",
+      "target": "file:installer/AutoBrowser.iss",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/releases/v6.2.1.md",
+      "target": "pipeline:.github/workflows/release.yml",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/releases/v6.2.1.md",
+      "target": "service:Dockerfile",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/releases/v6.2.1.md",
+      "target": "service:docker-compose.yml",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/releases/v6.2.1.md",
+      "target": "document:docs/releases/v6.2.0.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/releases/v6.2.1.md",
+      "target": "document:HANDOVER.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
     },
     {
       "source": "file:ai_browser.py",
@@ -10191,7 +10325,8 @@
         "document:INSTALL.md",
         "document:HANDOVER.md",
         "document:CLAUDE.md",
-        "document:docs/releases/v6.2.0.md"
+        "document:docs/releases/v6.2.0.md",
+        "document:docs/releases/v6.2.1.md"
       ]
     }
   ],
