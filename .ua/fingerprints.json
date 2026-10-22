@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
-  "gitCommitHash": "cb71581248c05ef4061d4dfd2b5fb75082463d46",
-  "generatedAt": "2026-10-22T19:20:36.877Z",
+  "gitCommitHash": "d085eddc50e621026bf0f10606e07d60b9227e88",
+  "generatedAt": "2026-10-22T19:50:27.917Z",
   "files": {
     ".claude/settings.json": {
       "filePath": ".claude/settings.json",
@@ -75,12 +75,12 @@
     },
     "HANDOVER.md": {
       "filePath": "HANDOVER.md",
-      "contentHash": "bbc48e4aa1b01f1b66a7b3e8e7526de94276efb7b7d3f10082c958d54a819f5c",
+      "contentHash": "ef9483db3b1f231cf4eed71fde127db6f67abfae6ed9ed6746a2cf9c83a48308",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 256,
+      "totalLines": 260,
       "hasStructuralAnalysis": false
     },
     "INSTALL.md": {
@@ -324,7 +324,7 @@
     },
     "browser_manager.py": {
       "filePath": "browser_manager.py",
-      "contentHash": "54cb535ea1943646bed8bb6de55b7f29c5c424b55f8dfce6c6e0a29a86daa98f",
+      "contentHash": "06e22b7b54f00d4859636fbaefe7653a852f9899e364dd19eb87d6a2aa0f98ae",
       "functions": [
         {
           "name": "_short_err",
@@ -422,7 +422,7 @@
           ],
           "properties": [],
           "exported": true,
-          "lineCount": 1338
+          "lineCount": 1343
         }
       ],
       "imports": [
@@ -515,7 +515,7 @@
         "_short_err",
         "BrowserManager"
       ],
-      "totalLines": 1368,
+      "totalLines": 1373,
       "hasStructuralAnalysis": true
     },
     "cdp_fast.py": {
@@ -1039,12 +1039,12 @@
     },
     "page_scripts.py": {
       "filePath": "page_scripts.py",
-      "contentHash": "7dbc086c864ed67f5b149f2eb671ce9477b2d23fcff53c95dd89c4bb49f5ea0b",
+      "contentHash": "b3829906592e877d344f32e53ed18966355fa0d9fad1257a0b464248d1a56b55",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 560,
+      "totalLines": 600,
       "hasStructuralAnalysis": true
     },
     "pytest.ini": {
@@ -2779,7 +2779,7 @@
     },
     "tests/test_dnd.py": {
       "filePath": "tests/test_dnd.py",
-      "contentHash": "23960e6c07c924bd577fa02bbff336d9ba5720b2ffd9ff6663b1b909a08c1e84",
+      "contentHash": "8fdc8de8c64341814275d519fae29a3ade435c72c96658e6bd783a810e77e477",
       "functions": [
         {
           "name": "_observe_pair",
@@ -2834,10 +2834,25 @@
           ],
           "exported": true,
           "lineCount": 21
+        },
+        {
+          "name": "test_select_and_drop_gap_gets_its_prompt_as_context",
+          "params": [
+            "browser",
+            "goto"
+          ],
+          "exported": true,
+          "lineCount": 6
         }
       ],
       "classes": [],
       "imports": [
+        {
+          "source": "json",
+          "specifiers": [
+            "json"
+          ]
+        },
         {
           "source": "time",
           "specifiers": [
@@ -2870,9 +2885,10 @@
         "test_drag_auto",
         "test_drag_preference_is_remembered",
         "test_drag_reports_failure_honestly",
-        "test_drag_matrix"
+        "test_drag_matrix",
+        "test_select_and_drop_gap_gets_its_prompt_as_context"
       ],
-      "totalLines": 100,
+      "totalLines": 110,
       "hasStructuralAnalysis": true
     },
     "tests/test_fast_input.py": {
@@ -4771,7 +4787,7 @@
     },
     "tests/test_agent_robustness.py": {
       "filePath": "tests/test_agent_robustness.py",
-      "contentHash": "fa432196f1e338c6704b4e900bc4bd6274827a5a6f587ef2fc4091b66103cea8",
+      "contentHash": "cc6406a0a584d007f9c80b8b7a8f6f47d4701f76924502c24b7675fe0dce633a",
       "functions": [
         {
           "name": "_ev",
@@ -4938,6 +4954,15 @@
           ],
           "exported": true,
           "lineCount": 9
+        },
+        {
+          "name": "test_buttons_inside_a_focusable_banner_are_listed",
+          "params": [
+            "browser",
+            "goto"
+          ],
+          "exported": true,
+          "lineCount": 14
         }
       ],
       "classes": [
@@ -4985,9 +5010,10 @@
         "test_questions_hidden_behind_next_count_as_unanswered",
         "test_finish_is_blocked_while_the_page_says_items_remain",
         "test_silent_placeholder_audio_is_not_transcribed",
-        "test_more_than_fifteen_blanks_are_all_counted"
+        "test_more_than_fifteen_blanks_are_all_counted",
+        "test_buttons_inside_a_focusable_banner_are_listed"
       ],
-      "totalLines": 206,
+      "totalLines": 222,
       "hasStructuralAnalysis": true
     },
     "tests/fixtures/stream.m3u8": {
@@ -5008,6 +5034,16 @@
       "imports": [],
       "exports": [],
       "totalLines": 29,
+      "hasStructuralAnalysis": false
+    },
+    "tests/fixtures/dnd/select_drop.html": {
+      "filePath": "tests/fixtures/dnd/select_drop.html",
+      "contentHash": "a0e8117f9e11cda0d9952c285241091bd9250692cb50f41bcb8478b49828cfaf",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 30,
       "hasStructuralAnalysis": false
     }
   }

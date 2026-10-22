@@ -26,8 +26,8 @@
       "GitHub Actions"
     ],
     "description": "Trình duyệt viết bằng Python/Playwright có trợ lý AI (Google Gemini/Gemma, Claude hoặc mô hình chạy cục bộ qua Ollama) tự đọc đề, làm bài (điền từ, trắc nghiệm, kéo thả, bài nghe) và kiểm tra lại kết quả trên Cambridge One, Rikkei LMS và các trang học trực tuyến khác. Dự án gồm giao diện web vanilla JS theo phong cách GitHub Primer, launcher desktop cho Windows kèm bộ cài Inno Setup, image Docker và cơ chế tự cập nhật.",
-    "analyzedAt": "2026-10-22T19:20:36.608Z",
-    "gitCommitHash": "cb71581248c05ef4061d4dfd2b5fb75082463d46"
+    "analyzedAt": "2026-10-22T19:50:27.561Z",
+    "gitCommitHash": "d085eddc50e621026bf0f10606e07d60b9227e88"
   },
   "nodes": [
     {
@@ -915,73 +915,6 @@
       ],
       "complexity": "complex",
       "languageNotes": "File Python chỉ chứa hằng chuỗi r\"\"\"...\"\"\" mang mã JavaScript, tách khỏi logic worker để dễ đọc; script chạy qua frame.evaluate() của Playwright."
-    },
-    {
-      "id": "file:tests/test_dnd.py",
-      "type": "file",
-      "name": "test_dnd.py",
-      "filePath": "tests/test_dnd.py",
-      "summary": "Bộ test kéo thả trên 11 trang mô phỏng cơ chế của các trình phát e-learning thật (HTML5, chuột, pointer, jQuery UI, SortableJS, interact.js, touch, iframe...), kiểm tra chuỗi chiến lược và xuất ma trận tương thích dnd_matrix.md.",
-      "tags": [
-        "test",
-        "drag-and-drop",
-        "integration-test",
-        "parametrized",
-        "pytest"
-      ],
-      "complexity": "moderate",
-      "languageNotes": "Dùng pytest.mark.parametrize với bảng PAGES để sinh một test cho mỗi cơ chế kéo thả."
-    },
-    {
-      "id": "function:tests/test_dnd.py:test_drag_auto",
-      "type": "function",
-      "name": "test_drag_auto",
-      "filePath": "tests/test_dnd.py",
-      "lineRange": [
-        43,
-        52
-      ],
-      "summary": "Test tham số hoá: phát hiện nguồn/đích, chạy toàn bộ chuỗi chiến lược kéo thả và xác minh trang ghi nhận thả đúng.",
-      "tags": [
-        "test",
-        "drag-and-drop",
-        "parametrized"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:tests/test_dnd.py:test_drag_preference_is_remembered",
-      "type": "function",
-      "name": "test_drag_preference_is_remembered",
-      "filePath": "tests/test_dnd.py",
-      "lineRange": [
-        55,
-        65
-      ],
-      "summary": "Kiểm tra chiến lược kéo thả thành công được ghi nhớ theo host và thử đầu tiên ở lần sau.",
-      "tags": [
-        "test",
-        "drag-and-drop",
-        "caching"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:tests/test_dnd.py:test_drag_matrix",
-      "type": "function",
-      "name": "test_drag_matrix",
-      "filePath": "tests/test_dnd.py",
-      "lineRange": [
-        79,
-        99
-      ],
-      "summary": "Thử mọi chiến lược trên mọi trang, ghi bảng tương thích vào tests/reports/dnd_matrix.md và chỉ fail khi một trang không có chiến lược nào hoạt động.",
-      "tags": [
-        "test",
-        "drag-and-drop",
-        "report-generation"
-      ],
-      "complexity": "simple"
     },
     {
       "id": "file:tests/test_llm_e2e.py",
@@ -4870,21 +4803,6 @@
       "languageNotes": "Định dạng M3U8 mở rộng: #EXTM3U, #EXT-X-VERSION, #EXTINF mô tả thời lượng phân đoạn và #EXT-X-ENDLIST đánh dấu playlist VOD đã kết thúc."
     },
     {
-      "id": "document:HANDOVER.md",
-      "type": "document",
-      "name": "HANDOVER.md",
-      "filePath": "HANDOVER.md",
-      "summary": "Tài liệu bàn giao kỹ thuật của Auto Browser v6.2.0: sơ đồ kiến trúc, lý do các thay đổi, vòng lặp agent Quan sát → Suy luận → Thao tác → Kiểm tra lại, ba provider AI (Gemini, Claude, Ollama), engine kéo thả 7 chiến lược, Docker/phát hành/tự cập nhật, các lỗi sửa sau lần chạy thật ngày 22/10/2026, API, vận hành, kiểm thử và giới hạn đã biết.",
-      "tags": [
-        "documentation",
-        "architecture",
-        "handover",
-        "ai-agent",
-        "deployment"
-      ],
-      "complexity": "complex"
-    },
-    {
       "id": "file:tests/fixtures/question_set.html",
       "type": "file",
       "name": "question_set.html",
@@ -4903,16 +4821,16 @@
       "type": "file",
       "name": "test_agent_robustness.py",
       "filePath": "tests/test_agent_robustness.py",
-      "summary": "Bộ test hồi quy rút ra từ các lần chạy thật trên h5p.org, British Council và test-english.com: kiểm tra lệnh type chỉ gõ vào đúng ô đã nhắm, agent phát hiện vòng lặp Next/Previous, chờ trang hết «Loading...», mang ghi chú tiến độ sang bước sau, form_status đếm đúng ô kéo thả H5P, câu bị ẩn sau Next và hơn 15 dropdown, rào chắn không bấm Finish khi còn câu, và không chép lời audio giữ chỗ.",
+      "summary": "Bộ test hồi quy rút ra từ các lần chạy thật trên h5p.org, British Council, test-english.com: chặn gõ nhầm vào link/ô tìm kiếm, chờ trang hết «Loading...», phát hiện vòng lặp Next/Previous, đếm đúng ô thả H5P, câu bị ẩn và hơn 15 chỗ trống, chặn bấm Finish sớm, bỏ qua audio giữ chỗ và liệt kê nút trong banner cookie.",
       "tags": [
         "test",
-        "ai-agent",
         "regression",
+        "ai-agent",
         "form-status",
-        "loop-detection"
+        "submit-guard"
       ],
       "complexity": "moderate",
-      "languageNotes": "Dùng LLM giả (lớp Script có cùng chữ ký generate() như client thật) gắn vào ai.llm, nên vòng lặp agent của AIController chạy thật trên fixture HTML cục bộ mà không gọi API; các fixture pytest browser/bus/goto đến từ conftest.py."
+      "languageNotes": "Dùng một LLM giả (lớp Script) thay cho client thật: mỗi test truyền một hàm step(prompt, n) trả về JSON, nên vòng lặp agent chạy đầy đủ mà không cần mạng hay API key."
     },
     {
       "id": "class:tests/test_agent_robustness.py:Script",
@@ -4923,7 +4841,7 @@
         57,
         66
       ],
-      "summary": "LLM giả cho vòng lặp agent: mỗi lần generate() ghi lại prompt, tăng usage['calls'] và trả về JSON do hàm step(prompt, số lượt) sinh ra, giúp test kiểm soát từng bước mà không gọi API thật.",
+      "summary": "LLM giả cho vòng lặp agent: generate() ghi lại từng prompt, tăng usage['calls'] và trả về JSON do hàm step(prompt, số lượt) sinh ra, giúp test điều khiển từng bước mà không gọi API thật.",
       "tags": [
         "test",
         "mock",
@@ -4941,7 +4859,7 @@
         73,
         85
       ],
-      "summary": "Cho agent bấm Next/Previous luân phiên trên carousel.html và kiểm tra mô hình được cảnh báo «going back and forth», rồi agent dừng (báo «quay lại cùng một màn hình») trước 12 lượt gọi, sớm hơn nhiều so với ngân sách 20 bước.",
+      "summary": "Cho agent bấm Next/Previous luân phiên trên carousel.html và kiểm tra mô hình được cảnh báo «going back and forth», sau đó agent dừng (báo «quay lại cùng một màn hình») trước 12 lượt gọi, sớm hơn nhiều so với ngân sách 20 bước.",
       "tags": [
         "test",
         "loop-detection",
@@ -4976,7 +4894,7 @@
         115,
         124
       ],
-      "summary": "Mở player.html?auto=3000 và bảo đảm agent chờ trang hết «Loading...» rồi mới gửi prompt đầu tiên, để mô hình thấy đúng bài mới (câu về thủ đô Tây Ban Nha).",
+      "summary": "Mở player.html?auto=3000 và bảo đảm agent chờ trang hết «Loading...» rồi mới gửi prompt đầu tiên, để mô hình thấy đúng bài mới (câu hỏi về thủ đô Tây Ban Nha).",
       "tags": [
         "test",
         "loading",
@@ -4993,7 +4911,7 @@
         138,
         152
       ],
-      "summary": "Chèn một ô thả H5P Drag and Drop vào trang và kiểm tra form_status coi ô là đã trả lời khi mục kéo nằm ngoài ô trong DOM nhưng được định vị đè lên ô, khiến số câu chưa làm giảm đúng một.",
+      "summary": "Chèn một ô thả kiểu H5P Drag and Drop vào trang và kiểm tra form_status coi ô là đã trả lời khi mục kéo nằm ngoài ô trong DOM nhưng được định vị đè lên ô, làm số câu chưa làm giảm đúng một.",
       "tags": [
         "test",
         "drag-and-drop",
@@ -5011,7 +4929,7 @@
         164,
         180
       ],
-      "summary": "Mô phỏng AI chọn một đáp án rồi bấm Finish trên question_set.html khi bật auto_submit: rào chắn nộp bài không bấm Finish vì còn 2 câu ẩn, báo «Không bấm «Finish»» trong chat và đưa mục hidden cùng chữ BLOCKED vào prompt kế tiếp.",
+      "summary": "Giả lập AI chọn một đáp án rồi bấm Finish trên question_set.html khi bật auto_submit: rào chắn nộp bài không bấm Finish vì còn 2 câu ẩn, báo «Không bấm «Finish»» trong chat và đưa mục hidden cùng chữ BLOCKED vào prompt kế tiếp.",
       "tags": [
         "test",
         "submit-guard",
@@ -5037,6 +4955,156 @@
         "ai-agent"
       ],
       "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_agent_robustness.py:test_buttons_inside_a_focusable_banner_are_listed",
+      "type": "function",
+      "name": "test_buttons_inside_a_focusable_banner_are_listed",
+      "filePath": "tests/test_agent_robustness.py",
+      "lineRange": [
+        208,
+        221
+      ],
+      "summary": "Chèn banner cookie kiểu OneTrust (div có tabindex) và kiểm tra nút «Accept All Cookies» bên trong vẫn được ai_observe đánh số, bấm được để đóng banner, đồng thời chữ trong nút thật không bị liệt kê hai lần.",
+      "tags": [
+        "test",
+        "element-detection",
+        "cookie-banner",
+        "ai-observe"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:tests/test_dnd.py",
+      "type": "file",
+      "name": "test_dnd.py",
+      "filePath": "tests/test_dnd.py",
+      "summary": "Bộ test kéo thả trên 12 trang thử, mỗi trang một cơ chế của trình phát bài học thật (HTML5, chuột có ngưỡng, pointer, jQuery UI, SortableJS, interact.js, touch, bấm-rồi-bấm, chọn-rồi-thả kiểu British Council, nhấn giữ, iframe khác origin): kiểm tra chuỗi chiến lược tự động, ghi nhớ chiến lược, báo lỗi trung thực, ma trận tương thích và ngữ cảnh ô trống.",
+      "tags": [
+        "test",
+        "drag-and-drop",
+        "parametrized",
+        "report-generation"
+      ],
+      "complexity": "moderate",
+      "languageNotes": "Dùng pytest.mark.parametrize với ids lấy từ tên file trang thử, nên mỗi cơ chế kéo thả hiện thành một test riêng trong báo cáo."
+    },
+    {
+      "id": "function:tests/test_dnd.py:test_drag_auto",
+      "type": "function",
+      "name": "test_drag_auto",
+      "filePath": "tests/test_dnd.py",
+      "lineRange": [
+        45,
+        54
+      ],
+      "summary": "Test tham số hoá theo từng trang: xoá chiến lược đã nhớ, phát hiện từ nguồn và ô đích, chạy toàn bộ chuỗi chiến lược kéo thả và xác minh trang ghi nhận thả đúng (trang bấm-rồi-bấm và chọn-rồi-thả được miễn cờ draggable).",
+      "tags": [
+        "test",
+        "drag-and-drop",
+        "parametrized"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_dnd.py:test_drag_preference_is_remembered",
+      "type": "function",
+      "name": "test_drag_preference_is_remembered",
+      "filePath": "tests/test_dnd.py",
+      "lineRange": [
+        57,
+        67
+      ],
+      "summary": "Kiểm tra trên touch.html rằng lần kéo đầu phải dò nhiều chiến lược mới tới «touch», còn lần sau chiến lược đã ghi nhớ theo host được thử đầu tiên và duy nhất.",
+      "tags": [
+        "test",
+        "drag-and-drop",
+        "caching"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_dnd.py:test_drag_reports_failure_honestly",
+      "type": "function",
+      "name": "test_drag_reports_failure_honestly",
+      "filePath": "tests/test_dnd.py",
+      "lineRange": [
+        70,
+        78
+      ],
+      "summary": "Thả từ lên một phần tử không nhận thả trên html5.html và bảo đảm engine báo lỗi kèm danh sách chiến lược đã thử thay vì báo thành công giả.",
+      "tags": [
+        "test",
+        "drag-and-drop",
+        "error-handling"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_dnd.py:test_drag_matrix",
+      "type": "function",
+      "name": "test_drag_matrix",
+      "filePath": "tests/test_dnd.py",
+      "lineRange": [
+        81,
+        101
+      ],
+      "summary": "Thử mọi chiến lược trong BrowserManager.DRAG_STRATEGIES trên mọi trang, ghi bảng tương thích vào tests/reports/dnd_matrix.md và chỉ fail khi một trang không có chiến lược nào hoạt động.",
+      "tags": [
+        "test",
+        "drag-and-drop",
+        "report-generation"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_dnd.py:test_select_and_drop_gap_gets_its_prompt_as_context",
+      "type": "function",
+      "name": "test_select_and_drop_gap_gets_its_prompt_as_context",
+      "filePath": "tests/test_dnd.py",
+      "lineRange": [
+        104,
+        109
+      ],
+      "summary": "Trên select_drop.html kiểm tra ô trống <ul> nhận câu hỏi ở cột bên cạnh làm ngữ cảnh before, và đáp án ẩn «ANSWER-KEY» của trang không bao giờ lọt vào dữ liệu gửi cho AI.",
+      "tags": [
+        "test",
+        "drag-and-drop",
+        "context-extraction",
+        "hidden-text"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:HANDOVER.md",
+      "type": "document",
+      "name": "HANDOVER.md",
+      "filePath": "HANDOVER.md",
+      "summary": "Tài liệu bàn giao Auto Browser v6.2.0 gồm 8 phần: kiến trúc (screencast CDP, SSE, hàng đợi input, AIController), nhà cung cấp AI Gemini/Claude/Ollama và xoay vòng mô hình, Docker và tự cập nhật, chống nộp bài sớm, danh sách lỗi sửa sau khi cho bot chạy trên trang thật (gồm trò select-and-drop của British Council), engine kéo thả, ứng dụng desktop, cấu trúc file, API, vận hành, kiểm thử (141 test) và giới hạn đã biết.",
+      "tags": [
+        "documentation",
+        "handover",
+        "architecture",
+        "changelog",
+        "testing"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:tests/fixtures/dnd/select_drop.html",
+      "type": "file",
+      "name": "select_drop.html",
+      "filePath": "tests/fixtures/dnd/select_drop.html",
+      "summary": "Trang thử mô phỏng trò «ui-select-and-drop» của British Council: mỗi ô trống là một <ul> rỗng ở cột riêng cạnh câu hỏi và một đáp án ẩn (display:none), bấm vào từ để bật/tắt chọn rồi bấm ô trống để chuyển từ vào; kéo thả không có tác dụng, và window.__result() trả true khi ô chứa «did».",
+      "tags": [
+        "test-fixture",
+        "drag-and-drop",
+        "select-and-drop",
+        "markup",
+        "hidden-text"
+      ],
+      "complexity": "simple",
+      "languageNotes": "Click trên chip gọi stopPropagation và bật/tắt lớp btn-selected, nên bấm hai lần sẽ bỏ chọn; đây chính là hành vi khiến click_place cũ thất bại."
     }
   ],
   "edges": [
@@ -5776,48 +5844,6 @@
       "weight": 0.8
     },
     {
-      "source": "file:tests/test_dnd.py",
-      "target": "function:tests/test_dnd.py:test_drag_auto",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:tests/test_dnd.py",
-      "target": "function:tests/test_dnd.py:test_drag_auto",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:tests/test_dnd.py",
-      "target": "function:tests/test_dnd.py:test_drag_preference_is_remembered",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:tests/test_dnd.py",
-      "target": "function:tests/test_dnd.py:test_drag_preference_is_remembered",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:tests/test_dnd.py",
-      "target": "function:tests/test_dnd.py:test_drag_matrix",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:tests/test_dnd.py",
-      "target": "function:tests/test_dnd.py:test_drag_matrix",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
       "source": "file:tests/test_llm_e2e.py",
       "target": "function:tests/test_llm_e2e.py:real_ai",
       "type": "contains",
@@ -6295,13 +6321,6 @@
     },
     {
       "source": "document:CLAUDE.md",
-      "target": "file:tests/test_dnd.py",
-      "type": "documents",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "document:CLAUDE.md",
       "target": "file:tools/bench_smoothness.py",
       "type": "documents",
       "direction": "forward",
@@ -6470,13 +6489,6 @@
     },
     {
       "source": "config:pytest.ini",
-      "target": "file:tests/test_dnd.py",
-      "type": "configures",
-      "direction": "forward",
-      "weight": 0.6
-    },
-    {
-      "source": "config:pytest.ini",
       "target": "file:tests/test_ui.py",
       "type": "configures",
       "direction": "forward",
@@ -6567,25 +6579,11 @@
       "weight": 0.5
     },
     {
-      "source": "file:tests/fixtures/dnd/common.css",
-      "target": "file:tests/test_dnd.py",
-      "type": "related",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
       "source": "file:tests/fixtures/dnd/hold.html",
       "target": "file:tests/fixtures/dnd/common.css",
       "type": "depends_on",
       "direction": "forward",
       "weight": 0.6
-    },
-    {
-      "source": "file:tests/fixtures/dnd/hold.html",
-      "target": "file:tests/test_dnd.py",
-      "type": "related",
-      "direction": "forward",
-      "weight": 0.5
     },
     {
       "source": "file:tests/fixtures/dnd/html5.html",
@@ -6595,25 +6593,11 @@
       "weight": 0.6
     },
     {
-      "source": "file:tests/fixtures/dnd/html5.html",
-      "target": "file:tests/test_dnd.py",
-      "type": "related",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
       "source": "file:tests/fixtures/dnd/iframe.html",
       "target": "file:tests/fixtures/dnd/common.css",
       "type": "depends_on",
       "direction": "forward",
       "weight": 0.6
-    },
-    {
-      "source": "file:tests/fixtures/dnd/iframe.html",
-      "target": "file:tests/test_dnd.py",
-      "type": "related",
-      "direction": "forward",
-      "weight": 0.5
     },
     {
       "source": "file:tests/fixtures/dnd/iframe.html",
@@ -6630,25 +6614,11 @@
       "weight": 0.6
     },
     {
-      "source": "file:tests/fixtures/dnd/interact.html",
-      "target": "file:tests/test_dnd.py",
-      "type": "related",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
       "source": "file:tests/fixtures/dnd/jqueryui.html",
       "target": "file:tests/fixtures/dnd/common.css",
       "type": "depends_on",
       "direction": "forward",
       "weight": 0.6
-    },
-    {
-      "source": "file:tests/fixtures/dnd/jqueryui.html",
-      "target": "file:tests/test_dnd.py",
-      "type": "related",
-      "direction": "forward",
-      "weight": 0.5
     },
     {
       "source": "file:tests/fixtures/dnd/mouse.html",
@@ -6658,25 +6628,11 @@
       "weight": 0.6
     },
     {
-      "source": "file:tests/fixtures/dnd/mouse.html",
-      "target": "file:tests/test_dnd.py",
-      "type": "related",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
       "source": "file:tests/fixtures/dnd/pointer.html",
       "target": "file:tests/fixtures/dnd/common.css",
       "type": "depends_on",
       "direction": "forward",
       "weight": 0.6
-    },
-    {
-      "source": "file:tests/fixtures/dnd/pointer.html",
-      "target": "file:tests/test_dnd.py",
-      "type": "related",
-      "direction": "forward",
-      "weight": 0.5
     },
     {
       "source": "file:tests/fixtures/dnd/sortable.html",
@@ -6686,13 +6642,6 @@
       "weight": 0.6
     },
     {
-      "source": "file:tests/fixtures/dnd/sortable.html",
-      "target": "file:tests/test_dnd.py",
-      "type": "related",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
       "source": "file:tests/fixtures/dnd/taptap.html",
       "target": "file:tests/fixtures/dnd/common.css",
       "type": "depends_on",
@@ -6700,25 +6649,11 @@
       "weight": 0.6
     },
     {
-      "source": "file:tests/fixtures/dnd/taptap.html",
-      "target": "file:tests/test_dnd.py",
-      "type": "related",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
       "source": "file:tests/fixtures/dnd/touch.html",
       "target": "file:tests/fixtures/dnd/common.css",
       "type": "depends_on",
       "direction": "forward",
       "weight": 0.6
-    },
-    {
-      "source": "file:tests/fixtures/dnd/touch.html",
-      "target": "file:tests/test_dnd.py",
-      "type": "related",
-      "direction": "forward",
-      "weight": 0.5
     },
     {
       "source": "document:docs/releases/v6.2.0.md",
@@ -8982,6 +8917,391 @@
       "weight": 0.5
     },
     {
+      "source": "file:tests/test_agent_robustness.py",
+      "target": "class:tests/test_agent_robustness.py:Script",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_agent_robustness.py",
+      "target": "class:tests/test_agent_robustness.py:Script",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_agent_robustness.py",
+      "target": "function:tests/test_agent_robustness.py:test_back_and_forth_between_two_screens_is_stopped",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_agent_robustness.py",
+      "target": "function:tests/test_agent_robustness.py:test_back_and_forth_between_two_screens_is_stopped",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_agent_robustness.py",
+      "target": "function:tests/test_agent_robustness.py:test_progress_note_is_carried_to_the_next_step",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_agent_robustness.py",
+      "target": "function:tests/test_agent_robustness.py:test_progress_note_is_carried_to_the_next_step",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_agent_robustness.py",
+      "target": "function:tests/test_agent_robustness.py:test_agent_does_not_think_while_the_page_says_loading",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_agent_robustness.py",
+      "target": "function:tests/test_agent_robustness.py:test_agent_does_not_think_while_the_page_says_loading",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_agent_robustness.py",
+      "target": "function:tests/test_agent_robustness.py:test_h5p_item_placed_over_its_zone_counts_as_answered",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_agent_robustness.py",
+      "target": "function:tests/test_agent_robustness.py:test_h5p_item_placed_over_its_zone_counts_as_answered",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_agent_robustness.py",
+      "target": "function:tests/test_agent_robustness.py:test_finish_is_blocked_while_the_page_says_items_remain",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_agent_robustness.py",
+      "target": "function:tests/test_agent_robustness.py:test_finish_is_blocked_while_the_page_says_items_remain",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_agent_robustness.py",
+      "target": "function:tests/test_agent_robustness.py:test_silent_placeholder_audio_is_not_transcribed",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_agent_robustness.py",
+      "target": "function:tests/test_agent_robustness.py:test_silent_placeholder_audio_is_not_transcribed",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_agent_robustness.py",
+      "target": "function:tests/test_agent_robustness.py:test_buttons_inside_a_focusable_banner_are_listed",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_agent_robustness.py",
+      "target": "function:tests/test_agent_robustness.py:test_buttons_inside_a_focusable_banner_are_listed",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_agent_robustness.py",
+      "target": "file:tests/fixtures/carousel.html",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:tests/test_agent_robustness.py",
+      "target": "file:tests/fixtures/player.html",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:tests/test_agent_robustness.py",
+      "target": "file:tests/fixtures/question_set.html",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:ai_controller.py",
+      "target": "file:tests/test_agent_robustness.py",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "function:tests/test_agent_robustness.py:test_back_and_forth_between_two_screens_is_stopped",
+      "target": "class:ai_controller.py:AIController",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:tests/test_agent_robustness.py:test_progress_note_is_carried_to_the_next_step",
+      "target": "class:ai_controller.py:AIController",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:tests/test_agent_robustness.py:test_agent_does_not_think_while_the_page_says_loading",
+      "target": "class:ai_controller.py:AIController",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:tests/test_agent_robustness.py:test_finish_is_blocked_while_the_page_says_items_remain",
+      "target": "class:ai_controller.py:AIController",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:tests/test_agent_robustness.py:test_silent_placeholder_audio_is_not_transcribed",
+      "target": "class:ai_controller.py:AIController",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_dnd.py",
+      "target": "function:tests/test_dnd.py:test_drag_auto",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_dnd.py",
+      "target": "function:tests/test_dnd.py:test_drag_auto",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_dnd.py",
+      "target": "function:tests/test_dnd.py:test_drag_preference_is_remembered",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_dnd.py",
+      "target": "function:tests/test_dnd.py:test_drag_preference_is_remembered",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_dnd.py",
+      "target": "function:tests/test_dnd.py:test_drag_reports_failure_honestly",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_dnd.py",
+      "target": "function:tests/test_dnd.py:test_drag_reports_failure_honestly",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_dnd.py",
+      "target": "function:tests/test_dnd.py:test_drag_matrix",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_dnd.py",
+      "target": "function:tests/test_dnd.py:test_drag_matrix",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_dnd.py",
+      "target": "function:tests/test_dnd.py:test_select_and_drop_gap_gets_its_prompt_as_context",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_dnd.py",
+      "target": "function:tests/test_dnd.py:test_select_and_drop_gap_gets_its_prompt_as_context",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_dnd.py",
+      "target": "file:tests/fixtures/dnd/html5.html",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:tests/test_dnd.py",
+      "target": "file:tests/fixtures/dnd/mouse.html",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:tests/test_dnd.py",
+      "target": "file:tests/fixtures/dnd/pointer.html",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:tests/test_dnd.py",
+      "target": "file:tests/fixtures/dnd/jqueryui.html",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:tests/test_dnd.py",
+      "target": "file:tests/fixtures/dnd/sortable.html",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:tests/test_dnd.py",
+      "target": "file:tests/fixtures/dnd/interact.html",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:tests/test_dnd.py",
+      "target": "file:tests/fixtures/dnd/touch.html",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:tests/test_dnd.py",
+      "target": "file:tests/fixtures/dnd/taptap.html",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:tests/test_dnd.py",
+      "target": "file:tests/fixtures/dnd/select_drop.html",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:tests/test_dnd.py",
+      "target": "file:tests/fixtures/dnd/hold.html",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:tests/test_dnd.py",
+      "target": "file:tests/fixtures/dnd/iframe.html",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:browser_manager.py",
+      "target": "file:tests/test_dnd.py",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "function:tests/test_dnd.py:test_drag_matrix",
+      "target": "class:browser_manager.py:BrowserManager",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "document:HANDOVER.md",
+      "target": "class:ai_controller.py:AIController",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:HANDOVER.md",
+      "target": "class:browser_manager.py:BrowserManager",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:HANDOVER.md",
+      "target": "class:events.py:EventBus",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:HANDOVER.md",
+      "target": "class:llm.py:ClaudeClient",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:HANDOVER.md",
+      "target": "class:llm.py:GeminiClient",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:HANDOVER.md",
+      "target": "class:llm.py:OllamaClient",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:HANDOVER.md",
+      "target": "class:llm.py:QuotaExhausted",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
       "source": "document:HANDOVER.md",
       "target": "config:.claude/settings.json",
       "type": "documents",
@@ -9089,6 +9409,76 @@
     {
       "source": "document:HANDOVER.md",
       "target": "file:static/style.css",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:HANDOVER.md",
+      "target": "file:tests/fixtures/dnd/hold.html",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:HANDOVER.md",
+      "target": "file:tests/fixtures/dnd/html5.html",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:HANDOVER.md",
+      "target": "file:tests/fixtures/dnd/iframe.html",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:HANDOVER.md",
+      "target": "file:tests/fixtures/dnd/interact.html",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:HANDOVER.md",
+      "target": "file:tests/fixtures/dnd/jqueryui.html",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:HANDOVER.md",
+      "target": "file:tests/fixtures/dnd/mouse.html",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:HANDOVER.md",
+      "target": "file:tests/fixtures/dnd/pointer.html",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:HANDOVER.md",
+      "target": "file:tests/fixtures/dnd/sortable.html",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:HANDOVER.md",
+      "target": "file:tests/fixtures/dnd/taptap.html",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:HANDOVER.md",
+      "target": "file:tests/fixtures/dnd/touch.html",
       "type": "documents",
       "direction": "forward",
       "weight": 0.5
@@ -9235,6 +9625,55 @@
     },
     {
       "source": "document:HANDOVER.md",
+      "target": "function:ai_controller.py:AIController._submit_guard",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:HANDOVER.md",
+      "target": "function:ai_controller.py:AIController._try_find_and_go",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:HANDOVER.md",
+      "target": "function:browser_manager.py:BrowserManager._wait_network_quiet",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:HANDOVER.md",
+      "target": "function:llm.py:GeminiClient._discover_alternatives",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:HANDOVER.md",
+      "target": "function:llm.py:GeminiClient._hedged",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:HANDOVER.md",
+      "target": "function:llm.py:_model_missing",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:HANDOVER.md",
+      "target": "function:llm.py:parse_json_response",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:HANDOVER.md",
       "target": "pipeline:.github/workflows/ci.yml",
       "type": "documents",
       "direction": "forward",
@@ -9263,174 +9702,6 @@
     },
     {
       "source": "document:HANDOVER.md",
-      "target": "file:tests/fixtures/dnd/hold.html",
-      "type": "documents",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "document:HANDOVER.md",
-      "target": "file:tests/fixtures/dnd/html5.html",
-      "type": "documents",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "document:HANDOVER.md",
-      "target": "file:tests/fixtures/dnd/iframe.html",
-      "type": "documents",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "document:HANDOVER.md",
-      "target": "file:tests/fixtures/dnd/interact.html",
-      "type": "documents",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "document:HANDOVER.md",
-      "target": "file:tests/fixtures/dnd/jqueryui.html",
-      "type": "documents",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "document:HANDOVER.md",
-      "target": "file:tests/fixtures/dnd/mouse.html",
-      "type": "documents",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "document:HANDOVER.md",
-      "target": "file:tests/fixtures/dnd/pointer.html",
-      "type": "documents",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "document:HANDOVER.md",
-      "target": "file:tests/fixtures/dnd/sortable.html",
-      "type": "documents",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "document:HANDOVER.md",
-      "target": "file:tests/fixtures/dnd/taptap.html",
-      "type": "documents",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "document:HANDOVER.md",
-      "target": "file:tests/fixtures/dnd/touch.html",
-      "type": "documents",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "document:HANDOVER.md",
-      "target": "class:events.py:EventBus",
-      "type": "documents",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "document:HANDOVER.md",
-      "target": "class:browser_manager.py:BrowserManager",
-      "type": "documents",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "document:HANDOVER.md",
-      "target": "class:ai_controller.py:AIController",
-      "type": "documents",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "document:HANDOVER.md",
-      "target": "function:ai_controller.py:AIController._try_find_and_go",
-      "type": "documents",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "document:HANDOVER.md",
-      "target": "function:ai_controller.py:AIController._submit_guard",
-      "type": "documents",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "document:HANDOVER.md",
-      "target": "function:browser_manager.py:BrowserManager._wait_network_quiet",
-      "type": "documents",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "document:HANDOVER.md",
-      "target": "function:llm.py:_model_missing",
-      "type": "documents",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "document:HANDOVER.md",
-      "target": "class:llm.py:QuotaExhausted",
-      "type": "documents",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "document:HANDOVER.md",
-      "target": "function:llm.py:parse_json_response",
-      "type": "documents",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "document:HANDOVER.md",
-      "target": "class:llm.py:GeminiClient",
-      "type": "documents",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "document:HANDOVER.md",
-      "target": "function:llm.py:GeminiClient._hedged",
-      "type": "documents",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "document:HANDOVER.md",
-      "target": "function:llm.py:GeminiClient._discover_alternatives",
-      "type": "documents",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "document:HANDOVER.md",
-      "target": "class:llm.py:ClaudeClient",
-      "type": "documents",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "document:HANDOVER.md",
-      "target": "class:llm.py:OllamaClient",
-      "type": "documents",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "document:HANDOVER.md",
       "target": "document:CLAUDE.md",
       "type": "related",
       "direction": "forward",
@@ -9451,6 +9722,20 @@
       "weight": 0.5
     },
     {
+      "source": "document:HANDOVER.md",
+      "target": "file:tests/fixtures/dnd/select_drop.html",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:tests/fixtures/dnd/select_drop.html",
+      "target": "file:tests/fixtures/dnd/common.css",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
       "source": "file:ai_browser.py",
       "target": "file:config.py",
       "type": "imports",
@@ -9469,6 +9754,30 @@
     {
       "source": "file:ai_controller.py",
       "target": "file:llm.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:browser_manager.py",
+      "target": "file:cdp_fast.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:browser_manager.py",
+      "target": "file:config.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:browser_manager.py",
+      "target": "file:page_scripts.py",
       "type": "imports",
       "direction": "forward",
       "weight": 0.7,
@@ -9549,6 +9858,14 @@
     {
       "source": "file:tests/test_agent.py",
       "target": "file:llm.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_agent_robustness.py",
+      "target": "file:ai_controller.py",
       "type": "imports",
       "direction": "forward",
       "weight": 0.7,
@@ -9729,227 +10046,6 @@
       "direction": "forward",
       "weight": 0.7,
       "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_agent_robustness.py",
-      "target": "class:tests/test_agent_robustness.py:Script",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:tests/test_agent_robustness.py",
-      "target": "function:tests/test_agent_robustness.py:test_back_and_forth_between_two_screens_is_stopped",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:tests/test_agent_robustness.py",
-      "target": "function:tests/test_agent_robustness.py:test_progress_note_is_carried_to_the_next_step",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:tests/test_agent_robustness.py",
-      "target": "function:tests/test_agent_robustness.py:test_agent_does_not_think_while_the_page_says_loading",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:tests/test_agent_robustness.py",
-      "target": "function:tests/test_agent_robustness.py:test_h5p_item_placed_over_its_zone_counts_as_answered",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:tests/test_agent_robustness.py",
-      "target": "function:tests/test_agent_robustness.py:test_finish_is_blocked_while_the_page_says_items_remain",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:tests/test_agent_robustness.py",
-      "target": "function:tests/test_agent_robustness.py:test_silent_placeholder_audio_is_not_transcribed",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:ai_controller.py",
-      "target": "file:tests/test_agent_robustness.py",
-      "type": "tested_by",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "function:tests/test_agent_robustness.py:test_back_and_forth_between_two_screens_is_stopped",
-      "target": "class:ai_controller.py:AIController",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:tests/test_agent_robustness.py:test_back_and_forth_between_two_screens_is_stopped",
-      "target": "class:tests/test_agent_robustness.py:Script",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:tests/test_agent_robustness.py:test_progress_note_is_carried_to_the_next_step",
-      "target": "class:ai_controller.py:AIController",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:tests/test_agent_robustness.py:test_progress_note_is_carried_to_the_next_step",
-      "target": "class:tests/test_agent_robustness.py:Script",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:tests/test_agent_robustness.py:test_agent_does_not_think_while_the_page_says_loading",
-      "target": "class:ai_controller.py:AIController",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:tests/test_agent_robustness.py:test_agent_does_not_think_while_the_page_says_loading",
-      "target": "class:tests/test_agent_robustness.py:Script",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:tests/test_agent_robustness.py:test_finish_is_blocked_while_the_page_says_items_remain",
-      "target": "class:ai_controller.py:AIController",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:tests/test_agent_robustness.py:test_finish_is_blocked_while_the_page_says_items_remain",
-      "target": "class:tests/test_agent_robustness.py:Script",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:tests/test_agent_robustness.py:test_silent_placeholder_audio_is_not_transcribed",
-      "target": "class:ai_controller.py:AIController",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:tests/test_agent_robustness.py:test_silent_placeholder_audio_is_not_transcribed",
-      "target": "class:tests/test_agent_robustness.py:Script",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:tests/test_agent_robustness.py",
-      "target": "file:tests/fixtures/carousel.html",
-      "type": "depends_on",
-      "direction": "forward",
-      "weight": 0.6
-    },
-    {
-      "source": "file:tests/test_agent_robustness.py",
-      "target": "file:tests/fixtures/player.html",
-      "type": "depends_on",
-      "direction": "forward",
-      "weight": 0.6
-    },
-    {
-      "source": "file:tests/test_agent_robustness.py",
-      "target": "file:tests/fixtures/question_set.html",
-      "type": "depends_on",
-      "direction": "forward",
-      "weight": 0.6
-    },
-    {
-      "source": "function:tests/test_agent_robustness.py:test_back_and_forth_between_two_screens_is_stopped",
-      "target": "file:tests/fixtures/carousel.html",
-      "type": "depends_on",
-      "direction": "forward",
-      "weight": 0.6
-    },
-    {
-      "source": "function:tests/test_agent_robustness.py:test_progress_note_is_carried_to_the_next_step",
-      "target": "file:tests/fixtures/carousel.html",
-      "type": "depends_on",
-      "direction": "forward",
-      "weight": 0.6
-    },
-    {
-      "source": "function:tests/test_agent_robustness.py:test_agent_does_not_think_while_the_page_says_loading",
-      "target": "file:tests/fixtures/player.html",
-      "type": "depends_on",
-      "direction": "forward",
-      "weight": 0.6
-    },
-    {
-      "source": "function:tests/test_agent_robustness.py:test_h5p_item_placed_over_its_zone_counts_as_answered",
-      "target": "file:tests/fixtures/carousel.html",
-      "type": "depends_on",
-      "direction": "forward",
-      "weight": 0.6
-    },
-    {
-      "source": "function:tests/test_agent_robustness.py:test_finish_is_blocked_while_the_page_says_items_remain",
-      "target": "file:tests/fixtures/question_set.html",
-      "type": "depends_on",
-      "direction": "forward",
-      "weight": 0.6
-    },
-    {
-      "source": "function:tests/test_agent_robustness.py:test_silent_placeholder_audio_is_not_transcribed",
-      "target": "file:tests/fixtures/carousel.html",
-      "type": "depends_on",
-      "direction": "forward",
-      "weight": 0.6
-    },
-    {
-      "source": "file:browser_manager.py",
-      "target": "file:cdp_fast.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:browser_manager.py",
-      "target": "file:config.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:browser_manager.py",
-      "target": "file:page_scripts.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_agent_robustness.py",
-      "target": "file:ai_controller.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
     }
   ],
   "layers": [
@@ -10082,7 +10178,8 @@
         "file:tests/fixtures/h5p_like.html",
         "file:tests/fixtures/player.html",
         "file:tests/fixtures/stream.m3u8",
-        "file:tests/fixtures/question_set.html"
+        "file:tests/fixtures/question_set.html",
+        "file:tests/fixtures/dnd/select_drop.html"
       ]
     },
     {
