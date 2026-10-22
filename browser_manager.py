@@ -865,11 +865,17 @@ class BrowserManager:
         return {"data": body, "mime": ctype, "size": len(body)}
 
     def _form_status(self):
-        total, items = 0, []
+        total, items, remaining = 0, [], 0
         for res in self._all_frames_eval(js.FORM_STATUS, include_offscreen=True):
             if res:
                 total += res.get("total", 0)
                 items += res.get("items", [])
+                remaining = max(remaining, res.get("remaining", 0))
+        if remaining > len(items):
+            # Questions hidden behind "Next question": counted from the page's own "N items remaining".
+            items.append({"kind": "hidden", "aid": None, "where": "other pages of the quiz",
+                          "context": f"the page says {remaining} question(s) are still unanswered (shown one at a time)"})
+            return {"total": max(total, remaining), "unanswered": remaining, "items": items[:20]}
         return {"total": total, "unanswered": len(items), "items": items[:20]}
 
     def _cmd_form_status(self, p):

@@ -150,3 +150,45 @@ def test_h5p_item_placed_over_its_zone_counts_as_answered(browser, goto):
     _ev(browser, "Object.assign(document.querySelector('.h5p-draggable').style, {left: '60px', top: '60px'})")
     after = browser.execute("form_status", {})
     assert not any(it["kind"] == "drop" for it in after["items"]) and after["unanswered"] == before["unanswered"] - 1
+
+
+def test_questions_hidden_behind_next_count_as_unanswered(browser, goto):
+    """Live (British Council question set): only one question is in view, the page says "6 items remaining";
+    FORM_STATUS saw 0 blanks and Finish went through after 2 of 8."""
+    goto("question_set.html")
+    _ev(browser, "document.querySelector('input[name=a0][value=of]').click()")
+    fs = browser.execute("form_status", {})
+    assert fs["unanswered"] == 2 and any(it["kind"] == "hidden" for it in fs["items"]), fs
+
+
+def test_finish_is_blocked_while_the_page_says_items_remain(browser, bus, goto):
+    goto("question_set.html")
+    ai = AIController(browser, bus)
+    ai.settings.update({"api_key": "k", "max_steps": 3, "action_delay_ms": 0, "auto_submit": True})
+
+    def step(p, n):
+        ids = {name: _button(p, name) for name in ("Finish",)}
+        acts = [{"action": "click", "id": next(int(l[1:l.index("]")]) for l in p.splitlines() if '"of"' in l and "radio" in l)},
+                {"action": "click", "id": ids["Finish"]}] if n == 1 else []
+        return {"observation": "-", "plan": "-", "progress": "-", "answers": [], "actions": acts,
+                "status": "continue" if n == 1 else "need_user", "message": "-"}
+    ai.llm = Script(step)
+    ai.run_command("Làm bài này rồi bấm Finish")
+    ai.current_task_thread.join(60)
+    assert _ev(browser, "window.__finished") is None, "Finish must not be pressed with 2 questions left"
+    assert any("Không bấm «Finish»" in m["text"] for m in ai.get_status()["messages"])
+    assert "hidden" in ai.llm.prompts[1] and "BLOCKED" in ai.llm.prompts[1]
+
+
+def test_silent_placeholder_audio_is_not_transcribed(browser, bus, goto):
+    """Live (British Council grammar page): the player's "empty.mp3" was sent for transcription (100 s, then 504)."""
+    goto("carousel.html")
+    _ev(browser, "document.body.insertAdjacentHTML('beforeend', '<audio src=\"empty.mp3\"></audio>')")
+    ai = AIController(browser, bus)
+    ai.settings.update({"api_key": "k", "max_steps": 1, "action_delay_ms": 0})
+    ai.llm = Script(lambda p, n: {"observation": "-", "plan": "-", "progress": "-", "answers": [], "actions": [],
+                                  "status": "done", "message": "-"})
+    ai.run_command("Xem trang này")
+    ai.current_task_thread.join(60)
+    assert len(ai.llm.prompts) == 1 and "TASK FROM USER" in ai.llm.prompts[0], "only the agent step, no transcription call"
+    assert not any("empty.mp3" in m["text"] for m in ai.get_status()["messages"])

@@ -431,7 +431,17 @@ FORM_STATUS = r"""
       || (!/\bcontains?\b|chứa/i.test(said) && !clean(d.innerText) && !d.querySelector('img, [draggable=true], [role=button]') && !covered(d));
     if (empty) push(d, 'drop');
   }
-  return { total, unanswered: items.length, items: items.slice(0, 15) };
+  // Players that show one question at a time hide the others, so their blanks are not counted above;
+  // the page itself says how many are left (British Council / H5P question sets: "6 items remaining",
+  // "Answered questions: 2 out of 8"). Seen live: Finish was pressed after 2 of 8.
+  const page = document.body ? document.body.innerText : '';
+  let remaining = 0;
+  for (const m of page.matchAll(/(\d+)\s+(?:items?|questions?|câu(?:\s+hỏi)?)\s+(?:remaining|left|còn lại|chưa\s+(?:làm|trả lời))/gi))
+    remaining = Math.max(remaining, +m[1]);
+  for (const m of page.matchAll(/còn\s+(\d+)\s+câu/gi)) remaining = Math.max(remaining, +m[1]);
+  for (const m of page.matchAll(/answered(?:\s+questions?)?\s*:?\s*(\d+)\s*(?:out of|of|\/)\s*(\d+)/gi))
+    remaining = Math.max(remaining, +m[2] - +m[1]);
+  return { total, unanswered: items.length, items: items.slice(0, 15), remaining };
 }
 """
 

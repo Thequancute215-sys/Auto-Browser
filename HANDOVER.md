@@ -93,7 +93,7 @@ Bản trước chỉ đưa cho AI những phần tử đang hiện trên màn h�
 
 ### 3a''''. Sửa sau khi cho bot tự chạy trên trang thật (22/10/2026)
 
-Cách thử: chạy app ở cổng 8765, chỉ gửi lệnh qua `/api/ai/command` như người dùng, không chạm vào trình duyệt, rồi xem chat và ảnh chụp. Đã thử: Cambridge "Test your English" (25/25), englishpage.com verbs 1 (100%), H5P drag-the-words (3/3), H5P fill-in-the-blanks ví dụ 1 (3/3) và ví dụ 2 sau khi bấm Next (5/5). Hôm đó Gemini miễn phí quá tải nặng, nhiều bước chạy trên Flash-Lite. Các lỗi tìm ra và cách sửa:
+Cách thử: chạy app ở cổng 8765, chỉ gửi lệnh qua `/api/ai/command` như người dùng, không chạm vào trình duyệt, rồi xem chat và ảnh chụp. Đã thử: Cambridge "Test your English" (25/25), englishpage.com verbs 1 (100%), H5P drag-the-words (3/3), H5P fill-in-the-blanks ví dụ 1 (3/3) và ví dụ 2 sau khi bấm Next (5/5), H5P kéo thả hình (1/1), British Council "Adjectives and prepositions" Grammar test 1 (8/8, chế độ window, tự tìm bài từ danh sách). Hôm đó Gemini miễn phí quá tải nặng, nhiều bước chạy trên Flash-Lite. Các lỗi tìm ra và cách sửa:
 
 - **Gemini quá tải (503):** chỉ thử lại 1 lần, và không thử lại nếu chính lỗi 503 đã mất hơn 10 giây. Mô hình quá tải bị xếp cuối hàng trong 120 giây. Khi mọi mô hình đều quá tải, app tự tìm Flash-Lite/Gemma. Sau 30 giây chưa có trả lời, cùng request được gửi song song cho mô hình kế tiếp (`_hedged`); mô hình dự phòng nào hỏng thì thay ngay bằng mô hình sau nó. Mô hình không tồn tại (404) được nhớ để không gọi lại.
 - **Quảng cáo chèn ngang làm AI bấm nhầm** (Google vignette): chặn các máy chủ quảng cáo (`config.AD_HOSTS`, tắt bằng `AIB_BLOCK_ADS=0` hoặc ô "Chặn quảng cáo" trong Cài đặt). Click dự phòng cuối cùng bấm vào vị trí *hiện tại* của phần tử, không dùng tọa độ cũ.
@@ -107,6 +107,8 @@ Cách thử: chạy app ở cổng 8765, chỉ gửi lệnh qua `/api/ai/command
 - **Bấm qua lại Next/Previous mãi:** mỗi bước AI ghi `progress` (phần việc đã xong), được đưa lại vào bước sau. Cùng một màn hình lặp lại lần thứ 3 thì AI được cảnh báo, lần thứ 5 thì app dừng.
 - **Mô hình chính bị loại nhầm cả phiên:** lỗi 429 hết lượt theo ngày ghi "retry in 15h23m25.0404…s", và phép thử chuỗi con `"404"` coi đó là "không có mô hình". Bây giờ lỗi quota/quá tải không bao giờ bị coi là 404; chỉ mã 404 / `NOT_FOUND` thật mới tính (`_model_missing`).
 - **Tab báo "đang tải" mãi:** `framenavigated` cũng bắn khi đổi `#hash` hoặc `pushState` (h5p.org, các SPA như Cambridge One) mà không có `load`. Cờ `loading` giờ chỉ bật khi có request tài liệu thật của khung chính, và tự hết sau 45 giây.
+- **Bấm Finish khi mới làm 2/8 câu** (British Council, bộ câu hỏi hiện từng câu): các câu bị ẩn không được đếm. `FORM_STATUS` giờ đọc thêm chữ trên trang ("6 items remaining", "Answered questions: 2 out of 8", "Còn 4 câu") và thêm mục `hidden`, nên rào chắn nộp bài và rào chắn "done" đều chặn được; AI được dặn đi hết các câu bằng Next question trước. Thử lại: 8/8.
+- **Chép lời file audio giữ chỗ** (`empty.mp3` của trình phát, mất 100 giây rồi lỗi 504 trên một trang ngữ pháp): bỏ qua tên kiểu empty/silence và file dưới 3 KB.
 - **Kéo thả hình H5P bị đếm là còn trống:** mục đã thả (`.h5p-dropped`) nằm ngoài ô trong DOM, chỉ được đặt chồng lên ô. `FORM_STATUS` coi ô là đã làm khi tâm một mục kéo nằm trong ô. Trước đó rào chắn "done" từ chối một bài đã xong và AI đi sang ví dụ khác.
 
 ### 3b. Engine kéo thả

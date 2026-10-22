@@ -118,7 +118,7 @@ Rules:
 5. `checked` marks a selected radio/checkbox. Do not click an option that is already checked (it may toggle off).
 5b. Drag-and-drop exercises: use "drag" from the `draggable` word/item to the `dropzone` gap (its `context` shows where [HERE] sits in the sentence). Clicking a draggable item does not place it.
 6. The element list covers the WHOLE page, not just the screenshot: items marked `offscreen: below/above` are scrolled out of view (or inside a scrolled box). Act on them directly by id; the browser scrolls to them automatically. The VISIBLE PAGE TEXT is also the whole page. Scroll only to look at an image or layout you cannot understand from the list.
-6b. FORM STATUS counts the unanswered questions on the whole page. Answer every one of them before pressing Check / Submit / Nộp bài / Hoàn thành; a submit with blanks wastes one of the student's limited attempts. If a dialog says some questions are unanswered (e.g. "Còn 4 câu chưa trả lời"), choose the option that keeps working ("Làm tiếp", "Quay lại", "Cancel"), never the one that submits.
+6b. FORM STATUS counts the unanswered questions on the whole page. Answer every one of them before pressing Check / Submit / Nộp bài / Hoàn thành; a submit with blanks wastes one of the student's limited attempts. Quizzes that show one question at a time hide the others: when FORM STATUS lists "hidden" questions, go through them with Next question / Tiếp before Finish. If a dialog says some questions are unanswered (e.g. "Còn 4 câu chưa trả lời"), choose the option that keeps working ("Làm tiếp", "Quay lại", "Cancel"), never the one that submits.
 7. Use status "done" only when the screen proves the task is finished and no action is left. If you still have actions, use "continue" and verify next turn. Never undo finished work: when your progress note and the screen show the requested part is done (a score is shown, answers are checked), report "done" instead of navigating away to look for it again.
 8. Login, CAPTCHA, payments, or a choice only the user can make: status "need_user" and explain in "message".
 9. If an earlier action failed or changed nothing, try a different approach (another element, keyboard, scrolling, waiting for loading) instead of repeating it.
@@ -743,6 +743,11 @@ Reply with the JSON object only."""
         ids = ", ".join(str(it["aid"]) for it in fs.get("items", []) if it.get("aid"))[:120]
         return {"name": name, "unanswered": fs["unanswered"], "ids": ids}
 
+    # Players load a silent placeholder before the real track (British Council: "empty.mp3"); transcribing it
+    # cost 100 s and a 504 on a grammar page. Under ~3 KB an mp3 holds less than a second of sound.
+    PLACEHOLDER_AUDIO = re.compile(r"(^|[-_.])(empty|silence|silent|blank)\.(mp3|wav|ogg|oga|m4a|aac|opus|weba)$", re.I)
+    MIN_SPEECH_BYTES = 3000
+
     def _ensure_transcripts(self, obs: dict, s: dict):
         """Downloads and transcribes each new audio source once; transcripts persist for the session.
         Transcription always runs on Gemini: the Claude API has no audio input."""
@@ -762,11 +767,17 @@ Reply with the JSON object only."""
             if url in self._transcripts or url in self._media_failed or self.stop_requested:
                 continue
             name = url.split("?")[0].rsplit("/", 1)[-1][:50]
+            if self.PLACEHOLDER_AUDIO.search(name):
+                self._media_failed.add(url)
+                continue
             self._set_phase("listening", detail=f"🎧 Đang tải audio {name}")
             res = self.browser.execute("fetch_media", {"url": url}, timeout=60)
             if res.get("status") != "ok":
                 self._media_failed.add(url)
                 self.add_message("ai", f"🎧 Không tải được audio «{name}»: {res.get('message')}", kind="action", status="warning")
+                continue
+            if res["size"] < self.MIN_SPEECH_BYTES:
+                self._media_failed.add(url)  # a player's silent placeholder: nothing to transcribe
                 continue
             self._set_phase("listening", detail=f"🎧 Gemini đang nghe {name} ({res['size'] // 1024} KB)")
             try:

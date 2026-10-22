@@ -1,0 +1,28 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Question set</title></head><body>
+<!-- Like the British Council / H5P question sets: one question visible at a time, "N items remaining",
+     Finish always visible, and a confirm dialog that still lets you submit with blanks. -->
+<p id="rem">3 items remaining</p>
+<div class="q" id="q0"><p>I'm really proud ___ you!</p>
+  <label><input type="radio" name="a0" value="of">of</label> <label><input type="radio" name="a0" value="to">to</label></div>
+<div class="q" id="q1" hidden><p>She's responsible ___ health and safety.</p>
+  <label><input type="radio" name="a1" value="for">for</label> <label><input type="radio" name="a1" value="in">in</label></div>
+<div class="q" id="q2" hidden><p>He's afraid ___ spiders.</p>
+  <label><input type="radio" name="a2" value="of">of</label> <label><input type="radio" name="a2" value="at">at</label></div>
+<button id="next">NEXT QUESTION</button>
+<button id="finish">Finish</button>
+<p id="result"></p>
+<script>
+  let cur = 0;
+  window.__finished = null;
+  const left = () => [0, 1, 2].filter(i => !document.querySelector(`input[name=a${i}]:checked`)).length;
+  document.addEventListener('change', () => { document.getElementById('rem').textContent = left() + ' items remaining'; });
+  document.getElementById('next').onclick = () => {
+    document.getElementById('q' + cur).hidden = true; cur = Math.min(2, cur + 1); document.getElementById('q' + cur).hidden = false;
+  };
+  document.getElementById('finish').onclick = () => {
+    window.__finished = 3 - left();
+    document.getElementById('result').textContent = 'Submitted with ' + window.__finished + ' of 3 answered';
+  };
+</script>
+</body></html>
