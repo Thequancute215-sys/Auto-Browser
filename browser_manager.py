@@ -865,18 +865,21 @@ class BrowserManager:
         return {"data": body, "mime": ctype, "size": len(body)}
 
     def _form_status(self):
-        total, items, remaining = 0, [], 0
+        total, items, remaining, unanswered = 0, [], 0, 0
         for res in self._all_frames_eval(js.FORM_STATUS, include_offscreen=True):
             if res:
                 total += res.get("total", 0)
+                # The script lists at most 15 items per frame: count from its total, not from the list
+                # (a page with 20 empty dropdowns reported 15).
+                unanswered += res.get("unanswered", len(res.get("items", [])))
                 items += res.get("items", [])
                 remaining = max(remaining, res.get("remaining", 0))
-        if remaining > len(items):
+        if remaining > unanswered:
             # Questions hidden behind "Next question": counted from the page's own "N items remaining".
             items.append({"kind": "hidden", "aid": None, "where": "other pages of the quiz",
                           "context": f"the page says {remaining} question(s) are still unanswered (shown one at a time)"})
             return {"total": max(total, remaining), "unanswered": remaining, "items": items[:20]}
-        return {"total": total, "unanswered": len(items), "items": items[:20]}
+        return {"total": total, "unanswered": unanswered, "items": items[:20]}
 
     def _cmd_form_status(self, p):
         """Unanswered questions on the whole page (all frames), used before pressing Submit."""

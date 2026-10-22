@@ -192,3 +192,14 @@ def test_silent_placeholder_audio_is_not_transcribed(browser, bus, goto):
     ai.current_task_thread.join(60)
     assert len(ai.llm.prompts) == 1 and "TASK FROM USER" in ai.llm.prompts[0], "only the agent step, no transcription call"
     assert not any("empty.mp3" in m["text"] for m in ai.get_status()["messages"])
+
+
+def test_more_than_fifteen_blanks_are_all_counted(browser, goto):
+    """Live (test-english.com, 20 dropdowns): the per-frame item list is capped at 15 and the total was taken
+    from the list, so 5 blanks went missing from FORM STATUS and the submit guard."""
+    goto("carousel.html")
+    _ev(browser, """document.body.insertAdjacentHTML('beforeend',
+        Array.from({length: 20}, (_, i) => `<p>${i + 1} A: <select><option value=""></option><option>is</option><option>are</option></select> you?</p>`).join(''))""")
+    fs = browser.execute("form_status", {})
+    dropdowns = 20
+    assert fs["unanswered"] >= dropdowns, fs["unanswered"]
