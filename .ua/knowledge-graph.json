@@ -26,8 +26,8 @@
       "GitHub Actions"
     ],
     "description": "Trình duyệt viết bằng Python/Playwright có trợ lý AI (Google Gemini/Gemma, Claude hoặc mô hình chạy cục bộ qua Ollama) tự đọc đề, làm bài (điền từ, trắc nghiệm, kéo thả, bài nghe) và kiểm tra lại kết quả trên Cambridge One, Rikkei LMS và các trang học trực tuyến khác. Dự án gồm giao diện web vanilla JS theo phong cách GitHub Primer, launcher desktop cho Windows kèm bộ cài Inno Setup, image Docker và cơ chế tự cập nhật.",
-    "analyzedAt": "2026-10-22T19:18:20.057Z",
-    "gitCommitHash": "662bc45710e1282bdf652f2c9d4d8b34feaefed3"
+    "analyzedAt": "2026-10-22T19:20:36.608Z",
+    "gitCommitHash": "cb71581248c05ef4061d4dfd2b5fb75082463d46"
   },
   "nodes": [
     {
@@ -4870,144 +4870,6 @@
       "languageNotes": "Định dạng M3U8 mở rộng: #EXTM3U, #EXT-X-VERSION, #EXTINF mô tả thời lượng phân đoạn và #EXT-X-ENDLIST đánh dấu playlist VOD đã kết thúc."
     },
     {
-      "id": "file:tests/test_agent_robustness.py",
-      "type": "file",
-      "name": "test_agent_robustness.py",
-      "filePath": "tests/test_agent_robustness.py",
-      "summary": "Bộ test hồi quy rút ra từ lần chạy thật trên carousel h5p.org và bộ câu hỏi British Council: kiểm tra «type» chỉ gõ vào đúng ô được nhắm, agent chờ trang hết «Loading...», phát hiện vòng lặp Next/Previous, đếm câu ẩn sau Next, chặn Finish khi còn câu và bỏ qua audio giữ chỗ.",
-      "tags": [
-        "test",
-        "regression",
-        "ai-agent",
-        "form-status",
-        "loop-detection"
-      ],
-      "complexity": "complex",
-      "languageNotes": "Dùng fixture pytest (browser, bus, goto) và một LLM giả (lớp Script) được gán thẳng vào ai.llm để chạy vòng lặp agent thật mà không gọi API."
-    },
-    {
-      "id": "class:tests/test_agent_robustness.py:Script",
-      "type": "class",
-      "name": "Script",
-      "filePath": "tests/test_agent_robustness.py",
-      "lineRange": [
-        57,
-        66
-      ],
-      "summary": "LLM giả: sinh kế hoạch JSON bằng một hàm nhận prompt và số thứ tự lượt gọi, ghi lại mọi prompt và số lượt dùng để kiểm tra vòng lặp agent mà không gọi API thật.",
-      "tags": [
-        "test",
-        "mock",
-        "test-double"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:tests/test_agent_robustness.py:test_back_and_forth_between_two_screens_is_stopped",
-      "type": "function",
-      "name": "test_back_and_forth_between_two_screens_is_stopped",
-      "filePath": "tests/test_agent_robustness.py",
-      "lineRange": [
-        73,
-        85
-      ],
-      "summary": "Kiểm tra agent bấm Next/Previous luân phiên được cảnh báo «going back and forth» rồi bị dừng sớm (báo «quay lại cùng một màn hình») trước 12 lượt, tức trước khi hết ngân sách 20 bước.",
-      "tags": [
-        "test",
-        "loop-detection",
-        "ai-agent"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:tests/test_agent_robustness.py:test_progress_note_is_carried_to_the_next_step",
-      "type": "function",
-      "name": "test_progress_note_is_carried_to_the_next_step",
-      "filePath": "tests/test_agent_robustness.py",
-      "lineRange": [
-        88,
-        103
-      ],
-      "summary": "Xác minh ghi chú «progress» của bước trước được đưa vào prompt bước sau dưới mục «YOUR PROGRESS NOTE FROM THE LAST STEP», còn bước đầu hiện «(nothing finished yet)».",
-      "tags": [
-        "test",
-        "prompt-engineering",
-        "state"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:tests/test_agent_robustness.py:test_agent_does_not_think_while_the_page_says_loading",
-      "type": "function",
-      "name": "test_agent_does_not_think_while_the_page_says_loading",
-      "filePath": "tests/test_agent_robustness.py",
-      "lineRange": [
-        115,
-        124
-      ],
-      "summary": "Bảo đảm agent chờ trang player hết «Loading...» rồi mới gửi prompt đầu tiên, để mô hình thấy đúng bài tập mới (câu về thủ đô Tây Ban Nha).",
-      "tags": [
-        "test",
-        "loading",
-        "ai-agent"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:tests/test_agent_robustness.py:test_h5p_item_placed_over_its_zone_counts_as_answered",
-      "type": "function",
-      "name": "test_h5p_item_placed_over_its_zone_counts_as_answered",
-      "filePath": "tests/test_agent_robustness.py",
-      "lineRange": [
-        138,
-        152
-      ],
-      "summary": "Kiểm tra form_status coi ô thả H5P Drag and Drop là đã trả lời khi mục kéo nằm ngoài ô trong DOM nhưng được định vị đè lên ô, khiến số câu chưa làm giảm đi một.",
-      "tags": [
-        "test",
-        "drag-and-drop",
-        "h5p",
-        "form-status"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:tests/test_agent_robustness.py:test_finish_is_blocked_while_the_page_says_items_remain",
-      "type": "function",
-      "name": "test_finish_is_blocked_while_the_page_says_items_remain",
-      "filePath": "tests/test_agent_robustness.py",
-      "lineRange": [
-        164,
-        180
-      ],
-      "summary": "Mô phỏng AI chọn một đáp án rồi bấm Finish trên question_set.html: rào chắn nộp bài không bấm Finish khi còn 2 câu ẩn, báo «Không bấm «Finish»» trong chat và đưa mục hidden cùng chữ BLOCKED vào prompt kế tiếp.",
-      "tags": [
-        "test",
-        "submit-guard",
-        "form-status",
-        "ai-agent"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:tests/test_agent_robustness.py:test_silent_placeholder_audio_is_not_transcribed",
-      "type": "function",
-      "name": "test_silent_placeholder_audio_is_not_transcribed",
-      "filePath": "tests/test_agent_robustness.py",
-      "lineRange": [
-        183,
-        194
-      ],
-      "summary": "Bảo đảm file audio giữ chỗ «empty.mp3» không bị gửi đi chép lời: agent chỉ có đúng một lượt gọi LLM cho bước agent và chat không nhắc tới file đó.",
-      "tags": [
-        "test",
-        "audio",
-        "transcription",
-        "ai-agent"
-      ],
-      "complexity": "simple"
-    },
-    {
       "id": "document:HANDOVER.md",
       "type": "document",
       "name": "HANDOVER.md",
@@ -5033,6 +4895,146 @@
         "html",
         "question-set",
         "form-status"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:tests/test_agent_robustness.py",
+      "type": "file",
+      "name": "test_agent_robustness.py",
+      "filePath": "tests/test_agent_robustness.py",
+      "summary": "Bộ test hồi quy rút ra từ các lần chạy thật trên h5p.org, British Council và test-english.com: kiểm tra lệnh type chỉ gõ vào đúng ô đã nhắm, agent phát hiện vòng lặp Next/Previous, chờ trang hết «Loading...», mang ghi chú tiến độ sang bước sau, form_status đếm đúng ô kéo thả H5P, câu bị ẩn sau Next và hơn 15 dropdown, rào chắn không bấm Finish khi còn câu, và không chép lời audio giữ chỗ.",
+      "tags": [
+        "test",
+        "ai-agent",
+        "regression",
+        "form-status",
+        "loop-detection"
+      ],
+      "complexity": "moderate",
+      "languageNotes": "Dùng LLM giả (lớp Script có cùng chữ ký generate() như client thật) gắn vào ai.llm, nên vòng lặp agent của AIController chạy thật trên fixture HTML cục bộ mà không gọi API; các fixture pytest browser/bus/goto đến từ conftest.py."
+    },
+    {
+      "id": "class:tests/test_agent_robustness.py:Script",
+      "type": "class",
+      "name": "Script",
+      "filePath": "tests/test_agent_robustness.py",
+      "lineRange": [
+        57,
+        66
+      ],
+      "summary": "LLM giả cho vòng lặp agent: mỗi lần generate() ghi lại prompt, tăng usage['calls'] và trả về JSON do hàm step(prompt, số lượt) sinh ra, giúp test kiểm soát từng bước mà không gọi API thật.",
+      "tags": [
+        "test",
+        "mock",
+        "test-double",
+        "llm"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_agent_robustness.py:test_back_and_forth_between_two_screens_is_stopped",
+      "type": "function",
+      "name": "test_back_and_forth_between_two_screens_is_stopped",
+      "filePath": "tests/test_agent_robustness.py",
+      "lineRange": [
+        73,
+        85
+      ],
+      "summary": "Cho agent bấm Next/Previous luân phiên trên carousel.html và kiểm tra mô hình được cảnh báo «going back and forth», rồi agent dừng (báo «quay lại cùng một màn hình») trước 12 lượt gọi, sớm hơn nhiều so với ngân sách 20 bước.",
+      "tags": [
+        "test",
+        "loop-detection",
+        "ai-agent"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_agent_robustness.py:test_progress_note_is_carried_to_the_next_step",
+      "type": "function",
+      "name": "test_progress_note_is_carried_to_the_next_step",
+      "filePath": "tests/test_agent_robustness.py",
+      "lineRange": [
+        88,
+        103
+      ],
+      "summary": "Xác minh ghi chú progress của bước trước được đưa vào prompt bước sau dưới mục «YOUR PROGRESS NOTE FROM THE LAST STEP», còn prompt đầu tiên hiện «(nothing finished yet)».",
+      "tags": [
+        "test",
+        "prompt-engineering",
+        "state",
+        "ai-agent"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_agent_robustness.py:test_agent_does_not_think_while_the_page_says_loading",
+      "type": "function",
+      "name": "test_agent_does_not_think_while_the_page_says_loading",
+      "filePath": "tests/test_agent_robustness.py",
+      "lineRange": [
+        115,
+        124
+      ],
+      "summary": "Mở player.html?auto=3000 và bảo đảm agent chờ trang hết «Loading...» rồi mới gửi prompt đầu tiên, để mô hình thấy đúng bài mới (câu về thủ đô Tây Ban Nha).",
+      "tags": [
+        "test",
+        "loading",
+        "ai-agent"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_agent_robustness.py:test_h5p_item_placed_over_its_zone_counts_as_answered",
+      "type": "function",
+      "name": "test_h5p_item_placed_over_its_zone_counts_as_answered",
+      "filePath": "tests/test_agent_robustness.py",
+      "lineRange": [
+        138,
+        152
+      ],
+      "summary": "Chèn một ô thả H5P Drag and Drop vào trang và kiểm tra form_status coi ô là đã trả lời khi mục kéo nằm ngoài ô trong DOM nhưng được định vị đè lên ô, khiến số câu chưa làm giảm đúng một.",
+      "tags": [
+        "test",
+        "drag-and-drop",
+        "h5p",
+        "form-status"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_agent_robustness.py:test_finish_is_blocked_while_the_page_says_items_remain",
+      "type": "function",
+      "name": "test_finish_is_blocked_while_the_page_says_items_remain",
+      "filePath": "tests/test_agent_robustness.py",
+      "lineRange": [
+        164,
+        180
+      ],
+      "summary": "Mô phỏng AI chọn một đáp án rồi bấm Finish trên question_set.html khi bật auto_submit: rào chắn nộp bài không bấm Finish vì còn 2 câu ẩn, báo «Không bấm «Finish»» trong chat và đưa mục hidden cùng chữ BLOCKED vào prompt kế tiếp.",
+      "tags": [
+        "test",
+        "submit-guard",
+        "form-status",
+        "ai-agent"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_agent_robustness.py:test_silent_placeholder_audio_is_not_transcribed",
+      "type": "function",
+      "name": "test_silent_placeholder_audio_is_not_transcribed",
+      "filePath": "tests/test_agent_robustness.py",
+      "lineRange": [
+        183,
+        194
+      ],
+      "summary": "Chèn thẻ audio «empty.mp3» và bảo đảm file giữ chỗ không bị gửi đi chép lời: chỉ có đúng một lượt gọi LLM cho bước agent và chat không nhắc tới file đó.",
+      "tags": [
+        "test",
+        "audio",
+        "transcription",
+        "ai-agent"
       ],
       "complexity": "simple"
     }
@@ -8980,118 +8982,6 @@
       "weight": 0.5
     },
     {
-      "source": "file:ai_controller.py",
-      "target": "file:tests/test_agent_robustness.py",
-      "type": "tested_by",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "file:tests/test_agent_robustness.py",
-      "target": "class:tests/test_agent_robustness.py:Script",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:tests/test_agent_robustness.py",
-      "target": "function:tests/test_agent_robustness.py:test_back_and_forth_between_two_screens_is_stopped",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "function:tests/test_agent_robustness.py:test_back_and_forth_between_two_screens_is_stopped",
-      "target": "class:ai_controller.py:AIController",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:tests/test_agent_robustness.py",
-      "target": "function:tests/test_agent_robustness.py:test_progress_note_is_carried_to_the_next_step",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "function:tests/test_agent_robustness.py:test_progress_note_is_carried_to_the_next_step",
-      "target": "class:ai_controller.py:AIController",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:tests/test_agent_robustness.py",
-      "target": "function:tests/test_agent_robustness.py:test_agent_does_not_think_while_the_page_says_loading",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "function:tests/test_agent_robustness.py:test_agent_does_not_think_while_the_page_says_loading",
-      "target": "class:ai_controller.py:AIController",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:tests/test_agent_robustness.py",
-      "target": "function:tests/test_agent_robustness.py:test_h5p_item_placed_over_its_zone_counts_as_answered",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:tests/test_agent_robustness.py",
-      "target": "function:tests/test_agent_robustness.py:test_finish_is_blocked_while_the_page_says_items_remain",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "function:tests/test_agent_robustness.py:test_finish_is_blocked_while_the_page_says_items_remain",
-      "target": "class:ai_controller.py:AIController",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:tests/test_agent_robustness.py",
-      "target": "function:tests/test_agent_robustness.py:test_silent_placeholder_audio_is_not_transcribed",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "function:tests/test_agent_robustness.py:test_silent_placeholder_audio_is_not_transcribed",
-      "target": "class:ai_controller.py:AIController",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:tests/test_agent_robustness.py",
-      "target": "file:tests/fixtures/carousel.html",
-      "type": "depends_on",
-      "direction": "forward",
-      "weight": 0.6
-    },
-    {
-      "source": "file:tests/test_agent_robustness.py",
-      "target": "file:tests/fixtures/player.html",
-      "type": "depends_on",
-      "direction": "forward",
-      "weight": 0.6
-    },
-    {
-      "source": "file:tests/test_agent_robustness.py",
-      "target": "file:tests/fixtures/question_set.html",
-      "type": "depends_on",
-      "direction": "forward",
-      "weight": 0.6
-    },
-    {
       "source": "document:HANDOVER.md",
       "target": "config:.claude/settings.json",
       "type": "documents",
@@ -9561,20 +9451,6 @@
       "weight": 0.5
     },
     {
-      "source": "document:HANDOVER.md",
-      "target": "file:tests/test_agent_robustness.py",
-      "type": "related",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "file:tests/fixtures/question_set.html",
-      "target": "file:tests/test_agent_robustness.py",
-      "type": "related",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
       "source": "file:ai_browser.py",
       "target": "file:config.py",
       "type": "imports",
@@ -9593,30 +9469,6 @@
     {
       "source": "file:ai_controller.py",
       "target": "file:llm.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:browser_manager.py",
-      "target": "file:cdp_fast.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:browser_manager.py",
-      "target": "file:config.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:browser_manager.py",
-      "target": "file:page_scripts.py",
       "type": "imports",
       "direction": "forward",
       "weight": 0.7,
@@ -9697,14 +9549,6 @@
     {
       "source": "file:tests/test_agent.py",
       "target": "file:llm.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_agent_robustness.py",
-      "target": "file:ai_controller.py",
       "type": "imports",
       "direction": "forward",
       "weight": 0.7,
@@ -9881,6 +9725,227 @@
     {
       "source": "file:updater.py",
       "target": "file:version.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_agent_robustness.py",
+      "target": "class:tests/test_agent_robustness.py:Script",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_agent_robustness.py",
+      "target": "function:tests/test_agent_robustness.py:test_back_and_forth_between_two_screens_is_stopped",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_agent_robustness.py",
+      "target": "function:tests/test_agent_robustness.py:test_progress_note_is_carried_to_the_next_step",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_agent_robustness.py",
+      "target": "function:tests/test_agent_robustness.py:test_agent_does_not_think_while_the_page_says_loading",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_agent_robustness.py",
+      "target": "function:tests/test_agent_robustness.py:test_h5p_item_placed_over_its_zone_counts_as_answered",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_agent_robustness.py",
+      "target": "function:tests/test_agent_robustness.py:test_finish_is_blocked_while_the_page_says_items_remain",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_agent_robustness.py",
+      "target": "function:tests/test_agent_robustness.py:test_silent_placeholder_audio_is_not_transcribed",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:ai_controller.py",
+      "target": "file:tests/test_agent_robustness.py",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "function:tests/test_agent_robustness.py:test_back_and_forth_between_two_screens_is_stopped",
+      "target": "class:ai_controller.py:AIController",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:tests/test_agent_robustness.py:test_back_and_forth_between_two_screens_is_stopped",
+      "target": "class:tests/test_agent_robustness.py:Script",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:tests/test_agent_robustness.py:test_progress_note_is_carried_to_the_next_step",
+      "target": "class:ai_controller.py:AIController",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:tests/test_agent_robustness.py:test_progress_note_is_carried_to_the_next_step",
+      "target": "class:tests/test_agent_robustness.py:Script",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:tests/test_agent_robustness.py:test_agent_does_not_think_while_the_page_says_loading",
+      "target": "class:ai_controller.py:AIController",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:tests/test_agent_robustness.py:test_agent_does_not_think_while_the_page_says_loading",
+      "target": "class:tests/test_agent_robustness.py:Script",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:tests/test_agent_robustness.py:test_finish_is_blocked_while_the_page_says_items_remain",
+      "target": "class:ai_controller.py:AIController",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:tests/test_agent_robustness.py:test_finish_is_blocked_while_the_page_says_items_remain",
+      "target": "class:tests/test_agent_robustness.py:Script",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:tests/test_agent_robustness.py:test_silent_placeholder_audio_is_not_transcribed",
+      "target": "class:ai_controller.py:AIController",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:tests/test_agent_robustness.py:test_silent_placeholder_audio_is_not_transcribed",
+      "target": "class:tests/test_agent_robustness.py:Script",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_agent_robustness.py",
+      "target": "file:tests/fixtures/carousel.html",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:tests/test_agent_robustness.py",
+      "target": "file:tests/fixtures/player.html",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:tests/test_agent_robustness.py",
+      "target": "file:tests/fixtures/question_set.html",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "function:tests/test_agent_robustness.py:test_back_and_forth_between_two_screens_is_stopped",
+      "target": "file:tests/fixtures/carousel.html",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "function:tests/test_agent_robustness.py:test_progress_note_is_carried_to_the_next_step",
+      "target": "file:tests/fixtures/carousel.html",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "function:tests/test_agent_robustness.py:test_agent_does_not_think_while_the_page_says_loading",
+      "target": "file:tests/fixtures/player.html",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "function:tests/test_agent_robustness.py:test_h5p_item_placed_over_its_zone_counts_as_answered",
+      "target": "file:tests/fixtures/carousel.html",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "function:tests/test_agent_robustness.py:test_finish_is_blocked_while_the_page_says_items_remain",
+      "target": "file:tests/fixtures/question_set.html",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "function:tests/test_agent_robustness.py:test_silent_placeholder_audio_is_not_transcribed",
+      "target": "file:tests/fixtures/carousel.html",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:browser_manager.py",
+      "target": "file:cdp_fast.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:browser_manager.py",
+      "target": "file:config.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:browser_manager.py",
+      "target": "file:page_scripts.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_agent_robustness.py",
+      "target": "file:ai_controller.py",
       "type": "imports",
       "direction": "forward",
       "weight": 0.7,

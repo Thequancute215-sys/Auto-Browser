@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
-  "gitCommitHash": "662bc45710e1282bdf652f2c9d4d8b34feaefed3",
-  "generatedAt": "2026-10-22T19:18:20.372Z",
+  "gitCommitHash": "cb71581248c05ef4061d4dfd2b5fb75082463d46",
+  "generatedAt": "2026-10-22T19:20:36.877Z",
   "files": {
     ".claude/settings.json": {
       "filePath": ".claude/settings.json",
@@ -324,7 +324,7 @@
     },
     "browser_manager.py": {
       "filePath": "browser_manager.py",
-      "contentHash": "2c9eac4374a83c951f2d4898030e56c9293a09235a689adb5251076018d01def",
+      "contentHash": "54cb535ea1943646bed8bb6de55b7f29c5c424b55f8dfce6c6e0a29a86daa98f",
       "functions": [
         {
           "name": "_short_err",
@@ -422,7 +422,7 @@
           ],
           "properties": [],
           "exported": true,
-          "lineCount": 1335
+          "lineCount": 1338
         }
       ],
       "imports": [
@@ -515,7 +515,7 @@
         "_short_err",
         "BrowserManager"
       ],
-      "totalLines": 1365,
+      "totalLines": 1368,
       "hasStructuralAnalysis": true
     },
     "cdp_fast.py": {
@@ -4771,7 +4771,7 @@
     },
     "tests/test_agent_robustness.py": {
       "filePath": "tests/test_agent_robustness.py",
-      "contentHash": "7f303ece95455d2e63d90744198161fb272e0036ad4e8b003dc646fc08bde2d2",
+      "contentHash": "fa432196f1e338c6704b4e900bc4bd6274827a5a6f587ef2fc4091b66103cea8",
       "functions": [
         {
           "name": "_ev",
@@ -4929,6 +4929,15 @@
           ],
           "exported": true,
           "lineCount": 12
+        },
+        {
+          "name": "test_more_than_fifteen_blanks_are_all_counted",
+          "params": [
+            "browser",
+            "goto"
+          ],
+          "exported": true,
+          "lineCount": 9
         }
       ],
       "classes": [
@@ -4975,9 +4984,10 @@
         "test_h5p_item_placed_over_its_zone_counts_as_answered",
         "test_questions_hidden_behind_next_count_as_unanswered",
         "test_finish_is_blocked_while_the_page_says_items_remain",
-        "test_silent_placeholder_audio_is_not_transcribed"
+        "test_silent_placeholder_audio_is_not_transcribed",
+        "test_more_than_fifteen_blanks_are_all_counted"
       ],
-      "totalLines": 195,
+      "totalLines": 206,
       "hasStructuralAnalysis": true
     },
     "tests/fixtures/stream.m3u8": {
