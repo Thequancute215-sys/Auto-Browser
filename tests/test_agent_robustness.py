@@ -203,3 +203,19 @@ def test_more_than_fifteen_blanks_are_all_counted(browser, goto):
     fs = browser.execute("form_status", {})
     dropdowns = 20
     assert fs["unanswered"] >= dropdowns, fs["unanswered"]
+
+
+def test_buttons_inside_a_focusable_banner_are_listed(browser, goto):
+    """Live (British Council, OneTrust): the banner is a div with tabindex, so its buttons were skipped as
+    "nested" and the AI could only click the banner text, four times, until the run gave up."""
+    goto("carousel.html")
+    _ev(browser, """document.body.insertAdjacentHTML('beforeend', `<div id="banner" tabindex="0" style="position:fixed;bottom:0;left:0;right:0;background:#eee">
+        <p>We use cookies and similar tracking technologies.</p>
+        <button id="settings">Cookie Settings</button> <button id="accept" onclick="this.parentElement.remove()">Accept All Cookies</button></div>`)""")
+    els = _els(browser)
+    accept = next((e for e in els if e.get("text") == "Accept All Cookies"), None)
+    assert accept, [e.get("text") for e in els][-6:]
+    assert browser.execute("ai_act", {"action": "click", "id": accept["id"]})["status"] == "ok"
+    assert _ev(browser, "document.getElementById('banner')") is None
+    spans = [e for e in _els(browser) if e.get("tag") == "span" and e.get("text") == "Next"]
+    assert not spans, "text inside a real button is still not listed twice"

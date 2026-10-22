@@ -4,6 +4,7 @@ Drag & drop: one test page per mechanism used by real e-learning players.
 test_drag_auto    — the agent's real path: detect source/target, run the strategy chain, verify the result.
 test_drag_matrix  — tries every strategy on every page and writes tests/reports/dnd_matrix.md.
 """
+import json
 import time
 
 import pytest
@@ -21,6 +22,7 @@ PAGES = [
     ("dnd/interact.html", "interact.js dropzone"),
     ("dnd/touch.html", "Chỉ touch events (kiểu mobile)"),
     ("dnd/taptap.html", "Bấm từ rồi bấm chỗ trống"),
+    ("dnd/select_drop.html", "Chọn rồi thả, ô trống là <ul> riêng (British Council)"),
     ("dnd/hold.html", "Nhấn giữ 400ms mới kéo"),
     ("dnd/iframe.html", "HTML5 trong iframe khác origin"),
 ]
@@ -46,7 +48,7 @@ def test_drag_auto(browser, goto, path, label):
     src, tgt, els = _observe_pair(browser)
     assert src, f"source word not detected: {[e.get('text') for e in els]}"
     assert tgt, f"drop target not detected on {label}"
-    assert src.get("draggable") or path.endswith("taptap.html"), f"source not flagged draggable: {src}"
+    assert src.get("draggable") or path.endswith(("taptap.html", "select_drop.html")), f"source not flagged draggable: {src}"
     res = browser.execute("ai_act", {"action": "drag", "id": src["id"], "target_id": tgt["id"]}, timeout=60)
     assert res["status"] == "ok", res
     assert _result(browser), f"{label}: engine reported '{res.get('method')}' but the page shows no correct drop"
@@ -97,3 +99,11 @@ def test_drag_matrix(browser, goto):
         "# Ma trận kéo thả\n\n✅ = chiến lược đó một mình đã đặt đúng từ vào chỗ trống.\n\n" + "\n".join(table) + "\n",
         encoding="utf-8")
     assert not missing, f"no strategy works for: {missing}"
+
+
+def test_select_and_drop_gap_gets_its_prompt_as_context(browser, goto):
+    """The gap is an empty <ul> in its own column; without the prompt next to it the AI cannot tell gaps apart."""
+    goto("dnd/select_drop.html")
+    _, tgt, _ = _observe_pair(browser)
+    assert "my homework last night" in (tgt.get("before") or ""), tgt
+    assert "ANSWER-KEY" not in json.dumps(browser.execute("ai_observe", {"marks": False})["elements"]),         "text the student cannot see (the site's hidden answer key) never reaches the AI as context"

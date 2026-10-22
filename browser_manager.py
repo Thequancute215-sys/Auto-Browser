@@ -1097,8 +1097,13 @@ class BrowserManager:
 
     def _dnd_click_place(self, sframe, sid, s, tframe, tid, t):
         # "Tap a word, then tap the gap" mode offered by many e-learning players (incl. accessibility modes).
-        sframe.locator(f'[data-aid="{sid}"]').first.click(timeout=2000)
-        self.page.wait_for_timeout(200)
+        # The strategies before this one press and release on the word, which can leave it selected; tapping
+        # it again would deselect it (British Council select-and-drop: "btn-selected" toggles), so then only
+        # the gap is tapped.
+        src = sframe.locator(f'[data-aid="{sid}"]').first
+        if not src.evaluate(js.LOOKS_SELECTED, timeout=1500):
+            src.click(timeout=2000)
+            self.page.wait_for_timeout(200)
         tframe.locator(f'[data-aid="{tid}"]').first.click(timeout=2000)
 
     # ------------------------------------------------------------------ commands: AI agent

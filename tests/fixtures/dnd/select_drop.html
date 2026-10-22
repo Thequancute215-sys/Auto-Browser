@@ -1,0 +1,29 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><title>DnD: select and drop (British Council)</title><link rel="stylesheet" href="common.css">
+<style>.row{display:flex;gap:20px;align-items:center}.col{flex:1}ul{list-style:none;margin:0;padding:4px;min-height:28px;border:1px solid #bbb}
+li{display:inline-block;padding:4px 10px;margin:2px;border:1px solid #888;cursor:pointer}.btn-selected{background:#9cf}</style></head>
+<body>
+<!-- Like gamedata.britishcouncil.org "ui-select-and-drop": each gap is an empty <ul> in its own column, the prompt
+     sits in the column before it (next to a hidden answer key, as on the real site), and clicking a chip toggles its selection (a second click deselects it);
+     clicking a gap moves the selected chip into it. Dragging does nothing. -->
+<div class="question"><div class="row">
+  <div class="col"><span class="text-question">5. I ___ my homework last night.</span></div>
+  <div class="col"><div class="model-wrapper hidden" style="display:none"><li class="dummy">ANSWER-KEY did</li></div>
+    <div class="panel"><ul name="gapfield-list" class="gapfield-list list-group ui-select-and-drop" id="gap"></ul></div></div>
+</div></div>
+<ul name="option-pool-list" class="option-pool-list list-inline ui-select-and-drop">
+  <li tabindex="0" class="list-group-item btn btn-default">did</li><li tabindex="0" class="list-group-item btn btn-default">done</li>
+</ul>
+<script>
+document.querySelectorAll('li').forEach(li => li.addEventListener('click', e => {
+  e.stopPropagation();
+  const on = !li.classList.contains('btn-selected');
+  document.querySelectorAll('li').forEach(x => x.classList.remove('btn-selected'));
+  if (on) li.classList.add('btn-selected');
+}));
+document.getElementById('gap').addEventListener('click', e => {
+  const sel = document.querySelector('.option-pool-list li.btn-selected');
+  if (sel) { sel.classList.remove('btn-selected'); e.currentTarget.appendChild(sel); }
+});
+window.__result = () => document.getElementById('gap').textContent.trim() === 'did';
+</script>
+</body></html>

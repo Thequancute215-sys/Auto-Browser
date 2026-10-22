@@ -68,19 +68,47 @@ ANNOTATE_ELEMENTS = r"""
     }
     return document.body;
   };
+  // Only text the student can see: hidden nodes may hold the answer key (British Council keeps the correct
+  // chip in a "model-wrapper hidden" box next to each gap), and a Range or innerText of a display:none box
+  // returns that text too, which labelled every gap with an answer instead of its prompt.
+  const rendered = n => { const p = n.nodeType === 1 ? n : n.parentElement; return !!p && p.getClientRects().length > 0
+    && getComputedStyle(p).visibility !== 'hidden'; };
   const around = el => {
     const b = blockOf(el);
-    try {
-      const r1 = document.createRange(); r1.setStart(b, 0); r1.setEndBefore(el);
-      const r2 = document.createRange(); r2.setStartAfter(el); r2.setEnd(b, b.childNodes.length);
-      return [clean(r1.toString()).slice(-90), clean(r2.toString()).slice(0, 70)];
-    } catch (e) { return ['', '']; }
+    let before = '', after = '';
+    const w = document.createTreeWalker(b, NodeFilter.SHOW_TEXT);
+    while (w.nextNode()) {
+      const n = w.currentNode;
+      if (el.contains(n) || !n.nodeValue.trim() || !rendered(n)) continue;
+      if (el.compareDocumentPosition(n) & Node.DOCUMENT_POSITION_PRECEDING) before = (before + ' ' + n.nodeValue).slice(-400);
+      else { after += ' ' + n.nodeValue; if (after.length > 300) break; }
+    }
+    return [clean(before).slice(-90), clean(after).slice(0, 70)];
   };
+
+  // A gap in its own box with the prompt in a neighbouring column (British Council: <span class="text-question">
+  // visit</span> | <ul class="gapfield-list">): the nearest visible text before it, a few levels up.
+  const labelBefore = el => {
+    let node = el;
+    for (let depth = 0; depth < 5 && node && node !== document.body; depth++, node = node.parentElement) {
+      for (let s = node.previousElementSibling; s; s = s.previousElementSibling) {
+        if (!rendered(s)) continue;
+        const t = clean(s.innerText);
+        if (t) return t.slice(-90);
+      }
+    }
+    return '';
+  };
+  const CONTROL_ROLES =/^(button|link|checkbox|radio|option|tab|menuitem|menuitemradio|menuitemcheckbox|switch|treeitem|combobox|slider)$/;
+  const isControl = e => ['a', 'button', 'select', 'textarea', 'summary', 'label', 'input'].includes(e.tagName.toLowerCase())
+    || CONTROL_ROLES.test(e.getAttribute('role') || '');
 
   let cands = Array.from(document.querySelectorAll(SEL + ',' + DROP));
   // Clickable widgets built from plain divs/spans (cursor:pointer) — common in LMS players.
   let scanned = 0;
-  for (const el of document.querySelectorAll('div, span, li, img, p, td, svg')) {
+  // ul/ol too: British Council's select-and-drop games use an empty <ul class="gapfield-list ui-select-and-drop">
+  // as each gap, and without it the AI saw only the answer chips and dragged them onto each other.
+  for (const el of document.querySelectorAll('div, span, li, img, p, td, svg, ul, ol')) {
     if (++scanned > 8000) break;
     const s = getComputedStyle(el);
     if (s.cursor === 'pointer' && !(el.parentElement && getComputedStyle(el.parentElement).cursor === 'pointer')) cands.push(el);
@@ -105,10 +133,15 @@ ANNOTATE_ELEMENTS = r"""
     const offscreen = offscreenOf(el, r);
     // Off-screen plain links come last (after questions and buttons), so they never crowd answers out.
     if (offscreen && tag === 'a' && !el.getAttribute('role') && !isDrop) { deferredLinks.push([el, r, offscreen]); continue; }
-    // Skip children of an already-listed clickable (span inside button etc.), but keep fields and drop zones.
+    // Skip children of an already-listed clickable (span inside button etc.), but keep fields and drop zones,
+    // and keep real controls inside a merely focusable container: OneTrust's cookie banner is a div with
+    // tabindex, and its "Accept All Cookies" button was dropped, so the AI kept clicking the banner text.
     if (!isField && !isDrop) {
       let p = el.parentElement, nested = false;
-      while (p) { if (candSet.has(p) && p.getAttribute('data-aid')) { nested = true; break; } p = p.parentElement; }
+      while (p) {
+        if (candSet.has(p) && p.getAttribute('data-aid') && (isControl(p) || !isControl(el))) { nested = true; break; }
+        p = p.parentElement;
+      }
       if (nested) continue;
     }
     if (!offscreen && !uncovered(el, r) && !isToggle) continue;
@@ -138,6 +171,7 @@ ANNOTATE_ELEMENTS = r"""
       info.dropzone = true;
       const [before, after] = around(el);
       info.before = before; info.after = after;
+      if (!before && !after) info.before = labelBefore(el);
     }
     if (isField) {
       info.editable = el.isContentEditable ? 'content' : tag;
@@ -530,6 +564,12 @@ AI_RIPPLE = r"""
   setTimeout(() => d.remove(), 650);
   return true;
 }
+"""
+
+LOOKS_SELECTED = r"""
+(el) => el.getAttribute('aria-pressed') === 'true' || el.getAttribute('aria-selected') === 'true'
+  || el.getAttribute('aria-grabbed') === 'true'
+  || /(^|[\s_-])(selected|picked|chosen|active|is-selected)([\s_-]|$)/i.test(typeof el.className === 'string' ? el.className : '')
 """
 
 READ_FIELD_VALUE = r"""

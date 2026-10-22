@@ -13,5 +13,6 @@
 | interact.js dropzone | ✅ | ✅ | ✅ | — | — | ✅ | — |
 | Chỉ touch events (kiểu mobile) | — | — | — | ✅ | — | — | — |
 | Bấm từ rồi bấm chỗ trống | — | — | — | — | — | — | ✅ |
+| Chọn rồi thả, ô trống là <ul> riêng (British Council) | — | — | — | — | — | — | ✅ |
 | Nhấn giữ 400ms mới kéo | — | — | ✅ | — | — | — | — |
 | HTML5 trong iframe khác origin | ✅ | ✅ | ✅ | — | ✅ | — | — |
