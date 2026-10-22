@@ -247,7 +247,7 @@ Giao diện dùng **Primer CSS v22** và **Primer Octicons**, lưu sẵn trong `
   Chat ghi rõ model nào đang được dùng và vì sao.
 - Một số trang dùng hệ thống chống bot (ví dụ learnenglish.britishcouncil.org, Akamai) chặn Chromium chạy ngầm của chế độ stream (Docker / `AIB_BROWSER_MODE=stream`) với trang "Access Denied". App desktop (chế độ window, Chromium có cửa sổ thật) vào được bình thường. App không cố né các hệ thống này.
 - Chế độ window: `/api/screenshot` chỉ giữ khung hình chụp lúc mở tab (người dùng nhìn trực tiếp cửa sổ Chromium). Ảnh gửi cho AI vẫn được `ai_observe` chụp mới ở mỗi bước.
-- Bài nghe: audio phát qua MediaSource/`blob:` (stream từng mảnh) không tải lại được nên không chép lời được; file mp3/m4a/wav/ogg thông thường thì được.
+- Bài nghe: audio phát qua MediaSource/`blob:` hoặc danh sách phát HLS/DASH (`.m3u8`, `.mpd`, stream từng mảnh) không tải lại được nên không chép lời được; app bỏ qua chúng thay vì gửi cho Gemini (trước đây `.m3u8` bị gửi đi và lỗi 400). File mp3/m4a/wav/ogg thông thường thì được.
 - Kéo thả: đã thử 11 cơ chế phổ biến nhưng **chưa thử trên Cambridge One/Rikkei thật** (cần tài khoản của bạn). Nếu không cách nào có tác dụng, agent nhận lỗi kèm danh sách các cách đã thử và được dặn đổi cách tiếp cận.
 - `config.DEFAULT_URL` và nút Cambridge chứa đường dẫn lớp học cụ thể của bạn (org/class id). Nếu đặt repo GitHub ở chế độ công khai, hãy cân nhắc thay đường dẫn này.
 - Hộp thoại `alert/confirm` của trang được tự động chấp nhận và báo bằng thông báo nổi.

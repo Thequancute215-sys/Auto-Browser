@@ -102,6 +102,18 @@ def test_audio_detected_from_network_and_fetched(browser, goto):
     assert res["status"] == "ok" and res["data"][:4] == b"RIFF" and res["mime"].startswith("audio/")
 
 
+def test_stream_playlists_are_not_sent_for_transcription(browser, goto, site):
+    """Live (British Council video series): an HLS .m3u8 playlist was sent to Gemini as audio -> 400."""
+    goto("listening.html")
+    browser.execute("eval", {"script": "document.body.insertAdjacentHTML('beforeend', '<video src=\"stream.m3u8\"></video>')"})
+    browser.execute("eval", {"script": "fetch('stream.m3u8').then(r => r.text())"})
+    browser.execute("ai_act", {"action": "wait", "ms": 500})
+    media = browser.execute("ai_observe", {"marks": False})["media"]
+    assert not any("m3u8" in m["src"] for m in media), media
+    res = browser.execute("fetch_media", {"url": f"{site}/stream.m3u8"})
+    assert res["status"] == "error" and "HLS" in res["message"]
+
+
 def test_fetch_media_refuses_non_audio_local_files(browser):
     res = browser.execute("fetch_media", {"url": "file:///C:/Windows/win.ini"})
     assert res["status"] == "error"

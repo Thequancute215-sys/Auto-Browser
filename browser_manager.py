@@ -18,6 +18,8 @@ from cdp_fast import FastCDP
 MOUSE_BUTTONS = {"left", "right", "middle"}
 ELEMENT_ACTIONS = {"click", "type", "select", "drag", "hover"}
 COMMAND_WHITELIST = {"eval", "extract_text", "page_text", "get_selection"}  # exposed via /api/ai_command
+# HLS / DASH playlists list stream segments; they are not audio files a model can transcribe.
+STREAM_PLAYLIST = re.compile(r"\.(m3u8|mpd)(\?|#|$)|mpegurl|dash\+xml", re.I)
 
 
 def _short_err(err) -> str:
@@ -382,6 +384,8 @@ class BrowserManager:
             ctype = (resp.headers.get("content-type") or "").split(";")[0].strip().lower()
             url = resp.url
         except Exception:
+            return
+        if STREAM_PLAYLIST.search(url) or STREAM_PLAYLIST.search(ctype):
             return
         if ctype.startswith("audio/") or re.search(r"\.(mp3|m4a|aac|ogg|oga|wav|weba|opus)(\?|$)", url, re.I):
             if not any(m["url"] == url for m in self._media):
@@ -852,6 +856,8 @@ class BrowserManager:
             ctype = (resp.headers.get("content-type") or "audio/mpeg").split(";")[0].strip()
         if len(body) > max_bytes:
             raise ValueError(f"Audio quá lớn ({len(body) // 1024 // 1024}MB)")
+        if STREAM_PLAYLIST.search(url) or STREAM_PLAYLIST.search(ctype) or ctype.startswith(("text/", "application/json")):
+            raise ValueError("đây là danh sách phát luồng (HLS/DASH) hoặc trang, không phải file audio")
         if ctype in ("application/octet-stream", "binary/octet-stream", ""):
             ext = re.search(r"\.(\w+)(\?|$)", url)
             ctype = {"mp3": "audio/mpeg", "m4a": "audio/mp4", "aac": "audio/aac", "ogg": "audio/ogg",
@@ -1168,7 +1174,7 @@ class BrowserManager:
         media = []
         for res in self._all_frames_eval(js.MEDIA_SOURCES):
             for m in res or []:
-                if m.get("src") and not m["src"].startswith(("blob:", "data:")):
+                if m.get("src") and not m["src"].startswith(("blob:", "data:")) and not STREAM_PLAYLIST.search(m["src"]):
                     media.append(m)
         for m in self._media:
             if m["page"] == id(page) and not any(x["src"] == m["url"] for x in media):
