@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
-  "gitCommitHash": "cef9664f0a5def1ef9e694559eee802301024a3f",
-  "generatedAt": "2026-10-22T16:00:09.739Z",
+  "gitCommitHash": "662bc45710e1282bdf652f2c9d4d8b34feaefed3",
+  "generatedAt": "2026-10-22T19:18:20.372Z",
   "files": {
     ".claude/settings.json": {
       "filePath": ".claude/settings.json",
@@ -75,12 +75,12 @@
     },
     "HANDOVER.md": {
       "filePath": "HANDOVER.md",
-      "contentHash": "b5ed0b56b3bc60cb979dec5cdc2d1cd9f5a5e2547e2d688f73422ec6cd1c3b7a",
+      "contentHash": "bbc48e4aa1b01f1b66a7b3e8e7526de94276efb7b7d3f10082c958d54a819f5c",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 254,
+      "totalLines": 256,
       "hasStructuralAnalysis": false
     },
     "INSTALL.md": {
@@ -185,7 +185,7 @@
     },
     "ai_controller.py": {
       "filePath": "ai_controller.py",
-      "contentHash": "96adb3241dec41b59f27a63dc866578253a10a346959adef2414ce16e57b8a46",
+      "contentHash": "0c3ecc55b362ab4085b8c2909ba80abc3077960acaa40c53d6388d224b0c00d4",
       "functions": [
         {
           "name": "_now",
@@ -242,7 +242,7 @@
           ],
           "properties": [],
           "exported": true,
-          "lineCount": 859
+          "lineCount": 870
         }
       ],
       "imports": [
@@ -319,12 +319,12 @@
         "_now",
         "AIController"
       ],
-      "totalLines": 992,
+      "totalLines": 1003,
       "hasStructuralAnalysis": true
     },
     "browser_manager.py": {
       "filePath": "browser_manager.py",
-      "contentHash": "320e4d9717afbbe9c756cf0a2599567175c997f6be7471fe3d7fc4286816e5f0",
+      "contentHash": "2c9eac4374a83c951f2d4898030e56c9293a09235a689adb5251076018d01def",
       "functions": [
         {
           "name": "_short_err",
@@ -422,7 +422,7 @@
           ],
           "properties": [],
           "exported": true,
-          "lineCount": 1329
+          "lineCount": 1335
         }
       ],
       "imports": [
@@ -515,7 +515,7 @@
         "_short_err",
         "BrowserManager"
       ],
-      "totalLines": 1359,
+      "totalLines": 1365,
       "hasStructuralAnalysis": true
     },
     "cdp_fast.py": {
@@ -1039,12 +1039,12 @@
     },
     "page_scripts.py": {
       "filePath": "page_scripts.py",
-      "contentHash": "d8e5233efcb906334e568e83cfc2c08fa9a4479c127e2f31283170a2d966e5dc",
+      "contentHash": "7dbc086c864ed67f5b149f2eb671ce9477b2d23fcff53c95dd89c4bb49f5ea0b",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 550,
+      "totalLines": 560,
       "hasStructuralAnalysis": true
     },
     "pytest.ini": {
@@ -4771,7 +4771,7 @@
     },
     "tests/test_agent_robustness.py": {
       "filePath": "tests/test_agent_robustness.py",
-      "contentHash": "186947c298c7f37a56eed45d22b9a8dffe2c767361d2910e6fe5da49ff4559ec",
+      "contentHash": "7f303ece95455d2e63d90744198161fb272e0036ad4e8b003dc646fc08bde2d2",
       "functions": [
         {
           "name": "_ev",
@@ -4900,6 +4900,35 @@
           ],
           "exported": true,
           "lineCount": 15
+        },
+        {
+          "name": "test_questions_hidden_behind_next_count_as_unanswered",
+          "params": [
+            "browser",
+            "goto"
+          ],
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "test_finish_is_blocked_while_the_page_says_items_remain",
+          "params": [
+            "browser",
+            "bus",
+            "goto"
+          ],
+          "exported": true,
+          "lineCount": 17
+        },
+        {
+          "name": "test_silent_placeholder_audio_is_not_transcribed",
+          "params": [
+            "browser",
+            "bus",
+            "goto"
+          ],
+          "exported": true,
+          "lineCount": 12
         }
       ],
       "classes": [
@@ -4943,9 +4972,12 @@
         "test_last_action_of_a_step_waits_for_content_loaded_by_script",
         "test_agent_does_not_think_while_the_page_says_loading",
         "test_hash_and_pushstate_changes_do_not_leave_the_tab_loading",
-        "test_h5p_item_placed_over_its_zone_counts_as_answered"
+        "test_h5p_item_placed_over_its_zone_counts_as_answered",
+        "test_questions_hidden_behind_next_count_as_unanswered",
+        "test_finish_is_blocked_while_the_page_says_items_remain",
+        "test_silent_placeholder_audio_is_not_transcribed"
       ],
-      "totalLines": 153,
+      "totalLines": 195,
       "hasStructuralAnalysis": true
     },
     "tests/fixtures/stream.m3u8": {
@@ -4956,6 +4988,16 @@
       "imports": [],
       "exports": [],
       "totalLines": 6,
+      "hasStructuralAnalysis": false
+    },
+    "tests/fixtures/question_set.html": {
+      "filePath": "tests/fixtures/question_set.html",
+      "contentHash": "99d3a0277d6414d0b6f7b1ec8e379fb4afbc9c9b0a52bbd73adb86fb1eed0f2a",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 29,
       "hasStructuralAnalysis": false
     }
   }
