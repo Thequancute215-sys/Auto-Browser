@@ -1,4 +1,5 @@
 import os
+import re
 
 # Server configuration
 # 127.0.0.1 = chỉ máy này truy cập được. Đặt ALLOW_LAN=1 nếu thật sự muốn mở ra mạng LAN
@@ -41,16 +42,36 @@ AI_CONFIG_FILE = os.environ.get("AIB_AI_CONFIG") or os.path.join(BASE_DIR, "ai_c
 CAMBRIDGE_URL = "https://www.cambridgeone.org/home"
 
 
-def _saved_start_url() -> str:
+def _saved(key: str, default=None):
+    """A value from the user's saved settings (ai_config.json), read once at startup."""
     try:
         import json
         with open(AI_CONFIG_FILE, "r", encoding="utf-8") as f:
-            return (json.load(f).get("start_url") or "").strip()
+            value = json.load(f).get(key)
+        return default if value is None else value
     except Exception:
-        return ""
+        return default
+
+
+def _saved_start_url() -> str:
+    return str(_saved("start_url", "") or "").strip()
 
 
 DEFAULT_URL = os.environ.get("AIB_START_URL") or _saved_start_url() or CAMBRIDGE_URL
+
+# Ad servers are blocked inside the automated browser: Google "vignette" interstitials pop up on the first
+# click and turn the agent's click into an ad visit (seen on englishpage.com), and ads clutter the screenshots.
+# Only ad-serving hosts are listed (no analytics/CDNs), so sites keep working. Off: AIB_BLOCK_ADS=0 or
+# "block_ads": false in ai_config.json.
+BLOCK_ADS = os.environ.get("AIB_BLOCK_ADS", "1" if _saved("block_ads", True) else "0") == "1"
+AD_HOSTS = (
+    "doubleclick.net", "googlesyndication.com", "googleadservices.com", "googletagservices.com",
+    "adservice.google.com", "fundingchoicesmessages.google.com", "amazon-adsystem.com", "adnxs.com",
+    "taboola.com", "outbrain.com", "criteo.com", "criteo.net", "pubmatic.com", "rubiconproject.com",
+    "openx.net", "casalemedia.com", "moatads.com", "adsrvr.org", "smartadserver.com", "teads.tv",
+    "media.net", "popads.net", "propellerads.com", "adform.net", "yieldmo.com", "sharethrough.com",
+)
+AD_URL_RE = re.compile(r"^https?://([^/?#]*\.)?(" + "|".join(re.escape(h) for h in AD_HOSTS) + r")(:\d+)?([/?#]|$)")
 RIKKEI_URL = "https://lms-student.rikkei.edu.vn"
 
 # User-Agent for realistic browsing

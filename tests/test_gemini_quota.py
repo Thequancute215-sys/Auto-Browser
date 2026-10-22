@@ -88,3 +88,107 @@ def test_all_exhausted_gives_clear_message_with_reset_time():
     fake = FakeGenai({"gemini-3.7-flash": [DAILY], "gemini-flash-latest": [DAILY]}, available=[])
     with pytest.raises(LLMError, match="hết lượt miễn phí hôm nay.*Claude"):
         _client(fake).generate("k", "gemini-3.7-flash", "p", fallbacks=["gemini-flash-latest"])
+
+
+OVERLOADED = "503 UNAVAILABLE. {'error': {'code': 503, 'message': 'The model is overloaded. Please try again later.'}}"
+
+
+def test_overloaded_model_gets_one_retry_then_is_tried_last():
+    fake = FakeGenai({"gemini-3.7-flash": [OVERLOADED, OVERLOADED], "gemini-3.5-flash": ["OK", "OK2"]})
+    c = _client(fake)
+    notes = []
+    t0 = time.time()
+    assert c.generate("k", "gemini-3.7-flash", "p", fallbacks=["gemini-3.5-flash"], on_retry=notes.append) == "OK"
+    assert fake.calls == ["gemini-3.7-flash", "gemini-3.7-flash", "gemini-3.5-flash"], "one retry, not three"
+    assert time.time() - t0 < 4
+    # Next step: the busy model goes to the back of the queue instead of costing another two 503s.
+    fake.calls.clear()
+    assert c.generate("k", "gemini-3.7-flash", "p", fallbacks=["gemini-3.5-flash"]) == "OK2"
+    assert fake.calls == ["gemini-3.5-flash"]
+
+
+def test_all_overloaded_discovers_lite_and_gemma():
+    fake = FakeGenai({"gemini-3.7-flash": [OVERLOADED] * 2, "gemini-flash-latest": [OVERLOADED] * 2,
+                      "gemini-3.5-flash-lite": ["OK"]},
+                     available=["gemini-3.7-flash", "gemini-flash-latest", "gemini-3.5-flash-lite", "gemma-4-26b-a4b-it"])
+    c = _client(fake)
+    notes = []
+    assert c.generate("k", "gemini-3.7-flash", "p", fallbacks=["gemini-flash-latest"], on_retry=notes.append) == "OK"
+    assert fake.calls[-1] == "gemini-3.5-flash-lite"
+    assert any("quá tải, thử thêm" in n for n in notes)
+
+
+def test_all_overloaded_without_alternatives_says_so():
+    fake = FakeGenai({"gemini-3.7-flash": [OVERLOADED] * 2}, available=[])
+    with pytest.raises(LLMError, match="quá tải"):
+        _client(fake).generate("k", "gemini-3.7-flash", "p")
+
+
+def test_slow_model_is_raced_against_the_next_one(monkeypatch):
+    """Google can hold a request ~80 s before answering 503; after HEDGE_AFTER_S the next model gets it too."""
+    import llm
+    monkeypatch.setattr(llm, "HEDGE_AFTER_S", 0.3)
+    fake = FakeGenai({"gemini-3.5-flash": ["FAST"]})
+    slow = fake._gen
+
+    def gen(model, contents, config):
+        if model == "gemini-3.7-flash":
+            fake.calls.append(model)
+            time.sleep(3)
+            return SimpleNamespace(text="SLOW", usage_metadata=None)
+        return slow(model, contents, config)
+
+    fake.models.generate_content = gen
+    c = _client(fake)
+    notes = []
+    t0 = time.time()
+    out = c.generate("k", "gemini-3.7-flash", "p", fallbacks=["gemini-3.5-flash"], on_retry=notes.append)
+    assert out == "FAST" and time.time() - t0 < 2, "the first good answer wins, the slow one is not awaited"
+    assert c.last_model_used == "gemini-3.5-flash"
+    assert any("trả lời chậm" in n for n in notes)
+    assert fake.calls.count("gemini-3.5-flash") == 1, "the backup is not asked twice"
+
+
+def test_failed_backup_is_replaced_by_the_next_model_at_once(monkeypatch):
+    """Live: the primary hung, its backup was out of quota in a second, and the step then waited ~60 s more
+    for the primary. The next model must get the request as soon as the backup fails."""
+    import llm
+    monkeypatch.setattr(llm, "HEDGE_AFTER_S", 0.3)
+    fake = FakeGenai({"gemini-flash-latest": [DAILY], "gemini-flash-lite-latest": ["LITE"]})
+    plain = fake._gen
+
+    def gen(model, contents, config):
+        if model == "gemini-3.7-flash":
+            fake.calls.append(model)
+            time.sleep(4)
+            raise Exception(OVERLOADED)
+        return plain(model, contents, config)
+
+    fake.models.generate_content = gen
+    c = _client(fake)
+    t0 = time.time()
+    out = c.generate("k", "gemini-3.7-flash", "p", fallbacks=["gemini-flash-latest", "gemini-flash-lite-latest"])
+    assert out == "LITE" and time.time() - t0 < 2.5
+    assert fake.calls.count("gemini-flash-lite-latest") == 1
+
+
+def test_slow_503_is_not_retried(monkeypatch):
+    import llm
+    monkeypatch.setattr(llm, "HEDGE_AFTER_S", 60)  # no racing here: only the retry rule
+    fake = FakeGenai({"gemini-3.5-flash": ["OK"]})
+    plain = fake._gen
+    real_time = time.time
+    clock = {"skew": 0.0}
+
+    def gen(model, contents, config):
+        if model == "gemini-3.7-flash":
+            fake.calls.append(model)
+            clock["skew"] += 30  # as if Google held the request 30 s before answering 503
+            raise Exception(OVERLOADED)
+        return plain(model, contents, config)
+
+    fake.models.generate_content = gen
+    monkeypatch.setattr(llm.time, "time", lambda: real_time() + clock["skew"])
+    c = _client(fake)
+    assert c.generate("k", "gemini-3.7-flash", "p", fallbacks=["gemini-3.5-flash"]) == "OK"
+    assert fake.calls == ["gemini-3.7-flash", "gemini-3.5-flash"], "a 503 that took 30 s is not a blip"

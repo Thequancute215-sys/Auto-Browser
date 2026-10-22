@@ -129,7 +129,8 @@ def test_agent_switches_to_local_model_when_cloud_pool_is_exhausted(browser, bus
     msgs = ai.get_status()["messages"]
     assert any("Chuyển sang **gemma4:e4b**" in m["text"] for m in msgs)
     assert any(m["kind"] == "success" for m in msgs), "the run finishes on the local model"
-    assert ai.ollama.usage["calls"] == 1
+    # The fake says "done" on a quiz with blanks: the false-done guard asks again (twice), then accepts.
+    assert ai.ollama.usage["calls"] == 1 + AIController.MAX_DONE_REJECTS
 
 
 def test_no_local_fallback_when_disabled(browser, bus, goto, ollama_url):

@@ -132,3 +132,26 @@ def test_viewport_change_restarts_stream(browser):
     new_id, data, size = browser.wait_frame(fid, timeout=5)
     assert new_id > fid and data[:2] == b"\xff\xd8"
     browser.execute("set_viewport", {"width": 1280, "height": 800})
+
+
+def test_ad_url_pattern():
+    import config
+    blocked = ["https://securepubads.g.doubleclick.net/tag/js/gpt.js", "https://pagead2.googlesyndication.com/pagead/js/x.js",
+               "http://www.googleadservices.com/pagead/conversion.js", "https://c.amazon-adsystem.com:443/aax2/apstag.js",
+               "https://fundingchoicesmessages.google.com/i/pub?ers=1"]
+    allowed = ["https://www.cambridgeone.org/home", "https://www.google.com/search?q=doubleclick.net",
+               "https://notdoubleclick.net/x", "https://googlesyndication.com.example.org/x", "https://www.gstatic.com/x.js",
+               "https://lms-student.rikkei.edu.vn/", "https://www.googletagmanager.com/gtag/js"]
+    assert all(config.AD_URL_RE.match(u) for u in blocked), [u for u in blocked if not config.AD_URL_RE.match(u)]
+    assert not any(config.AD_URL_RE.match(u) for u in allowed), [u for u in allowed if config.AD_URL_RE.match(u)]
+
+
+def test_ad_servers_are_blocked_in_the_browser(browser, goto, site):
+    # Google vignette ads opened an advertiser's site on the agent's first click (englishpage.com).
+    goto("quiz.html")
+    other_origin = site.replace("127.0.0.1", "localhost") + "/quiz.html"
+    probe = """async (urls) => { const out = [];
+      for (const u of urls) { try { await fetch(u, {mode: 'no-cors'}); out.push('loaded'); } catch (e) { out.push('blocked'); } }
+      return out; }"""
+    res = browser.execute("eval", {"script": f"({probe})({[other_origin, 'https://securepubads.g.doubleclick.net/tag/js/gpt.js']!r})"})
+    assert res["result"] == ["loaded", "blocked"], res

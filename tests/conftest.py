@@ -59,6 +59,14 @@ class _QuietHandler(http.server.SimpleHTTPRequestHandler):
     def log_message(self, *args):
         pass
 
+    def do_GET(self):
+        # /slow/<ms>/<file>: the file, served late (content a player loads by script after a click).
+        parts = self.path.split("/", 3)
+        if len(parts) == 4 and parts[1] == "slow" and parts[2].isdigit():
+            time.sleep(int(parts[2]) / 1000)
+            self.path = "/" + parts[3]
+        super().do_GET()
+
 
 class _DualStackServer(http.server.ThreadingHTTPServer):
     """Listens on IPv6 and IPv4 at once: 'localhost' may resolve to ::1 (e.g. GitHub's Windows runners),

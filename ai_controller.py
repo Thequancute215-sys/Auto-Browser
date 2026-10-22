@@ -33,6 +33,7 @@ DEFAULT_SETTINGS = {
     "local_fallback": True,    # khi mọi mô hình đám mây hết lượt miễn phí thì chuyển sang mô hình trên máy
     "start_url": "",           # trang mở khi khởi động (vd: link lớp học của bạn); trống = trang chủ Cambridge One
     "auto_update": True,       # app desktop: tự cài bản mới (không phải gỡ / tải lại)
+    "block_ads": True,         # chặn máy chủ quảng cáo trong trình duyệt (áp dụng khi mở lại app); xem config.BLOCK_ADS
     "update_token": "",        # GitHub token chỉ đọc, chỉ cần khi kho GitHub đang để riêng tư
 }
 SECRET_KEYS = ("api_key", "claude_api_key", "update_token")
@@ -57,6 +58,7 @@ AGENT_SCHEMA = {
     "properties": {
         "observation": {"type": "string"},
         "plan": {"type": "string"},
+        "progress": {"type": "string"},
         "answers": {"type": "array", "items": {
             "type": "object",
             "properties": {"q": {"type": "string"}, "a": {"type": "string"}, "why": {"type": "string"}},
@@ -65,7 +67,7 @@ AGENT_SCHEMA = {
         "status": {"type": "string", "enum": ["continue", "done", "need_user"]},
         "message": {"type": "string"},
     },
-    "required": ["observation", "plan", "answers", "actions", "status", "message"],
+    "required": ["observation", "plan", "progress", "answers", "actions", "status", "message"],
     "additionalProperties": False,
 }
 
@@ -90,6 +92,7 @@ Reply with ONLY one JSON object:
 {
   "observation": "what the screen shows now (1-2 short sentences)",
   "plan": "what you do in this step and why (short)",
+  "progress": "cumulative: which parts of the user's task are already finished, e.g. 'opened example 2; filled 5 blanks; Check -> 5/5'. Start from your previous progress note and add what the screen now proves",
   "answers": [{"q": "question or blank, short", "a": "the answer", "why": "short reason, in Vietnamese"}],
   "actions": [ ...actions... ],
   "status": "continue" | "done" | "need_user",
@@ -110,13 +113,13 @@ Actions (only use element IDs from the CURRENT element list):
 Rules:
 1. Solve exercises for real. Read the instructions, the example, the questions, any reading passage and every option before answering. Accuracy matters more than speed: check grammar, tense, collocations, spelling and the meaning of the context.
 2. Batch work: do every answer action visible on this screen in ONE step, in reading order. Actions run sequentially; you will see the resulting screen next turn.
-3. IDs are renumbered every turn. Never reuse IDs from the history.
+3. IDs are renumbered every turn. Never reuse IDs from the history: before using an id, check in the CURRENT element list that it is the element you mean (its text, `before`/`after`, frame).
 4. A field's current content is in `value`. Its blank is located by the `before`/`after` text. Leave fields that are already correct alone.
 5. `checked` marks a selected radio/checkbox. Do not click an option that is already checked (it may toggle off).
 5b. Drag-and-drop exercises: use "drag" from the `draggable` word/item to the `dropzone` gap (its `context` shows where [HERE] sits in the sentence). Clicking a draggable item does not place it.
 6. The element list covers the WHOLE page, not just the screenshot: items marked `offscreen: below/above` are scrolled out of view (or inside a scrolled box). Act on them directly by id; the browser scrolls to them automatically. The VISIBLE PAGE TEXT is also the whole page. Scroll only to look at an image or layout you cannot understand from the list.
 6b. FORM STATUS counts the unanswered questions on the whole page. Answer every one of them before pressing Check / Submit / Nộp bài / Hoàn thành; a submit with blanks wastes one of the student's limited attempts. If a dialog says some questions are unanswered (e.g. "Còn 4 câu chưa trả lời"), choose the option that keeps working ("Làm tiếp", "Quay lại", "Cancel"), never the one that submits.
-7. Use status "done" only when the screen proves the task is finished and no action is left. If you still have actions, use "continue" and verify next turn.
+7. Use status "done" only when the screen proves the task is finished and no action is left. If you still have actions, use "continue" and verify next turn. Never undo finished work: when your progress note and the screen show the requested part is done (a score is shown, answers are checked), report "done" instead of navigating away to look for it again.
 8. Login, CAPTCHA, payments, or a choice only the user can make: status "need_user" and explain in "message".
 9. If an earlier action failed or changed nothing, try a different approach (another element, keyboard, scrolling, waiting for loading) instead of repeating it.
 10. "answers" lists only answers decided in THIS step. Keep every text field short.
@@ -148,6 +151,7 @@ class AIController:
         self._load_config()
         self._run_settings: Dict[str, Any] = dict(self.settings)
         self._submit_blocks = 0
+        self._done_rejects = 0
         self._transcripts: Dict[str, str] = {}  # audio URL -> transcript (kept for the whole session)
         self._media_failed: set = set()
 
@@ -281,6 +285,8 @@ class AIController:
             self.settings["local_fallback"] = bool(payload["local_fallback"])
         if "auto_update" in payload:
             self.settings["auto_update"] = bool(payload["auto_update"])
+        if "block_ads" in payload:
+            self.settings["block_ads"] = bool(payload["block_ads"])
         if isinstance(payload.get("start_url"), str):
             url = payload["start_url"].strip()
             self.settings["start_url"] = url if (not url or url.startswith(("http://", "https://"))) else self.settings.get("start_url", "")
@@ -412,6 +418,7 @@ class AIController:
                         "Các lệnh đơn giản vẫn dùng được không cần khóa: *mở <trang>*, *tìm kiếm <từ khóa>*, *cuộn xuống*, *tab mới*.",
                         kind="warning", status="warning")
                 else:
+                    self._open_url_in_task(prompt)
                     self._agent_loop(prompt)
         except Exception as e:
             self.add_message("ai", f"❌ Lỗi xử lý: {e}", kind="error", status="error")
@@ -420,6 +427,26 @@ class AIController:
             self._set_phase("idle", detail="")
 
     # ------------------------------------------------------------------ deterministic commands
+
+    URL_IN_TEXT = re.compile(r"https?://[^\s\"'<>]+")
+
+    def _open_url_in_task(self, prompt: str):
+        """'Vào https://... rồi làm bài': opens the link first, so the agent's first LLM call already sees the
+        exercise instead of being spent on navigation (during a Gemini overload that call took a minute)."""
+        m = self.URL_IN_TEXT.search(prompt)
+        if not m:
+            return
+        url = m.group(0).rstrip(".,;:!?)»”")
+        same = lambda u: u.split("#")[0].rstrip("/")
+        try:
+            if same(self.browser.get_state().get("active_url") or "") == same(url):
+                return
+        except Exception:
+            return
+        self._set_phase("acting", detail=f"🌐 Đang mở {url[:80]}")
+        res = self.browser.execute("goto", {"url": url}, timeout=45)
+        if res.get("status") != "error":
+            self.add_message("ai", f"🌐 Đã mở {url} (không tốn lượt gọi AI), giờ làm tiếp yêu cầu.", kind="action")
 
     def _try_local_command(self, prompt: str) -> bool:
         """Handles simple, unambiguous commands instantly without spending an LLM call."""
@@ -563,7 +590,7 @@ class AIController:
         parts.append(f"@{e['x']},{e['y']}")
         return " ".join(parts)
 
-    def _build_prompt(self, task: str, obs: dict, history: List[str], step: int, max_steps: int) -> str:
+    def _build_prompt(self, task: str, obs: dict, history: List[str], step: int, max_steps: int, progress: str = "") -> str:
         elements = obs.get("elements", [])
         el_lines = "\n".join(self._format_element(e) for e in elements) or "(no interactive elements detected)"
         texts, budget = [], 24000
@@ -608,6 +635,9 @@ Viewport: {obs.get('viewport', {}).get('width')}x{obs.get('viewport', {}).get('h
 
 HISTORY OF YOUR PREVIOUS STEPS:
 {hist}
+
+YOUR PROGRESS NOTE FROM THE LAST STEP:
+{progress or '(nothing finished yet)'}
 
 FORM STATUS (whole page):
 {form_block}
@@ -671,6 +701,22 @@ Reply with the JSON object only."""
         st = self.local_status()
         return st["available"] and st["has_model"]
 
+    LOADING_RE = re.compile(r"^\s*(loading|đang tải|please wait|vui lòng chờ)\s*(\.{0,3}|…)\s*$", re.I | re.M)
+
+    def _still_loading(self, obs: dict) -> bool:
+        return any(self.LOADING_RE.search(t.get("text") or "") for t in obs.get("texts", []))
+
+    SOLVE_RE = re.compile(r"\b(làm|lam|giải|giai|điền|dien|kéo|keo|trả lời|tra loi|chọn|chon|hoàn thành|hoan thanh|"
+                          r"bài|bai|test|quiz|exercise|solve|answer|fill|drag)\b", re.I)
+    MAX_DONE_REJECTS = 2
+
+    def _done_too_early(self, task: str, obs: dict) -> bool:
+        """A false "done" (seen with Flash-Lite on an H5P drag exercise: nothing dragged, '✅ Đã hoàn thành').
+        Only for exercise tasks, and at most twice per run in case the blank count is a false positive."""
+        fs = obs.get("form_status") or {}
+        return (self._done_rejects < self.MAX_DONE_REJECTS and bool(self.SOLVE_RE.search(task or ""))
+                and fs.get("unanswered", 0) > 0)
+
     SUBMIT_RE = re.compile(r"\b(nộp|submit|check(\s+answers?)?|kiểm\s*tra|hoàn\s*thành|finish|chấm|gửi\s*bài|done|xong)\b", re.I)
     MAX_SUBMIT_BLOCKS = 2  # after two warnings the model may insist (the count could be a false positive)
 
@@ -682,8 +728,13 @@ Reply with the JSON object only."""
         el = el_map.get(act.get("id")) if isinstance(act.get("id"), int) else None
         if not el:
             return None
+        # Answer choices are never Submit buttons, even when their text says "I'll just check for you."
+        if el.get("toggle") or el.get("editable") or el.get("tag") in ("option", "select") \
+                or el.get("role") in ("radio", "checkbox", "option", "menuitemradio", "menuitemcheckbox", "switch"):
+            return None
         name = (el.get("text") or el.get("label") or "").strip()
-        if not name or len(name) > 40 or not self.SUBMIT_RE.search(name):
+        # A Submit button label is a few words ("Check answers", "Nộp bài"); a longer sentence is content.
+        if not name or len(name) > 40 or len(name.split()) > 4 or not self.SUBMIT_RE.search(name):
             return None
         fs = self.browser.execute("form_status", {}, timeout=15)
         if fs.get("status") != "ok" or not fs.get("unanswered"):
@@ -736,7 +787,10 @@ Reply with the JSON object only."""
         max_steps = int(s.get("max_steps", 30))
         suggest = s.get("mode") == "suggest"
         history: List[str] = []
+        progress = ""
         last_sig, no_change = None, 0
+        visits: Dict[str, int] = {}
+        stuck_loading = 0  # a "Loading..." that never goes away (broken widget) stops being waited for
         total_actions = 0
         started = time.time()
         # The "brain" of this run; it can change mid-run (cloud pool exhausted → local model).
@@ -745,6 +799,7 @@ Reply with the JSON object only."""
         calls_before = self._calls_so_far()
         switched = set()
         self._submit_blocks = 0
+        self._done_rejects = 0
         finished_ok = False
 
         for step in range(1, max_steps + 1):
@@ -757,6 +812,20 @@ Reply with the JSON object only."""
             if obs.get("status") != "ok":
                 self.add_message("ai", f"❌ Không quan sát được trang: {obs.get('message')}", kind="error", status="error")
                 break
+            for attempt in range(3):
+                # A player that is still loading (h5p.org shows "Loading..." while it writes its iframe) misleads
+                # the model about where it is. Waiting costs no AI call.
+                if self.stop_requested or stuck_loading >= 2 or not self._still_loading(obs):
+                    break
+                if attempt == 2:
+                    stuck_loading += 1
+                    break
+                self._set_phase("observing", detail="Trang đang tải, chờ thêm")
+                self.browser.execute("ai_act", {"action": "wait", "ms": 2000}, timeout=15)
+                again = self.browser.execute("ai_observe", {}, timeout=40)
+                if again.get("status") != "ok":
+                    break
+                obs = again
             if "login" in (obs.get("url") or "").lower() and step == 1 and not obs.get("elements"):
                 self.add_message("ai", "⚠️ Trang đăng nhập — hãy đăng nhập trước rồi bấm Chạy.", kind="warning", status="warning")
                 break
@@ -776,13 +845,23 @@ Reply with the JSON object only."""
                     break
             else:
                 no_change = 0
+                # Going back and forth (Next → Previous → Next ...) changes the screen every step, so the
+                # no-change check never fires. Seen with Flash-Lite on an H5P carousel.
+                visits[sig] = visits.get(sig, 0) + 1
+                if visits[sig] >= 5:
+                    self.add_message("ai", "⚠️ AI đang quay lại cùng một màn hình nhiều lần mà không tiến triển — tôi dừng lại. "
+                                           "Bạn xem kết quả trên màn hình hoặc ra lệnh cụ thể hơn nhé.", kind="warning", status="warning")
+                    break
+                if visits[sig] >= 3:
+                    history.append(f"WARNING: step {step} shows the same screen as {visits[sig] - 1} earlier steps: you are going "
+                                   "back and forth. Re-read your progress note; if the task is finished, report done.")
             last_sig = sig
 
             # 2. Think
             if self.stop_requested:
                 break
             self._set_phase("thinking", detail=f"{len(obs.get('elements', []))} phần tử · {brain['brand']} đang suy luận")
-            prompt = self._build_prompt(task, obs, history, step, max_steps)
+            prompt = self._build_prompt(task, obs, history, step, max_steps, progress)
             t_think = time.time()
             plan = None
             for attempt in range(2):
@@ -822,6 +901,7 @@ Reply with the JSON object only."""
 
             actions = [a for a in (plan.get("actions") or []) if isinstance(a, dict) and a.get("action")]
             status = str(plan.get("status") or "continue").lower()
+            progress = str(plan.get("progress") or progress)[:400]
             if suggest:
                 actions = [a for a in actions if a.get("action") in ("scroll", "wait")]
 
@@ -834,6 +914,15 @@ Reply with the JSON object only."""
             if answers:
                 self.add_message("ai", "", kind="answers", data={"answers": answers[:40], "step": step})
 
+            if status == "done" and not suggest and self._done_too_early(task, obs):
+                left = obs["form_status"]["unanswered"]
+                self._done_rejects += 1
+                self.add_message("ai", f"⚠️ AI định báo xong nhưng trang vẫn còn **{left}** chỗ chưa làm, nên tôi bắt nó làm tiếp.",
+                                 kind="action", status="warning")
+                history.append(f"Step {step}: you said DONE, but FORM STATUS shows {left} unanswered item(s) "
+                               f"(ids {', '.join(str(it.get('aid')) for it in obs['form_status'].get('items', []) if it.get('aid')) or '?'}). "
+                               "That is not done: answer them (drag / type / click), then Check/Submit.")
+                continue
             if status in ("done", "need_user") and not actions:
                 final = plan.get("message") or ("Đã hoàn thành." if status == "done" else "Cần bạn thao tác.")
                 if status == "done":

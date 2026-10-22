@@ -113,3 +113,72 @@ def test_guard_also_blocks_the_confirm_dialog_submit(browser, bus, goto):
     ai.run_command("Làm bài")
     ai.current_task_thread.join(60)
     assert _state(browser)["submitted"] == 0
+
+
+class _OneBlank:
+    """Stub browser: the live page always has one unanswered question."""
+
+    def execute(self, cmd, payload=None, timeout=None):
+        assert cmd == "form_status"
+        return {"status": "ok", "unanswered": 1, "total": 5, "items": [{"aid": 13}]}
+
+
+def test_guard_never_blocks_an_answer_choice():
+    # Cambridge "Test your English": the right answer to "I'd like two tickets..." is "I'll just check for you.",
+    # which the guard used to mistake for a "Check" button, so the question could never be answered.
+    ai = AIController.__new__(AIController)
+    ai.browser, ai._submit_blocks = _OneBlank(), 0
+    choices = {
+        1: {"id": 1, "tag": "label", "toggle": "radio", "text": "I'll just check for you."},
+        2: {"id": 2, "tag": "div", "role": "radio", "text": "Check"},
+        3: {"id": 3, "tag": "li", "role": "option", "text": "Done"},
+        4: {"id": 4, "tag": "div", "text": "I'll just check for you."},  # plain clickable div: a sentence, not a button
+        5: {"id": 5, "tag": "input", "type": "checkbox", "toggle": "checkbox", "text": ""},
+    }
+    for i in choices:
+        assert ai._submit_guard({"action": "click", "id": i}, choices) is None, choices[i]
+    assert ai._submit_blocks == 0
+    buttons = {10: {"id": 10, "tag": "button", "text": "Check answers"}, 11: {"id": 11, "tag": "a", "text": "Nộp bài"},
+               12: {"id": 12, "tag": "div", "role": "button", "text": "Submit"}}
+    blocked = [ai._submit_guard({"action": "click", "id": i}, buttons) for i in (10, 11)]
+    assert all(b and b["unanswered"] == 1 for b in blocked), "real Submit buttons are still guarded"
+    assert ai._submit_guard({"action": "click", "id": 12}, buttons) is None, "after MAX_SUBMIT_BLOCKS the model may insist"
+
+
+def test_exercise_in_an_iframe_is_seen_on_a_link_heavy_page(browser, goto):
+    # h5p.org: 260+ menu/footer links used the whole observation budget, so the drag exercise in the iframe
+    # had no ids and the agent pressed Tab blindly.
+    goto("h5p_like.html")
+    obs = browser.execute("ai_observe", {"marks": False})
+    els = obs["elements"]
+    words = {e["text"] for e in els if e.get("frame") and e.get("role") == "button"}
+    assert {"red", "blue", "orange", "green"} <= words, words
+    zones = [e for e in els if e.get("frame") and e.get("dropzone") and "Drop Zone" in (e.get("label") or "")]
+    assert len(zones) == 3, zones
+    assert any(e.get("text") == "Check" and e.get("frame") for e in els)
+    assert sum(1 for e in els if not e.get("frame")) >= 100, "the outer page keeps a fair share"
+    fs = obs["form_status"]
+    assert fs["unanswered"] == 3 and {it["kind"] for it in fs["items"]} == {"drop"}, fs
+
+
+def test_filled_h5p_zone_counts_as_answered(browser, goto):
+    goto("h5p_like.html")
+    els = browser.execute("ai_observe", {"marks": False})["elements"]
+    blue = next(e for e in els if e.get("text") == "blue" and e.get("frame"))
+    zone1 = next(e for e in els if "Drop Zone 1" in (e.get("label") or ""))
+    assert browser.execute("ai_act", {"action": "click", "id": blue["id"]})["status"] == "ok"
+    assert browser.execute("ai_act", {"action": "click", "id": zone1["id"]})["status"] == "ok"
+    assert browser.execute("form_status", {})["unanswered"] == 2
+
+
+def test_false_done_is_rejected_while_blanks_remain(browser, bus, goto):
+    goto("h5p_like.html")
+    ai = AIController(browser, bus)
+    ai.settings.update({"api_key": "k", "max_steps": 6, "action_delay_ms": 0})
+    ai.llm = Script([lambda p: _plan([], status="done")])  # Flash-Lite's mistake: "done" without dragging anything
+    ai.run_command("Làm bài kéo thả này rồi bấm Check")
+    ai.current_task_thread.join(60)
+    msgs = [m["text"] for m in ai.get_status()["messages"]]
+    assert sum("AI định báo xong" in t for t in msgs) == AIController.MAX_DONE_REJECTS
+    assert "you said DONE" in ai.llm.prompts[1] and "3 unanswered" in ai.llm.prompts[1]
+    assert len(ai.llm.prompts) == AIController.MAX_DONE_REJECTS + 1, "after two rejections the model may insist"

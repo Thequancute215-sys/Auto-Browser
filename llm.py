@@ -3,10 +3,14 @@ import json
 import re
 import threading
 import time
-from concurrent.futures import ThreadPoolExecutor, TimeoutError as FutureTimeout
+from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, TimeoutError as FutureTimeout, wait
 from typing import List, Optional
 
 CALL_TIMEOUT_S = 90  # hard ceiling per request; the SDK otherwise waits/retries for minutes
+OVERLOAD_COOLDOWN_S = 120  # an overloaded (503) model is tried last for this long
+# A normal agent step answers in 5-25 s. When Google is busy a request can hang ~80 s and then fail with 503,
+# so after this long the same request also goes to the next model and the first good answer wins.
+HEDGE_AFTER_S = 30
 RETRYABLE =("429", "500", "502", "503", "504", "RESOURCE_EXHAUSTED", "UNAVAILABLE", "INTERNAL", "DEADLINE", "timed out")
 MODEL_MISSING = ("404", "NOT_FOUND", "is not found", "not supported")
 
@@ -76,9 +80,13 @@ class GeminiClient:
         self._client = None
         self._key = None
         self._lock = threading.Lock()
-        self._pool = ThreadPoolExecutor(max_workers=4, thread_name_prefix="gemini")
+        # Abandoned (hedged-away) requests keep a worker until they time out, hence the headroom.
+        self._pool = ThreadPoolExecutor(max_workers=8, thread_name_prefix="gemini")
+        self._race_pool = ThreadPoolExecutor(max_workers=6, thread_name_prefix="gemini-race")
         self._sticky = {}  # primary model -> (fallback that worked, expiry timestamp)
         self._exhausted = {}  # model -> (timestamp when the free quota resets, kind)
+        self._overloaded = {}  # model -> timestamp until which it goes to the back of the queue (503 / server busy)
+        self._missing = set()  # models this key does not have (404): skipped for the rest of the session
         self.last_switch_reason = None
         self.last_model_used = None
         self.usage = {"calls": 0, "input_tokens": 0, "output_tokens": 0}
@@ -159,7 +167,10 @@ class GeminiClient:
         sticky = self._sticky.get(model)
         if sticky and sticky[1] > time.time():
             candidates.insert(0, sticky[0])  # primary failed recently: start from the model that worked
-        candidates = list(dict.fromkeys(candidates))
+        candidates = [m for m in dict.fromkeys(candidates) if m not in self._missing] or [model]
+        # Models that were overloaded a moment ago are tried last: a busy model often stays busy for minutes,
+        # and each 503 takes Google tens of seconds to return.
+        candidates.sort(key=self._is_overloaded)
         self.last_switch_reason = None
         last_err = None
         tried = set()
@@ -168,35 +179,79 @@ class GeminiClient:
         while i < len(candidates):
             mod = candidates[i]
             i += 1
-            tried.add(mod)
-            if self._is_exhausted(mod):
+            if mod in tried:
+                pass  # already raced as the backup of an earlier model
+            elif self._is_exhausted(mod):
+                tried.add(mod)
                 self._note_switch(mod, on_retry)
                 last_err = LLMError(self._exhausted_msg(mod))
             else:
-                contents, config = payload(mod)
-                text, last_err = self._try_model(client, mod, contents, config, should_stop, on_retry)
+                tried.add(mod)
+                backups = [m for m in candidates[i:] if m not in tried]
+                text, err, used, raced = self._hedged(client, mod, backups, payload, should_stop, on_retry)
+                tried.update(raced)
+                last_err = err or last_err
                 if text is not None:
-                    self.last_model_used = mod
-                    if mod != model:
-                        self._sticky[model] = (mod, time.time() + 300)
+                    self.last_model_used = used
+                    if used != model:
+                        self._sticky[model] = (used, time.time() + 300)
                     elif model in self._sticky:
                         del self._sticky[model]
                     return text
-            if i == len(candidates) and not discovered and self._all_quota(candidates):
-                # Every configured model is out of free quota: other Gemini models have their own buckets.
+            if i == len(candidates) and not discovered and self._all_unavailable(candidates):
+                # Every configured model is out of free quota or overloaded: other Gemini / Gemma models have
+                # their own quota buckets and servers (Flash-Lite is rarely overloaded when Flash is).
                 discovered = True
                 extra = self._discover_alternatives(api_key, tried)
                 if extra and on_retry:
-                    on_retry(f"Các mô hình đã chọn hết lượt, thử thêm: {', '.join(extra[:3])}...")
+                    on_retry(f"Các mô hình đã chọn đang hết lượt hoặc quá tải, thử thêm: {', '.join(extra[:3])}...")
                 candidates += extra
         if candidates and all(self._is_exhausted(m) for m in candidates):
             soonest = min(self._exhausted.get(m, (0, ""))[0] for m in candidates)
             raise QuotaExhausted("Tất cả mô hình Google (Gemini, Gemma) đã hết lượt miễn phí hôm nay. "
                                  f"Có lượt lại sau khoảng {_fmt_wait(soonest - time.time())}, "
                                  "hoặc dùng mô hình chạy trên máy (Ollama) / Claude trong ⚙️ Cài đặt.")
+        if candidates and all(self._is_overloaded(m) or self._is_exhausted(m) for m in candidates):
+            raise LLMError("Máy chủ Google đang quá tải cho mọi mô hình Gemini/Gemma đã thử. Bấm Chạy lại sau ít phút, "
+                           "hoặc chọn Claude / AI trên máy (Ollama) trong ⚙️ Cài đặt.")
         raise LLMError(self._friendly(str(last_err)) if last_err else "Không gọi được mô hình.")
 
     # ---------------------------------------------------------------- quota handling
+
+    def _hedged(self, client, mod, backups, payload, should_stop, on_retry):
+        """Runs `mod`; if it has not answered after HEDGE_AFTER_S, races the next of `backups` with the same
+        request. A backup that fails (out of quota, 503) is replaced by the next one at once, so a model that
+        hangs never makes the step wait for it. At most two requests run at a time.
+        Returns (text, last_error, model_that_answered, backups_started)."""
+        def run(m):
+            contents, config = payload(m)
+            return self._try_model(client, m, contents, config, should_stop, on_retry)
+
+        futs = {self._race_pool.submit(run, mod): mod}
+        hedge_at = time.time() + HEDGE_AFTER_S
+        pending, raced, last_err = list(backups), [], None
+        while futs:
+            if should_stop and should_stop():
+                raise LLMError("Đã dừng theo yêu cầu.")
+            done, _ = wait(list(futs), timeout=0.25, return_when=FIRST_COMPLETED)
+            for f in done:
+                m = futs.pop(f)
+                text, err = f.result()  # LLMError (bad key, stop) propagates
+                if text is not None:
+                    return text, None, m, raced  # the slower request finishes on its own and is ignored
+                last_err = err
+                if m != mod:
+                    hedge_at = time.time()  # a failed backup is replaced at once
+            if futs and len(futs) < 2 and time.time() >= hedge_at:
+                pending = [b for b in pending if not self._is_exhausted(b)]
+                if pending:
+                    backup = pending.pop(0)
+                    raced.append(backup)
+                    hedge_at = time.time() + HEDGE_AFTER_S
+                    if on_retry:
+                        on_retry(f"{mod} trả lời chậm, gửi song song cho {backup}...")
+                    futs[self._race_pool.submit(run, backup)] = backup
+        return None, last_err, None, raced
 
     def _try_model(self, client, mod, contents, config, should_stop, on_retry):
         """One model: returns (text, None) or (None, error). Daily quota → no retry; per-minute → wait as told."""
@@ -204,6 +259,7 @@ class GeminiClient:
         for attempt in range(3):
             if should_stop and should_stop():
                 raise LLMError("Đã dừng theo yêu cầu.")
+            t_call = time.time()
             try:
                 resp = self._call(lambda: client.models.generate_content(model=mod, contents=contents, config=config),
                                   should_stop=should_stop)
@@ -213,6 +269,7 @@ class GeminiClient:
                 err = str(e)
                 last_err = e
                 if any(k in err for k in MODEL_MISSING):
+                    self._missing.add(mod)
                     if on_retry:
                         on_retry(f"Không có mô hình {mod}, thử mô hình dự phòng...")
                     return None, e
@@ -231,12 +288,15 @@ class GeminiClient:
                         continue
                     return None, e
                 if any(k in err for k in RETRYABLE):  # overload / server error
-                    if attempt < 2:
-                        wait = 1.5 * (2 ** attempt)
+                    # One quick retry (a blip), then move on: Google can take ~30 s to answer each 503,
+                    # so three attempts per model turned a busy hour into minutes of waiting per step.
+                    # A 503 that itself took long is no blip: no retry then.
+                    if attempt < 1 and time.time() - t_call < 10:
                         if on_retry:
-                            on_retry(f"{mod} đang quá tải, thử lại sau {wait:.0f}s ({attempt + 2}/3)")
-                        _sleep_unless_stopped(wait, should_stop)
+                            on_retry(f"{mod} đang quá tải, thử lại sau 2s (2/2)")
+                        _sleep_unless_stopped(2, should_stop)
                         continue
+                    self._overloaded[mod] = time.time() + OVERLOAD_COOLDOWN_S
                     if on_retry:
                         on_retry(f"{mod} vẫn quá tải, chuyển sang mô hình dự phòng...")
                     return None, e
@@ -265,8 +325,11 @@ class GeminiClient:
         if on_retry:
             on_retry(f"{self.last_switch_reason}, chuyển mô hình khác...")
 
-    def _all_quota(self, candidates):
-        return all(self._is_exhausted(m) for m in candidates)
+    def _is_overloaded(self, mod):
+        return self._overloaded.get(mod, 0) > time.time()
+
+    def _all_unavailable(self, candidates):
+        return all(self._is_exhausted(m) or self._is_overloaded(m) for m in candidates)
 
     def _discover_alternatives(self, api_key, tried):
         """The model pool: other Flash, Flash-Lite and Gemma models of this key, best first.

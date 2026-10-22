@@ -1,0 +1,48 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>H5P-like drag the words</title>
+<style>body{font-family:sans-serif;margin:0} nav a{display:inline-block;margin:2px 6px;font-size:12px} iframe{border:0;width:100%;height:260px}</style>
+</head><body>
+<!-- Like h5p.org: a link-heavy outer page (more links than the observation budget) and the exercise in an
+     iframe whose document is written by script (its URL stays about:blank). -->
+<nav id="menu"></nav>
+<iframe id="player"></iframe>
+<footer id="foot"></footer>
+<script>
+  const menu = document.getElementById('menu'), foot = document.getElementById('foot');
+  for (let i = 1; i <= 150; i++) menu.insertAdjacentHTML('beforeend', `<a href="#m${i}">Menu link ${i}</a>`);
+  for (let i = 1; i <= 150; i++) foot.insertAdjacentHTML('beforeend', `<a href="#f${i}">Footer link ${i}</a> `);
+  const doc = document.getElementById('player').contentDocument;
+  doc.open();
+  doc.write(`<!doctype html><html><head><style>
+    .h5p-drag-draggable{display:inline-block;padding:4px 10px;margin:4px;background:#ddd;cursor:pointer}
+    .ui-droppable{display:inline-block;min-width:70px;height:22px;background:#cde;vertical-align:middle}
+    .h5p-drag-dropzone-container{display:inline-block}
+  </style></head><body>
+  <div class="h5p-drag-inner"><div class="h5p-drag-task">
+    <div class="h5p-drag-droppable-words">
+      Blueberries are <div class="h5p-drag-dropzone-container"><div class="ui-droppable" aria-dropeffect="none" aria-label="Drop Zone 1. Drop Zone 1 is empty." data-zone="1"></div></div>.<br>
+      Strawberries are <div class="h5p-drag-dropzone-container"><div class="ui-droppable" aria-dropeffect="none" aria-label="Drop Zone 2. Drop Zone 2 is empty." data-zone="2"></div></div>.<br>
+      Cloudberries are <div class="h5p-drag-dropzone-container"><div class="ui-droppable" aria-dropeffect="none" aria-label="Drop Zone 3. Drop Zone 3 is empty." data-zone="3"></div></div>.
+    </div>
+    <div class="h5p-drag-draggables-container">
+      <div class="h5p-drag-draggable" role="button" aria-grabbed="false">red</div>
+      <div class="h5p-drag-draggable" role="button" aria-grabbed="false">blue</div>
+      <div class="h5p-drag-draggable" role="button" aria-grabbed="false">orange</div>
+      <div class="h5p-drag-draggable" role="button" aria-grabbed="false">green</div>
+    </div>
+    <button class="h5p-question-check-answer">Check</button>
+  </div></div>
+  <script>
+    // Click a word, then click a blank (H5P's keyboard/click mode).
+    let picked = null;
+    document.querySelectorAll('.h5p-drag-draggable').forEach(w => w.onclick = () => { picked = w; });
+    document.querySelectorAll('.ui-droppable').forEach(z => z.onclick = () => {
+      if (!picked) return;
+      z.appendChild(picked);
+      z.setAttribute('aria-label', 'Drop Zone ' + z.dataset.zone + '. Drop Zone ' + z.dataset.zone + ' contains draggable ' + picked.textContent + '.');
+      picked = null;
+    });
+  <\/script></body></html>`);
+  doc.close();
+</script>
+</body></html>

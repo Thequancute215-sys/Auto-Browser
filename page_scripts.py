@@ -411,10 +411,16 @@ FORM_STATUS = r"""
     const placeholder = o && s.selectedIndex === 0 && (o.value === '' || /^(|chọn.*|chon.*|select.*|choose.*|pick.*)$/i.test(bare));
     if (!o || s.selectedIndex < 0 || placeholder) push(s, 'dropdown');
   }
-  for (const d of document.querySelectorAll('[ondrop], [aria-dropeffect], [data-droppable], [class*=droppable], [class*=dropzone], [class*=drop-zone]')) {
-    if (!shown(d) || ignored(d) || d.parentElement.closest('[ondrop], [aria-dropeffect], [data-droppable], [class*=droppable], [class*=dropzone], [class*=drop-zone]')) continue;
+  // Only the innermost drop zones are blanks: players wrap them in containers that also look droppable
+  // (H5P: .h5p-drag-droppable-words > .h5p-drag-dropzone-container > div.ui-droppable[aria-dropeffect]).
+  const DROPS = '[ondrop], [aria-dropeffect], [data-droppable], [class*=droppable], [class*=dropzone], [class*=drop-zone]';
+  for (const d of document.querySelectorAll(DROPS)) {
+    if (!shown(d) || ignored(d) || d.querySelector(DROPS)) continue;
     total++;
-    if (!clean(d.innerText) && !d.querySelector('img, [draggable=true]')) push(d, 'drop');
+    const said = d.getAttribute('aria-label') || '';
+    const empty = /\b(is empty|empty)\b|trống/i.test(said)
+      || (!/\bcontains?\b|chứa/i.test(said) && !clean(d.innerText) && !d.querySelector('img, [draggable=true], [role=button]'));
+    if (empty) push(d, 'drop');
   }
   return { total, unanswered: items.length, items: items.slice(0, 15) };
 }
@@ -509,4 +515,26 @@ AI_RIPPLE = r"""
 
 READ_FIELD_VALUE = r"""
 (el) => el.isContentEditable ? el.innerText : (el.value !== undefined ? el.value : el.innerText)
+"""
+
+# Before typing with the keyboard: is the focused element the target (or a text field inside it or in its
+# place, e.g. a gap that is replaced by an input when clicked)? Otherwise keys would land in whatever else
+# has focus. MARK_TYPE_TARGET runs before the click and remembers where the target was.
+MARK_TYPE_TARGET = r"""
+(el) => { const r = el.getBoundingClientRect(); window.__aibTypeRect = {left: r.left, top: r.top, right: r.right, bottom: r.bottom}; }
+"""
+
+OWNS_TEXT_FOCUS = r"""
+(aid) => {
+  const el = document.querySelector('[data-aid="' + aid + '"]');
+  let f = document.activeElement;
+  while (f && f.shadowRoot && f.shadowRoot.activeElement) f = f.shadowRoot.activeElement;
+  if (!f || f === document.body) return false;
+  const a = el && el.isConnected ? el.getBoundingClientRect() : window.__aibTypeRect, b = f.getBoundingClientRect();
+  const overlaps = !!a && a.right > a.left && a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom;
+  if (!((el && (f === el || el.contains(f) || f.contains(el))) || overlaps)) return false;
+  const tag = f.tagName.toLowerCase();
+  return f.isContentEditable || tag === 'textarea'
+    || (tag === 'input' && !/^(button|submit|reset|checkbox|radio|file|image|range|color|hidden)$/i.test(f.type));
+}
 """

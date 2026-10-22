@@ -822,6 +822,7 @@ function openSettings() {
   $('claudeKeyInput').placeholder = c.masked_claude_key ? `Đã lưu: ${c.masked_claude_key}. Nhập khóa mới để thay` : 'Dán khóa (sk-ant-...)';
   $('claudeModelInput').value = c.claude_model || 'claude-opus-5-5';
   $('setAutoUpdate').checked = c.auto_update !== false;
+  $('setBlockAds').checked = c.block_ads !== false;
   $('startUrlInput').value = c.start_url || '';
   $('updateTokenInput').value = '';
   $('updateTokenInput').placeholder = c.has_update_token ? 'Đã lưu token. Nhập token mới để thay' : 'github_pat_... (quyền chỉ đọc Contents)';
@@ -889,6 +890,7 @@ function collectSettings() {
     local_model: $('localModelInput').value.trim(),
     local_fallback: $('setLocalFallback').checked,
     auto_update: $('setAutoUpdate').checked,
+    block_ads: $('setBlockAds').checked,
     start_url: $('startUrlInput').value.trim(),
   };
   const updToken = $('updateTokenInput').value.trim();

@@ -75,3 +75,28 @@ def test_offscreen_links_reach_the_agent(browser, goto):
     texts = [e["text"] for e in els if e.get("tag") == "a"]
     assert any(t.startswith("Lesson 30:") for t in texts), "links scrolled away inside the sidebar are listed"
     assert all(e.get("offscreen") for e in els if e.get("text", "").startswith("Lesson 30:"))
+
+
+def test_link_in_a_task_is_opened_before_the_first_llm_call(browser, bus, goto, site):
+    """'Vào <link> rồi làm bài': the app opens the link itself; the first LLM call already sees the exercise."""
+    import json
+    goto("course.html")
+    seen = []
+
+    class FirstLook:
+        usage = {"calls": 0, "input_tokens": 0, "output_tokens": 0}
+        last_model_used = None
+
+        def generate(self, api_key, model, prompt, **kw):
+            seen.append(prompt)
+            return json.dumps({"observation": "-", "plan": "-", "answers": [], "actions": [], "status": "done", "message": "ok"})
+
+    from ai_controller import AIController
+    ai = AIController(browser, bus)
+    ai.settings.update({"api_key": "k", "max_steps": 2, "action_delay_ms": 0})
+    ai.llm = FirstLook()
+    ai.run_command(f"Vào {site}/quiz.html rồi làm hết bài tập")
+    ai.current_task_thread.join(60)
+    assert seen and "quiz.html" in browser.get_state()["active_url"]
+    assert "quiz.html" in seen[0] or "Choose" in seen[0] or "went" in seen[0], "the first call sees the exercise page"
+    assert any("không tốn lượt gọi AI" in m["text"] for m in ai.get_status()["messages"])

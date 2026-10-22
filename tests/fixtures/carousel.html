@@ -1,0 +1,33 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Examples carousel</title>
+<style>body{font-family:sans-serif;margin:20px} header{display:flex;gap:12px;align-items:center} .gap{display:inline-block;min-width:80px;height:20px;vertical-align:middle;border-bottom:1px solid #333;cursor:text}</style>
+</head><body>
+<!-- Like h5p.org: a site search box in the header, a logo link, and an examples carousel ("1 of 2"). -->
+<header>
+  <a id="logo" href="#home">Site logo</a>
+  <input id="search" placeholder="Search site">
+  <span id="tip" tabindex="0" role="note" onclick="document.getElementById('search').focus()">Tip: search the site</span>
+</header>
+<section id="carousel">
+  <button id="prev" onclick="show(0)">Previous</button>
+  <span id="count">1 of 2</span>
+  <button id="next" onclick="show(1)">Next</button>
+  <div id="ex0">Example 1: <input id="a0"> is the capital of France.</div>
+  <div id="ex1" hidden>Example 2: <input id="a1"> is the capital of Spain.</div>
+</section>
+<!-- A gap that is replaced by an input when clicked (some LMS widgets do this). -->
+<p>Gap: The sky is <span class="gap" id="gap" tabindex="0"></span>.</p>
+<script>
+  function show(i) {
+    document.getElementById('ex0').hidden = i !== 0;
+    document.getElementById('ex1').hidden = i !== 1;
+    document.getElementById('count').textContent = (i + 1) + ' of 2';
+  }
+  document.getElementById('gap').addEventListener('click', e => {
+    const inp = document.createElement('input');
+    inp.id = 'gapInput';
+    e.target.replaceWith(inp);
+    inp.focus();
+  });
+</script>
+</body></html>

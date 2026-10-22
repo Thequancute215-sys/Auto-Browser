@@ -77,6 +77,7 @@ class BrowserManager:
         self._registered_pages = weakref.WeakSet()
         self._pending_page = None
         self._ai_elements = {}
+        self._inflight = {}  # request -> start time, active tab only (see _wait_network_quiet)
         self._scroll_frame = None
         self._typed_buffer = ""
         self._dnd_pref = {}  # host -> drag strategy that worked last time
@@ -229,6 +230,12 @@ class BrowserManager:
             print(f"[timing] playwright driver up: {time.time() - t_start:.1f}s", flush=True)
             self.context = self._launch(p)
             print(f"[timing] chromium launched: {time.time() - t_start:.1f}s", flush=True)
+            # Safety net for any Playwright call without its own timeout: Playwright's 30 s default equals
+            # execute()'s, so a stuck call kept the worker busy past it and every queued command timed out.
+            self.context.set_default_timeout(10000)
+            if config.BLOCK_ADS:
+                # The pattern is matched inside the Playwright driver: other requests never reach Python.
+                self.context.route(config.AD_URL_RE, lambda route: route.abort("blockedbyclient"))
             self.context.on("page", self._on_context_page)
             first = self.context.pages[0] if self.context.pages else self.context.new_page()
             self._register_page(first)
@@ -317,6 +324,47 @@ class BrowserManager:
         page.on("framenavigated", lambda fr, pg=page: self._on_navigated(pg, fr))
         page.on("load", lambda _=None, pg=page: self._on_load(pg))
         page.on("response", lambda resp, pg=page: self._on_response(pg, resp))
+        page.on("request", lambda req, pg=page: self._on_request(pg, req))
+        page.on("requestfinished", self._on_request_done)
+        page.on("requestfailed", self._on_request_done)
+
+    # Requests that never "finish" by design; they must not keep the page looking busy.
+    QUIET_IGNORE = ("eventsource", "websocket", "media", "ping", "manifest")
+
+    def _on_request(self, page, req):
+        if page is not self.page:
+            return
+        try:
+            if req.resource_type in self.QUIET_IGNORE:
+                return
+        except Exception:
+            return
+        if len(self._inflight) > 500:
+            self._inflight.clear()
+        self._inflight[req] = time.time()
+
+    def _on_request_done(self, req):
+        self._inflight.pop(req, None)
+
+    def _wait_network_quiet(self, start, max_ms=3000, quiet_ms=300):
+        """Content that scripts load after a click (an H5P player writing its iframe, an LMS fetching the next
+        question) arrives after DOMContentLoaded. Seen on h5p.org: the agent looked 0.6 s after "Next", saw an
+        empty player and pressed Next again. Waits until no recent request is in flight; requests started more
+        than 5 s before the action are long polls and are ignored."""
+        deadline = time.time() + max_ms / 1000
+        quiet_since = None
+        while time.time() < deadline:
+            now = time.time()
+            if any(t > start - 5 for t in list(self._inflight.values())):
+                quiet_since = None
+            elif quiet_since is None:
+                quiet_since = now
+            elif now - quiet_since >= quiet_ms / 1000:
+                return
+            try:
+                self.page.wait_for_timeout(100)
+            except Exception:
+                return
 
     def _on_response(self, page, resp):
         """Remembers audio the page loads (players often use WebAudio/fetch, with no <audio> tag)."""
@@ -363,6 +411,7 @@ class BrowserManager:
         self._stop_screencast()
         self.page = page
         self._ai_elements = {}
+        self._inflight = {}
         self._scroll_frame = None
         try:
             page.bring_to_front()
@@ -1036,12 +1085,20 @@ class BrowserManager:
         self._ai_elements = {}
         vw, vh = self.viewport["width"], self.viewport["height"]
         annotated = []
+        # Exercise players (H5P, LMS activities) usually live in iframes while the outer page is menus and
+        # links. Annotating the main frame first let a link-heavy page (h5p.org: 260+) use the whole budget,
+        # so the exercise itself was invisible. Iframes go first with a shared cap; the main frame keeps the rest
+        # (at least MAIN_RESERVE, enough for its Submit/Next buttons and menus).
+        main_reserve = min(limit, 120)
+        order = list(range(1, len(frames))) + [0]
 
-        for fi, (fr, ox, oy) in enumerate(frames):
-            if len(elements) >= limit:
-                break
+        for fi in order:
+            fr, ox, oy = frames[fi]
+            room = limit - len(elements) if fi == 0 else (limit - main_reserve) - len(elements)
+            if room <= 0:
+                continue
             try:
-                res = fr.evaluate(js.ANNOTATE_ELEMENTS, {"start": next_id, "limit": limit - len(elements)})
+                res = fr.evaluate(js.ANNOTATE_ELEMENTS, {"start": next_id, "limit": room})
             except Exception:
                 continue
             annotated.append(fr)
@@ -1119,6 +1176,7 @@ class BrowserManager:
 
     def _cmd_ai_act(self, a):
         kind = a.get("action")
+        started = time.time()
         page, kb, mouse = self.page, self.page.keyboard, self.page.mouse
         loc = info = None
         result = {"status": "ok"}
@@ -1147,13 +1205,43 @@ class BrowserManager:
                 try:
                     loc.click(timeout=1500, force=True)
                 except Exception:
-                    mouse.click(info["x"], info["y"])
+                    # Where the element is now, not where it was when the page was observed: the LLM step may
+                    # have taken a minute, and late ads shift the layout (a stale point can land on an ad).
+                    try:
+                        box = loc.bounding_box(timeout=1000)
+                    except Exception:
+                        box = None
+                    if not box or box["width"] < 1 or box["height"] < 1:
+                        return {"status": "error", "message": f"Không bấm được #{eid}: phần tử không còn hiển thị"}
+                    mouse.click(box["x"] + box["width"] / 2, box["y"] + box["height"] / 2)
             self.log(f"AI click #{info['id']} {info.get('text') or info.get('label') or ''}"[:90])
 
         elif kind == "type":
             text = str(a.get("text", ""))
+            name = (info.get("text") or info.get("label") or "")[:30]
+            not_field = {"status": "error", "message": f"#{eid} «{name}» không phải ô nhập chữ nên không gõ "
+                                                       "(tránh gõ nhầm vào ô khác đang được chọn)"}
+            # A model that reuses an id from an earlier step can aim "type" at a link or button. Clicking it
+            # and then pressing Ctrl+A/Delete would type into whatever has focus (seen: h5p.org's search box).
+            if not info.get("editable") and (info.get("tag") in ("a", "button", "select", "option") or info.get("toggle")
+                                             or info.get("role") in ("button", "link", "tab", "radio", "checkbox", "option",
+                                                                     "menuitem", "switch")):
+                return not_field
+
+            def owns_focus():
+                try:
+                    return bool(frame.evaluate(js.OWNS_TEXT_FOCUS, eid))
+                except Exception:
+                    return False
+
+            try:
+                loc.evaluate(js.MARK_TYPE_TARGET, timeout=1500)
+            except Exception:
+                pass
             if info.get("editable") in (None, "content"):
                 loc.click(timeout=2500)
+                if not owns_focus():
+                    return not_field
                 kb.press("Control+A")
                 kb.press("Delete")
                 kb.insert_text(text)
@@ -1162,12 +1250,16 @@ class BrowserManager:
                     loc.fill(text, timeout=2500)
                 except Exception:
                     loc.click(timeout=2500, force=True)
+                    if not owns_focus():
+                        return {"status": "error", "message": f"Không điền được #{eid}: ô không nhận được con trỏ"}
                     kb.press("Control+A")
                     kb.insert_text(text)
             if a.get("enter"):
                 kb.press("Enter")
             try:
-                result["value"] = (loc.evaluate(js.READ_FIELD_VALUE) or "")[:200]
+                # Bounded: an H5P player re-renders after input and the default locator wait is 30 s,
+                # as long as the caller's own timeout, which then made every later command time out too.
+                result["value"] = (loc.evaluate(js.READ_FIELD_VALUE, timeout=1500) or "")[:200]
             except Exception:
                 pass
             self.log(f"AI điền #{info['id']}: {text[:40]}")
@@ -1242,4 +1334,6 @@ class BrowserManager:
             page.wait_for_timeout(int(a.get("_settle_ms", 250)))
         except Exception:
             pass
+        if int(a.get("_settle_ms", 250)) >= 600 and kind in ("click", "press", "navigate", "select", "type", "drag"):
+            self._wait_network_quiet(started)  # last action of an agent step: the next thing is a new observation
         return result
