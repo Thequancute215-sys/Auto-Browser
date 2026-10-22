@@ -12,7 +12,15 @@ OVERLOAD_COOLDOWN_S = 120  # an overloaded (503) model is tried last for this lo
 # so after this long the same request also goes to the next model and the first good answer wins.
 HEDGE_AFTER_S = 30
 RETRYABLE =("429", "500", "502", "503", "504", "RESOURCE_EXHAUSTED", "UNAVAILABLE", "INTERNAL", "DEADLINE", "timed out")
-MODEL_MISSING = ("404", "NOT_FOUND", "is not found", "not supported")
+MODEL_MISSING = ("NOT_FOUND", "is not found", "not supported")
+
+
+def _model_missing(err: str) -> bool:
+    """404 / NOT_FOUND for this model. Never a quota or overload error: a daily-quota 429 says "retry in
+    15h23m25.0404..." and a bare substring test for "404" once took gemini-3.7-flash out of the pool for the session."""
+    if _parse_quota(err) or any(k in err for k in ("503", "UNAVAILABLE", "overloaded")):
+        return False
+    return bool(re.match(r"\s*404\b", err) or re.search(r"['\"]code['\"]\s*:\s*404\b", err)) or any(k in err for k in MODEL_MISSING)
 
 
 class LLMError(Exception):
@@ -268,7 +276,7 @@ class GeminiClient:
             except Exception as e:
                 err = str(e)
                 last_err = e
-                if any(k in err for k in MODEL_MISSING):
+                if _model_missing(err):
                     self._missing.add(mod)
                     if on_retry:
                         on_retry(f"Không có mô hình {mod}, thử mô hình dự phòng...")
@@ -361,7 +369,7 @@ class GeminiClient:
             return "Đã hết hạn mức (quota) của API Key cho các mô hình đã thử. Đợi một lúc hoặc đổi mô hình."
         if "PERMISSION_DENIED" in err or "403" in err:
             return "API Key không có quyền dùng mô hình này."
-        if any(k in err for k in MODEL_MISSING):
+        if _model_missing(err):
             return "Không tìm thấy mô hình. Bấm 'Tải danh sách' trong Cài đặt để chọn mô hình có sẵn."
         return err[:300]
 

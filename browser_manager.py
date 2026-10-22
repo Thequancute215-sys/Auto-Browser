@@ -62,6 +62,7 @@ class BrowserManager:
         self.url = ""
         self.title = ""
         self.loading = False
+        self._loading_since = 0.0
         self.scroll_info = {"currentY": 0, "maxY": 0, "viewH": config.VIEWPORT_HEIGHT, "ratio": 0.0,
                             "canScrollDown": False, "canScrollUp": False}
         self.mouse = {"x": config.VIEWPORT_WIDTH // 2, "y": config.VIEWPORT_HEIGHT // 2}
@@ -335,6 +336,9 @@ class BrowserManager:
         if page is not self.page:
             return
         try:
+            if req.is_navigation_request() and req.frame == page.main_frame:
+                self.loading = True
+                self._loading_since = time.time()
             if req.resource_type in self.QUIET_IGNORE:
                 return
         except Exception:
@@ -345,6 +349,12 @@ class BrowserManager:
 
     def _on_request_done(self, req):
         self._inflight.pop(req, None)
+        try:
+            # A navigation that ends without a new document (204, download, aborted) never fires "load".
+            if req.is_navigation_request() and req.frame == self.page.main_frame and req.failure:
+                self.loading = False
+        except Exception:
+            pass
 
     def _wait_network_quiet(self, start, max_ms=3000, quiet_ms=300):
         """Content that scripts load after a click (an H5P player writing its iframe, an LMS fetching the next
@@ -398,7 +408,9 @@ class BrowserManager:
             for m in stale:
                 self._media.remove(m)
         if page is self.page and frame == page.main_frame:
-            self.loading = True
+            # Not "loading = True" here: this also fires for #hash and pushState changes (h5p.org's example
+            # carousel, single-page apps like Cambridge One), which never fire "load", so the tab looked busy
+            # forever. A real navigation sends a document request first (_on_request).
             self.url = page.url
             self._scroll_frame = None
 
@@ -569,7 +581,8 @@ class BrowserManager:
             "tabs": self.tabs,
             "active_url": self.url,
             "title": self.title,
-            "loading": self.loading,
+            # Safety net for a navigation whose "load" never comes (a page that keeps loading resources forever).
+            "loading": self.loading and time.time() - self._loading_since < 45,
             "scroll": self.scroll_info,
             "viewport": self.viewport,
             "screencast": self.screencast_ok,
@@ -649,7 +662,7 @@ class BrowserManager:
     def _cmd_goto(self, p):
         url = self._normalize_url(p.get("url", ""))
         self.log(f"Chuyển tới: {url[:90]}")
-        self.loading = True
+        self.loading, self._loading_since = True, time.time()
         try:
             self.page.goto(url, timeout=30000, wait_until="domcontentloaded")
         finally:

@@ -414,12 +414,21 @@ FORM_STATUS = r"""
   // Only the innermost drop zones are blanks: players wrap them in containers that also look droppable
   // (H5P: .h5p-drag-droppable-words > .h5p-drag-dropzone-container > div.ui-droppable[aria-dropeffect]).
   const DROPS = '[ondrop], [aria-dropeffect], [data-droppable], [class*=droppable], [class*=dropzone], [class*=drop-zone]';
+  // Some players leave a dropped item where it is in the DOM and only position it over the zone
+  // (H5P Drag and Drop: .h5p-draggable.h5p-dropped stays outside .h5p-dropzone): such a zone is filled too.
+  const items_ = [...document.querySelectorAll('[draggable=true], [aria-grabbed], [class*=draggable]')]
+    .filter(el => shown(el) && !el.querySelector(DROPS)).map(el => el.getBoundingClientRect());
+  const covered = d => {
+    const z = d.getBoundingClientRect();
+    return items_.some(r => { const x = r.left + r.width / 2, y = r.top + r.height / 2;
+      return x >= z.left && x <= z.right && y >= z.top && y <= z.bottom; });
+  };
   for (const d of document.querySelectorAll(DROPS)) {
     if (!shown(d) || ignored(d) || d.querySelector(DROPS)) continue;
     total++;
     const said = d.getAttribute('aria-label') || '';
     const empty = /\b(is empty|empty)\b|trống/i.test(said)
-      || (!/\bcontains?\b|chứa/i.test(said) && !clean(d.innerText) && !d.querySelector('img, [draggable=true], [role=button]'));
+      || (!/\bcontains?\b|chứa/i.test(said) && !clean(d.innerText) && !d.querySelector('img, [draggable=true], [role=button]') && !covered(d));
     if (empty) push(d, 'drop');
   }
   return { total, unanswered: items.length, items: items.slice(0, 15) };

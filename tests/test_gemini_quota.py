@@ -34,7 +34,7 @@ class FakeGenai:
     def _gen(self, model, contents, config):
         self.calls.append(model)
         nxt = self.script[model].pop(0) if self.script.get(model) else "429 RESOURCE_EXHAUSTED PerDay retry in 1h"
-        if nxt.startswith("429") or nxt.startswith("503"):
+        if nxt[:3] in ("429", "503", "404"):
             raise RuntimeError(nxt)
         return SimpleNamespace(text=nxt, usage_metadata=None)
 
@@ -192,3 +192,22 @@ def test_slow_503_is_not_retried(monkeypatch):
     c = _client(fake)
     assert c.generate("k", "gemini-3.7-flash", "p", fallbacks=["gemini-3.5-flash"]) == "OK"
     assert fake.calls == ["gemini-3.7-flash", "gemini-3.5-flash"], "a 503 that took 30 s is not a blip"
+
+
+def test_daily_quota_whose_retry_time_contains_404_is_not_a_missing_model():
+    """Live: "Please retry in 15h23m25.0404...s" matched a bare "404" test; the primary model was then dropped
+    for the whole session (it would have been skipped even after the quota reset)."""
+    msg = DAILY.replace("9h50m5.002616136s", "15h23m25.040474635s")
+    assert "404" in msg
+    fake = FakeGenai({"gemini-3.7-flash": [msg], "gemini-3.5-flash": ["OK"]})
+    c = _client(fake)
+    assert c.generate("k", "gemini-3.7-flash", "p", fallbacks=["gemini-3.5-flash"]) == "OK"
+    assert "gemini-3.7-flash" not in c._missing and c._is_exhausted("gemini-3.7-flash")
+
+
+def test_real_404_is_a_missing_model():
+    fake = FakeGenai({"gemini-2.5-flash": ["404 NOT_FOUND. {'error': {'code': 404, 'message': 'models/gemini-2.5-flash is not found'}}"],
+                      "gemini-3.5-flash": ["OK"]})
+    c = _client(fake)
+    assert c.generate("k", "gemini-2.5-flash", "p", fallbacks=["gemini-3.5-flash"]) == "OK"
+    assert "gemini-2.5-flash" in c._missing

@@ -122,3 +122,31 @@ def test_agent_does_not_think_while_the_page_says_loading(browser, bus, goto):
     ai.current_task_thread.join(60)
     first = ai.llm.prompts[0]
     assert "capital of Spain" in first and "Loading..." not in first
+
+
+def test_hash_and_pushstate_changes_do_not_leave_the_tab_loading(browser, goto):
+    """Live: after h5p.org's carousel set #example=..., the tab reported loading=True forever ("load" never comes
+    for a same-document navigation), so anything waiting for the page to finish loading waited for nothing."""
+    goto("carousel.html")
+    browser.execute("ai_act", {"action": "click", "id": _by(_els(browser), text="Site logo")["id"]})  # href="#home"
+    _ev(browser, "history.pushState({}, '', '/next-activity')")
+    browser.execute("ai_act", {"action": "wait", "ms": 300})
+    st = browser.get_state()
+    assert st["active_url"].endswith("/next-activity") and st["loading"] is False
+
+
+def test_h5p_item_placed_over_its_zone_counts_as_answered(browser, goto):
+    """H5P Drag and Drop keeps a dropped item outside the zone in the DOM and positions it over the zone."""
+    goto("carousel.html")
+    _ev(browser, """(() => {
+      document.body.insertAdjacentHTML('beforeend', `<div id="task" style="position:relative;width:600px;height:200px">
+        <div class="h5p-dropzone" style="position:absolute;left:0;top:0;width:200px;height:150px">
+          <div class="h5p-inner ui-droppable" style="width:100%;height:100%"></div></div>
+        <div class="h5p-draggable" role="button" style="position:absolute;left:400px;top:10px;width:80px;height:20px">Fragaria</div>
+      </div>`);
+    })()""")
+    before = browser.execute("form_status", {})
+    assert any(it["kind"] == "drop" for it in before["items"]), "the zone is empty while the item sits elsewhere"
+    _ev(browser, "Object.assign(document.querySelector('.h5p-draggable').style, {left: '60px', top: '60px'})")
+    after = browser.execute("form_status", {})
+    assert not any(it["kind"] == "drop" for it in after["items"]) and after["unanswered"] == before["unanswered"] - 1

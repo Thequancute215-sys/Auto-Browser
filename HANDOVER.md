@@ -105,6 +105,9 @@ Cách thử: chạy app ở cổng 8765, chỉ gửi lệnh qua `/api/ai/command
 - **Lệnh treo 30 giây rồi mọi lệnh sau đều hết giờ:** đọc lại giá trị ô sau khi gõ không có timeout, trong khi H5P dựng lại khung. Đã thêm timeout, và đặt `context.set_default_timeout(10000)` làm chốt an toàn (bằng 30 giây của `execute()` là quá dài).
 - **Nhìn trang khi trang còn đang tải:** sau thao tác cuối của mỗi bước, app chờ tới khi không còn request mạng mới (`_wait_network_quiet`, tối đa 3 giây). Nếu trang còn hiện "Loading..." / "Đang tải", app chờ và quan sát lại trước khi hỏi AI (không tốn lượt).
 - **Bấm qua lại Next/Previous mãi:** mỗi bước AI ghi `progress` (phần việc đã xong), được đưa lại vào bước sau. Cùng một màn hình lặp lại lần thứ 3 thì AI được cảnh báo, lần thứ 5 thì app dừng.
+- **Mô hình chính bị loại nhầm cả phiên:** lỗi 429 hết lượt theo ngày ghi "retry in 15h23m25.0404…s", và phép thử chuỗi con `"404"` coi đó là "không có mô hình". Bây giờ lỗi quota/quá tải không bao giờ bị coi là 404; chỉ mã 404 / `NOT_FOUND` thật mới tính (`_model_missing`).
+- **Tab báo "đang tải" mãi:** `framenavigated` cũng bắn khi đổi `#hash` hoặc `pushState` (h5p.org, các SPA như Cambridge One) mà không có `load`. Cờ `loading` giờ chỉ bật khi có request tài liệu thật của khung chính, và tự hết sau 45 giây.
+- **Kéo thả hình H5P bị đếm là còn trống:** mục đã thả (`.h5p-dropped`) nằm ngoài ô trong DOM, chỉ được đặt chồng lên ô. `FORM_STATUS` coi ô là đã làm khi tâm một mục kéo nằm trong ô. Trước đó rào chắn "done" từ chối một bài đã xong và AI đi sang ví dụ khác.
 
 ### 3b. Engine kéo thả
 
@@ -219,7 +222,7 @@ Giao diện dùng **Primer CSS v22** và **Primer Octicons**, lưu sẵn trong `
 
 ## 7. Kiểm thử (21/10/2026)
 
-`python -m pytest`: **127 passed** (22/10/2026, khoảng 20 phút trên máy đang bận; trước đó 108 passed trong khoảng 6 phút) (CI chạy trên cả Linux và Windows), không cần mạng hay API key. Gồm `test_long_pages.py` (trang 10 câu trải dài, có hộp cuộn và hộp xác nhận "Còn N câu chưa trả lời": AI thấy đủ 10 câu, nút Nộp sớm bị chặn, chỉ lần nộp đủ câu mới tính, đạt 10/10 và còn 2/3 lượt) và `test_gemini_quota.py` (hết lượt theo ngày thì chuyển model ngay, giới hạn theo phút thì chờ, tự tìm model khác, thông báo khi tất cả đều hết lượt). Gồm `test_claude.py` (11): hình dạng request gửi Claude (structured output, effort, fallbacks, cache, ảnh, không có `temperature`), từ chối an toàn, sai khóa, chuyển model khi bị giới hạn tốc độ, từ chối audio, schema chặt, agent dùng đúng provider, bài nghe với Claude vẫn chép lời bằng Gemini (và cảnh báo khi thiếu khóa Gemini), cài đặt không lộ khóa nào. Gồm `test_fast_input.py` (14): kênh CDP trực tiếp, gõ tiếng Việt / Ctrl+A / Backspace / Tab, kéo bôi đen, người dùng tự kéo thả bằng tay (HTML5, thư viện chuột, SortableJS), phím không hợp lệ, bảng tên phím.
+`python -m pytest`: **133 passed** trong khoảng 6,5 phút (22/10/2026) (CI chạy trên cả Linux và Windows), không cần mạng hay API key. Gồm `test_long_pages.py` (trang 10 câu trải dài, có hộp cuộn và hộp xác nhận "Còn N câu chưa trả lời": AI thấy đủ 10 câu, nút Nộp sớm bị chặn, chỉ lần nộp đủ câu mới tính, đạt 10/10 và còn 2/3 lượt) và `test_gemini_quota.py` (hết lượt theo ngày thì chuyển model ngay, giới hạn theo phút thì chờ, tự tìm model khác, thông báo khi tất cả đều hết lượt). Gồm `test_claude.py` (11): hình dạng request gửi Claude (structured output, effort, fallbacks, cache, ảnh, không có `temperature`), từ chối an toàn, sai khóa, chuyển model khi bị giới hạn tốc độ, từ chối audio, schema chặt, agent dùng đúng provider, bài nghe với Claude vẫn chép lời bằng Gemini (và cảnh báo khi thiếu khóa Gemini), cài đặt không lộ khóa nào. Gồm `test_fast_input.py` (14): kênh CDP trực tiếp, gõ tiếng Việt / Ctrl+A / Backspace / Tab, kéo bôi đen, người dùng tự kéo thả bằng tay (HTML5, thư viện chuột, SortableJS), phím không hợp lệ, bảng tên phím.
 
 `python tools/test_desktop_exe.py` (bản đã cài bằng bộ cài): server sẵn sàng sau ~6 giây; cửa sổ trình duyệt (1037×852) và bảng AI (403×852) nằm cạnh nhau; trang vẽ ở 60–92 khung/giây; trang tự theo kích thước cửa sổ; đóng trình duyệt hoặc đóng bảng AI đều thoát sau ~3,5 giây, không sót process hay cửa sổ nào; gỡ cài đặt xóa chương trình nhưng giữ cài đặt của bạn.
 
@@ -242,6 +245,8 @@ Giao diện dùng **Primer CSS v22** và **Primer Octicons**, lưu sẵn trong `
   - khi tất cả đều hết lượt: báo rõ còn bao lâu thì có lượt lại, và gợi ý chuyển sang Claude.
 
   Chat ghi rõ model nào đang được dùng và vì sao.
+- Một số trang dùng hệ thống chống bot (ví dụ learnenglish.britishcouncil.org, Akamai) chặn Chromium chạy ngầm của chế độ stream (Docker / `AIB_BROWSER_MODE=stream`) với trang "Access Denied". App desktop (chế độ window, Chromium có cửa sổ thật) vào được bình thường. App không cố né các hệ thống này.
+- Chế độ window: `/api/screenshot` chỉ giữ khung hình chụp lúc mở tab (người dùng nhìn trực tiếp cửa sổ Chromium). Ảnh gửi cho AI vẫn được `ai_observe` chụp mới ở mỗi bước.
 - Bài nghe: audio phát qua MediaSource/`blob:` (stream từng mảnh) không tải lại được nên không chép lời được; file mp3/m4a/wav/ogg thông thường thì được.
 - Kéo thả: đã thử 11 cơ chế phổ biến nhưng **chưa thử trên Cambridge One/Rikkei thật** (cần tài khoản của bạn). Nếu không cách nào có tác dụng, agent nhận lỗi kèm danh sách các cách đã thử và được dặn đổi cách tiếp cận.
 - `config.DEFAULT_URL` và nút Cambridge chứa đường dẫn lớp học cụ thể của bạn (org/class id). Nếu đặt repo GitHub ở chế độ công khai, hãy cân nhắc thay đường dẫn này.
