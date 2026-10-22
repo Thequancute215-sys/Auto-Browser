@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
-  "gitCommitHash": "1d6e1f6a8ff8f94841aff3786f9925d012236fa9",
-  "generatedAt": "2026-10-21T19:43:43.234Z",
+  "gitCommitHash": "d6b92467671e1b500fa03e0d5bd6577e07aa9007",
+  "generatedAt": "2026-10-22T15:37:48.672Z",
   "files": {
     ".claude/settings.json": {
       "filePath": ".claude/settings.json",
@@ -75,12 +75,12 @@
     },
     "HANDOVER.md": {
       "filePath": "HANDOVER.md",
-      "contentHash": "4ad9c839636c430e6997ce85599345202c2403afeb48bf8c2b9174e0ed3865e1",
+      "contentHash": "236d11359d0fb2a7373721c0e319b4623d0dd910a6979017e3fb1cf6c7970ef7",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 234,
+      "totalLines": 249,
       "hasStructuralAnalysis": false
     },
     "INSTALL.md": {
@@ -185,7 +185,7 @@
     },
     "ai_controller.py": {
       "filePath": "ai_controller.py",
-      "contentHash": "644b223c737cc9e1ae9119859bba5c741c2d0128f0903cdb609361e1effe7218",
+      "contentHash": "96adb3241dec41b59f27a63dc866578253a10a346959adef2414ce16e57b8a46",
       "functions": [
         {
           "name": "_now",
@@ -224,6 +224,7 @@
             "stop_requested",
             "run_command",
             "_execute_pipeline",
+            "_open_url_in_task",
             "_try_local_command",
             "_try_find_and_go",
             "_rules_for_settings",
@@ -233,13 +234,15 @@
             "_describe_action",
             "_calls_so_far",
             "_can_use_local",
+            "_still_loading",
+            "_done_too_early",
             "_submit_guard",
             "_ensure_transcripts",
             "_agent_loop"
           ],
           "properties": [],
           "exported": true,
-          "lineCount": 773
+          "lineCount": 859
         }
       ],
       "imports": [
@@ -316,12 +319,12 @@
         "_now",
         "AIController"
       ],
-      "totalLines": 903,
+      "totalLines": 992,
       "hasStructuralAnalysis": true
     },
     "browser_manager.py": {
       "filePath": "browser_manager.py",
-      "contentHash": "fa0f1242bc1d3b19ebf070aa99c37cbeb311e07edf2b7bb4ce63db9868f9b94e",
+      "contentHash": "77f2d89e6ceb919442b83ddca7c2cac46663515bb2481f9a3b4fbb3df7da68c1",
       "functions": [
         {
           "name": "_short_err",
@@ -353,6 +356,9 @@
             "_run",
             "_drain_commands",
             "_register_page",
+            "_on_request",
+            "_on_request_done",
+            "_wait_network_quiet",
             "_on_response",
             "_on_context_page",
             "_on_dialog",
@@ -416,7 +422,7 @@
           ],
           "properties": [],
           "exported": true,
-          "lineCount": 1218
+          "lineCount": 1312
         }
       ],
       "imports": [
@@ -509,7 +515,7 @@
         "_short_err",
         "BrowserManager"
       ],
-      "totalLines": 1246,
+      "totalLines": 1340,
       "hasStructuralAnalysis": true
     },
     "cdp_fast.py": {
@@ -585,14 +591,23 @@
     },
     "config.py": {
       "filePath": "config.py",
-      "contentHash": "030e1fe74293bc972e5b4329e8ed07ebdfbe7413ade74e531296c235c50b149b",
+      "contentHash": "6675b3fc163d129aea044a461485d6e09c9474b8f2b3bb262a842d74edfbc6f4",
       "functions": [
+        {
+          "name": "_saved",
+          "params": [
+            "key",
+            "default"
+          ],
+          "exported": true,
+          "lineCount": 9
+        },
         {
           "name": "_saved_start_url",
           "params": [],
           "returnType": "str",
           "exported": true,
-          "lineCount": 7
+          "lineCount": 2
         }
       ],
       "classes": [],
@@ -602,12 +617,19 @@
           "specifiers": [
             "os"
           ]
+        },
+        {
+          "source": "re",
+          "specifiers": [
+            "re"
+          ]
         }
       ],
       "exports": [
+        "_saved",
         "_saved_start_url"
       ],
-      "totalLines": 90,
+      "totalLines": 111,
       "hasStructuralAnalysis": true
     },
     "desktop_app.py": {
@@ -840,7 +862,7 @@
     },
     "llm.py": {
       "filePath": "llm.py",
-      "contentHash": "6705e79d2cd2dd309cbda6c1f924dc49588aef079d54507f4afe00b39cbcca4f",
+      "contentHash": "7c503bec696cd162fe9392892f508ff901e6ed5c3d75e5e1f817681b4ebc7ad7",
       "functions": [
         {
           "name": "_parse_quota",
@@ -901,18 +923,20 @@
             "_call",
             "list_models",
             "generate",
+            "_hedged",
             "_try_model",
             "_is_exhausted",
             "_exhausted_msg",
             "_note_switch",
-            "_all_quota",
+            "_is_overloaded",
+            "_all_unavailable",
             "_discover_alternatives",
             "_record_usage",
             "_friendly"
           ],
           "properties": [],
           "exported": true,
-          "lineCount": 232
+          "lineCount": 291
         },
         {
           "name": "ClaudeClient",
@@ -975,7 +999,9 @@
         {
           "source": "concurrent.futures",
           "specifiers": [
+            "FIRST_COMPLETED",
             "ThreadPoolExecutor",
+            "wait",
             "FutureTimeout"
           ]
         },
@@ -998,17 +1024,17 @@
         "ClaudeClient",
         "OllamaClient"
       ],
-      "totalLines": 504,
+      "totalLines": 567,
       "hasStructuralAnalysis": true
     },
     "page_scripts.py": {
       "filePath": "page_scripts.py",
-      "contentHash": "00224b5c16a2817ca3084596c3925f1c60ae7df874ba87c3ec451adafc604f50",
+      "contentHash": "fa4b0ce1fa4ae43de4be1152a9bf6dbf712885ac25241f929fb757f9bdcf55b1",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 513,
+      "totalLines": 541,
       "hasStructuralAnalysis": true
     },
     "pytest.ini": {
@@ -1329,7 +1355,7 @@
     },
     "static/app.js": {
       "filePath": "static/app.js",
-      "contentHash": "4bd1e67339d58c166889ff8968897d78f509d6871dff522425f42939017b03d9",
+      "contentHash": "bb66440068a30889a9cc33ae2260085699957283375993b6c35b71d715403869",
       "functions": [
         {
           "name": "$",
@@ -1635,7 +1661,7 @@
           "name": "openSettings",
           "params": [],
           "exported": false,
-          "lineCount": 35
+          "lineCount": 36
         },
         {
           "name": "closeSettings",
@@ -1664,7 +1690,7 @@
           "name": "collectSettings",
           "params": [],
           "exported": false,
-          "lineCount": 25
+          "lineCount": 26
         },
         {
           "name": "applyViewportChoice",
@@ -1744,17 +1770,17 @@
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 1143,
+      "totalLines": 1145,
       "hasStructuralAnalysis": true
     },
     "static/index.html": {
       "filePath": "static/index.html",
-      "contentHash": "328c8cbd72c1af8212362931e0c5f8482fd4a620090e5552c47b2ecda0f95643",
+      "contentHash": "805a8d0c9e55873588ec4032bdbcd992ff52f8f0ddd71a8576213e8462460830",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 321,
+      "totalLines": 322,
       "hasStructuralAnalysis": false
     },
     "static/style.css": {
@@ -1769,7 +1795,7 @@
     },
     "tests/conftest.py": {
       "filePath": "tests/conftest.py",
-      "contentHash": "adcfb26ca5c11fd79fb436fc1a62676d383508a46ad9a6165f76bb8078bd1b07",
+      "contentHash": "2b97a4d079ce7ef8745690e9f464e5196e58581240d87aa37b4c6be4e2dbb2c3",
       "functions": [
         {
           "name": "pytest_configure",
@@ -1864,11 +1890,12 @@
         {
           "name": "_QuietHandler",
           "methods": [
-            "log_message"
+            "log_message",
+            "do_GET"
           ],
           "properties": [],
           "exported": true,
-          "lineCount": 3
+          "lineCount": 11
         },
         {
           "name": "_DualStackServer",
@@ -2005,7 +2032,7 @@
         "server",
         "frames_eval"
       ],
-      "totalLines": 169,
+      "totalLines": 177,
       "hasStructuralAnalysis": true
     },
     "tests/fixtures/course.html": {
@@ -2367,7 +2394,7 @@
     },
     "tests/test_browser.py": {
       "filePath": "tests/test_browser.py",
-      "contentHash": "005c84058ce9f8b2ac6deeba30b095b63c591bdcad4cc89275757dfecdf253bf",
+      "contentHash": "d471ad28c95d2a6e4c8c859d3916905075221648532d5acdf4e5a5d63e8c14fe",
       "functions": [
         {
           "name": "_ev",
@@ -2475,6 +2502,22 @@
           ],
           "exported": true,
           "lineCount": 7
+        },
+        {
+          "name": "test_ad_url_pattern",
+          "params": [],
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "test_ad_servers_are_blocked_in_the_browser",
+          "params": [
+            "browser",
+            "goto",
+            "site"
+          ],
+          "exported": true,
+          "lineCount": 9
         }
       ],
       "classes": [],
@@ -2504,9 +2547,11 @@
         "test_audio_detected_from_network_and_fetched",
         "test_fetch_media_refuses_non_audio_local_files",
         "test_tabs_new_switch_close_and_popup",
-        "test_viewport_change_restarts_stream"
+        "test_viewport_change_restarts_stream",
+        "test_ad_url_pattern",
+        "test_ad_servers_are_blocked_in_the_browser"
       ],
-      "totalLines": 135,
+      "totalLines": 158,
       "hasStructuralAnalysis": true
     },
     "tests/test_claude.py": {
@@ -2905,7 +2950,7 @@
     },
     "tests/test_gemini_quota.py": {
       "filePath": "tests/test_gemini_quota.py",
-      "contentHash": "94db212764566303b7c469f13c92645740fa919f4b426210aee0cddf74d6f0f7",
+      "contentHash": "f1c1072db284fc65c79ceebbef2a5a7713889e21f5afa2feeafa1b756aa66cba",
       "functions": [
         {
           "name": "test_parse_quota",
@@ -2944,6 +2989,48 @@
           "params": [],
           "exported": true,
           "lineCount": 4
+        },
+        {
+          "name": "test_overloaded_model_gets_one_retry_then_is_tried_last",
+          "params": [],
+          "exported": true,
+          "lineCount": 12
+        },
+        {
+          "name": "test_all_overloaded_discovers_lite_and_gemma",
+          "params": [],
+          "exported": true,
+          "lineCount": 9
+        },
+        {
+          "name": "test_all_overloaded_without_alternatives_says_so",
+          "params": [],
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "test_slow_model_is_raced_against_the_next_one",
+          "params": [
+            "monkeypatch"
+          ],
+          "exported": true,
+          "lineCount": 23
+        },
+        {
+          "name": "test_failed_backup_is_replaced_by_the_next_model_at_once",
+          "params": [
+            "monkeypatch"
+          ],
+          "exported": true,
+          "lineCount": 21
+        },
+        {
+          "name": "test_slow_503_is_not_retried",
+          "params": [
+            "monkeypatch"
+          ],
+          "exported": true,
+          "lineCount": 20
         }
       ],
       "classes": [
@@ -3000,9 +3087,15 @@
         "test_daily_quota_switches_immediately_without_retries",
         "test_per_minute_limit_waits_then_retries_same_model",
         "test_discovers_other_models_when_all_configured_are_exhausted",
-        "test_all_exhausted_gives_clear_message_with_reset_time"
+        "test_all_exhausted_gives_clear_message_with_reset_time",
+        "test_overloaded_model_gets_one_retry_then_is_tried_last",
+        "test_all_overloaded_discovers_lite_and_gemma",
+        "test_all_overloaded_without_alternatives_says_so",
+        "test_slow_model_is_raced_against_the_next_one",
+        "test_failed_backup_is_replaced_by_the_next_model_at_once",
+        "test_slow_503_is_not_retried"
       ],
-      "totalLines": 91,
+      "totalLines": 195,
       "hasStructuralAnalysis": true
     },
     "tests/test_llm_e2e.py": {
@@ -3095,7 +3188,7 @@
     },
     "tests/test_long_pages.py": {
       "filePath": "tests/test_long_pages.py",
-      "contentHash": "473fc6fa776d4cefaee1d29adbc10a76ef48ca0b7ab5bad6f61db36c67051e9a",
+      "contentHash": "4bdabdb0e3ff91403ab8681d4745d453d133df7b7c6704822affd0934818dcc3",
       "functions": [
         {
           "name": "_ev",
@@ -3169,6 +3262,40 @@
           ],
           "exported": true,
           "lineCount": 14
+        },
+        {
+          "name": "test_guard_never_blocks_an_answer_choice",
+          "params": [],
+          "exported": true,
+          "lineCount": 20
+        },
+        {
+          "name": "test_exercise_in_an_iframe_is_seen_on_a_link_heavy_page",
+          "params": [
+            "browser",
+            "goto"
+          ],
+          "exported": true,
+          "lineCount": 14
+        },
+        {
+          "name": "test_filled_h5p_zone_counts_as_answered",
+          "params": [
+            "browser",
+            "goto"
+          ],
+          "exported": true,
+          "lineCount": 8
+        },
+        {
+          "name": "test_false_done_is_rejected_while_blanks_remain",
+          "params": [
+            "browser",
+            "bus",
+            "goto"
+          ],
+          "exported": true,
+          "lineCount": 11
         }
       ],
       "classes": [
@@ -3181,6 +3308,15 @@
           "properties": [],
           "exported": true,
           "lineCount": 11
+        },
+        {
+          "name": "_OneBlank",
+          "methods": [
+            "execute"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 6
         }
       ],
       "imports": [
@@ -3212,14 +3348,19 @@
         "Script",
         "_plan",
         "test_guard_blocks_submit_with_blanks_then_allows_when_complete",
-        "test_guard_also_blocks_the_confirm_dialog_submit"
+        "test_guard_also_blocks_the_confirm_dialog_submit",
+        "_OneBlank",
+        "test_guard_never_blocks_an_answer_choice",
+        "test_exercise_in_an_iframe_is_seen_on_a_link_heavy_page",
+        "test_filled_h5p_zone_counts_as_answered",
+        "test_false_done_is_rejected_while_blanks_remain"
       ],
-      "totalLines": 116,
+      "totalLines": 185,
       "hasStructuralAnalysis": true
     },
     "tests/test_model_pool.py": {
       "filePath": "tests/test_model_pool.py",
-      "contentHash": "dd14888f29190beaecde32c0d3cdd40d9d563e8edddc42d26b86b4c7c4fc4036",
+      "contentHash": "465fc572027741f02068223c04d8a846668a46edcde407d1828826bfb17bf146",
       "functions": [
         {
           "name": "test_pool_order_flash_then_lite_then_gemma",
@@ -3276,7 +3417,7 @@
             "ollama_url"
           ],
           "exported": true,
-          "lineCount": 21
+          "lineCount": 22
         },
         {
           "name": "test_no_local_fallback_when_disabled",
@@ -3389,12 +3530,12 @@
         "test_no_local_fallback_when_disabled",
         "test_local_provider_needs_no_key"
       ],
-      "totalLines": 161,
+      "totalLines": 162,
       "hasStructuralAnalysis": true
     },
     "tests/test_navigation.py": {
       "filePath": "tests/test_navigation.py",
-      "contentHash": "fc64114d448497e78484513f3bbd3602d1db364d3609b898e4721dcc34f2aaba",
+      "contentHash": "14a53f4352f1792b91925027ae4e816a2aee2864787ae3b35d156725af99f817",
       "functions": [
         {
           "name": "_ev",
@@ -3502,6 +3643,17 @@
           ],
           "exported": true,
           "lineCount": 6
+        },
+        {
+          "name": "test_link_in_a_task_is_opened_before_the_first_llm_call",
+          "params": [
+            "browser",
+            "bus",
+            "goto",
+            "site"
+          ],
+          "exported": true,
+          "lineCount": 23
         }
       ],
       "classes": [],
@@ -3530,9 +3682,10 @@
         "test_ambiguous_query_lists_candidates",
         "test_not_found_is_explained",
         "test_task_with_extra_steps_goes_to_the_agent",
-        "test_offscreen_links_reach_the_agent"
+        "test_offscreen_links_reach_the_agent",
+        "test_link_in_a_task_is_opened_before_the_first_llm_call"
       ],
-      "totalLines": 78,
+      "totalLines": 103,
       "hasStructuralAnalysis": true
     },
     "tests/test_server.py": {
@@ -4549,6 +4702,195 @@
       "imports": [],
       "exports": [],
       "totalLines": 4,
+      "hasStructuralAnalysis": true
+    },
+    "tests/fixtures/carousel.html": {
+      "filePath": "tests/fixtures/carousel.html",
+      "contentHash": "e828deaa312b161fc1d2ecf551195ddfeba039d8a5090976b7de6477a8014c80",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 34,
+      "hasStructuralAnalysis": false
+    },
+    "tests/fixtures/h5p_like.html": {
+      "filePath": "tests/fixtures/h5p_like.html",
+      "contentHash": "f8d591d043871c37790d4c472882739a12dfaca74fa67c641ed2288a7cdf1555",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 49,
+      "hasStructuralAnalysis": false
+    },
+    "tests/fixtures/player.html": {
+      "filePath": "tests/fixtures/player.html",
+      "contentHash": "921479edaf6c4722e008d93fb12a5f7cfc722418d3f73ed466664407b569532d",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 20,
+      "hasStructuralAnalysis": false
+    },
+    "tests/test_agent_robustness.py": {
+      "filePath": "tests/test_agent_robustness.py",
+      "contentHash": "cf73b4a3951137278b7475e5c63e53c9db5a8c3030db66f99bc2df1140cee84e",
+      "functions": [
+        {
+          "name": "_ev",
+          "params": [
+            "browser",
+            "script"
+          ],
+          "exported": true,
+          "lineCount": 2
+        },
+        {
+          "name": "_els",
+          "params": [
+            "browser"
+          ],
+          "exported": true,
+          "lineCount": 2
+        },
+        {
+          "name": "_by",
+          "params": [
+            "els",
+            "**kw"
+          ],
+          "exported": true,
+          "lineCount": 2
+        },
+        {
+          "name": "test_type_on_a_link_is_refused",
+          "params": [
+            "browser",
+            "goto"
+          ],
+          "exported": true,
+          "lineCount": 8
+        },
+        {
+          "name": "test_keys_never_go_to_a_field_that_took_focus_elsewhere",
+          "params": [
+            "browser",
+            "goto"
+          ],
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "test_gap_replaced_by_an_input_on_click_still_gets_the_text",
+          "params": [
+            "browser",
+            "goto"
+          ],
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "test_type_into_a_real_field_still_works",
+          "params": [
+            "browser",
+            "goto"
+          ],
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "_button",
+          "params": [
+            "prompt",
+            "name"
+          ],
+          "exported": true,
+          "lineCount": 2
+        },
+        {
+          "name": "test_back_and_forth_between_two_screens_is_stopped",
+          "params": [
+            "browser",
+            "bus",
+            "goto"
+          ],
+          "exported": true,
+          "lineCount": 13
+        },
+        {
+          "name": "test_progress_note_is_carried_to_the_next_step",
+          "params": [
+            "browser",
+            "bus",
+            "goto"
+          ],
+          "exported": true,
+          "lineCount": 16
+        },
+        {
+          "name": "test_last_action_of_a_step_waits_for_content_loaded_by_script",
+          "params": [
+            "browser",
+            "goto"
+          ],
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "test_agent_does_not_think_while_the_page_says_loading",
+          "params": [
+            "browser",
+            "bus",
+            "goto"
+          ],
+          "exported": true,
+          "lineCount": 10
+        }
+      ],
+      "classes": [
+        {
+          "name": "Script",
+          "methods": [
+            "__init__",
+            "generate"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 10
+        }
+      ],
+      "imports": [
+        {
+          "source": "json",
+          "specifiers": [
+            "json"
+          ]
+        },
+        {
+          "source": "ai_controller",
+          "specifiers": [
+            "AIController"
+          ]
+        }
+      ],
+      "exports": [
+        "_ev",
+        "_els",
+        "_by",
+        "test_type_on_a_link_is_refused",
+        "test_keys_never_go_to_a_field_that_took_focus_elsewhere",
+        "test_gap_replaced_by_an_input_on_click_still_gets_the_text",
+        "test_type_into_a_real_field_still_works",
+        "Script",
+        "_button",
+        "test_back_and_forth_between_two_screens_is_stopped",
+        "test_progress_note_is_carried_to_the_next_step",
+        "test_last_action_of_a_step_waits_for_content_loaded_by_script",
+        "test_agent_does_not_think_while_the_page_says_loading"
+      ],
+      "totalLines": 125,
       "hasStructuralAnalysis": true
     }
   }
