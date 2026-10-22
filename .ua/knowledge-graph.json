@@ -11,6 +11,7 @@
       "iss",
       "javascript",
       "json",
+      "m3u8",
       "markdown",
       "python",
       "txt",
@@ -25,8 +26,8 @@
       "GitHub Actions"
     ],
     "description": "Trình duyệt viết bằng Python/Playwright có trợ lý AI (Google Gemini/Gemma, Claude hoặc mô hình chạy cục bộ qua Ollama) tự đọc đề, làm bài (điền từ, trắc nghiệm, kéo thả, bài nghe) và kiểm tra lại kết quả trên Cambridge One, Rikkei LMS và các trang học trực tuyến khác. Dự án gồm giao diện web vanilla JS theo phong cách GitHub Primer, launcher desktop cho Windows kèm bộ cài Inno Setup, image Docker và cơ chế tự cập nhật.",
-    "analyzedAt": "2026-10-22T15:37:47.274Z",
-    "gitCommitHash": "d6b92467671e1b500fa03e0d5bd6577e07aa9007"
+    "analyzedAt": "2026-10-22T16:00:09.025Z",
+    "gitCommitHash": "cef9664f0a5def1ef9e694559eee802301024a3f"
   },
   "nodes": [
     {
@@ -3068,478 +3069,6 @@
       "complexity": "complex"
     },
     {
-      "id": "file:llm.py",
-      "type": "file",
-      "name": "llm.py",
-      "filePath": "llm.py",
-      "summary": "Lớp trừu tượng gọi mô hình ngôn ngữ: ba client cùng giao diện generate()/list_models() cho Gemini (pool mô hình, xử lý quota, hedging), Claude (SDK anthropic, structured output) và Ollama chạy trên máy, cùng các ngoại lệ và bộ phân tích JSON trả về.",
-      "tags": [
-        "llm-client",
-        "service",
-        "error-handling",
-        "quota",
-        "fallback",
-        "tested"
-      ],
-      "complexity": "complex",
-      "languageNotes": "Mọi lời gọi SDK chặn được chạy trong ThreadPoolExecutor và thăm dò mỗi 0,25 s để nút Dừng cắt ngang ngay; ClaudeClient và OllamaClient tái dùng GeminiClient._call bằng cách gán thuộc tính lớp."
-    },
-    {
-      "id": "class:llm.py:LLMError",
-      "type": "class",
-      "name": "LLMError",
-      "filePath": "llm.py",
-      "lineRange": [
-        18,
-        19
-      ],
-      "summary": "Ngoại lệ gốc cho mọi lỗi từ mô hình ngôn ngữ, mang thông báo tiếng Việt hiển thị trực tiếp cho người dùng.",
-      "tags": [
-        "exception",
-        "error-handling",
-        "type-definition"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "class:llm.py:QuotaExhausted",
-      "type": "class",
-      "name": "QuotaExhausted",
-      "filePath": "llm.py",
-      "lineRange": [
-        22,
-        23
-      ],
-      "summary": "Ngoại lệ con của LLMError báo mọi mô hình đám mây trong pool đã hết quota miễn phí, giúp agent chuyển sang mô hình trên máy.",
-      "tags": [
-        "exception",
-        "quota",
-        "fallback"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:llm.py:_parse_quota",
-      "type": "function",
-      "name": "_parse_quota",
-      "filePath": "llm.py",
-      "lineRange": [
-        26,
-        40
-      ],
-      "summary": "Phân tích lỗi 429 của Gemini để lấy số giây cần chờ (dạng 9h50m5s hoặc retryDelay) và xác định đó là quota theo ngày hay theo phút.",
-      "tags": [
-        "parser",
-        "quota",
-        "regex"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:llm.py:parse_json_response",
-      "type": "function",
-      "name": "parse_json_response",
-      "filePath": "llm.py",
-      "lineRange": [
-        57,
-        73
-      ],
-      "summary": "Trích đối tượng JSON đầu tiên từ câu trả lời của mô hình, chịu được khối code fence và văn bản thừa, ném LLMError nếu không hợp lệ.",
-      "tags": [
-        "parser",
-        "serialization",
-        "utility"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "class:llm.py:GeminiClient",
-      "type": "class",
-      "name": "GeminiClient",
-      "filePath": "llm.py",
-      "lineRange": [
-        76,
-        366
-      ],
-      "summary": "Wrapper quanh google-genai với client cache, gọi có thể dừng, retry/backoff, ghi nhớ mô hình hết quota ngày, quá tải hoặc không tồn tại, chạy đua (hedging) với mô hình dự phòng khi phản hồi chậm, tự khám phá mô hình Flash/Flash-Lite/Gemma thay thế và ghi nhận lượt dùng.",
-      "tags": [
-        "llm-client",
-        "gemini",
-        "retry",
-        "quota"
-      ],
-      "complexity": "complex"
-    },
-    {
-      "id": "class:llm.py:ClaudeClient",
-      "type": "class",
-      "name": "ClaudeClient",
-      "filePath": "llm.py",
-      "lineRange": [
-        374,
-        486
-      ],
-      "summary": "Client cho Anthropic API cùng giao diện với GeminiClient: gửi prompt kèm ảnh, structured output theo json_schema và effort, prompt hệ thống có cache, fallback phía máy chủ cho mô hình hỗ trợ, báo lỗi khi bị từ chối và không nhận audio.",
-      "tags": [
-        "llm-client",
-        "claude",
-        "anthropic"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "class:llm.py:OllamaClient",
-      "type": "class",
-      "name": "OllamaClient",
-      "filePath": "llm.py",
-      "lineRange": [
-        493,
-        566
-      ],
-      "summary": "Client HTTP gọi Ollama chạy trên máy (/api/chat, /api/tags): kiểm tra khả dụng, liệt kê mô hình và sinh câu trả lời không cần khóa, không giới hạn lượt.",
-      "tags": [
-        "llm-client",
-        "ollama",
-        "local-model",
-        "http"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "function:llm.py:GeminiClient._call",
-      "type": "function",
-      "name": "GeminiClient._call",
-      "filePath": "llm.py",
-      "lineRange": [
-        108,
-        119
-      ],
-      "summary": "Chạy một lời gọi SDK chặn trong luồng phụ và thăm dò định kỳ để nút Dừng có thể bỏ ngang ngay, ném LLMError khi quá thời hạn.",
-      "tags": [
-        "threading",
-        "timeout",
-        "cancellation"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:llm.py:GeminiClient.list_models",
-      "type": "function",
-      "name": "GeminiClient.list_models",
-      "filePath": "llm.py",
-      "lineRange": [
-        121,
-        136
-      ],
-      "summary": "Liệt kê các mô hình Gemini/Gemma hỗ trợ generateContent của khóa, loại bỏ mô hình embedding, TTS, ảnh, live... và sắp xếp theo tên.",
-      "tags": [
-        "discovery",
-        "gemini",
-        "filtering"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:llm.py:GeminiClient.generate",
-      "type": "function",
-      "name": "GeminiClient.generate",
-      "filePath": "llm.py",
-      "lineRange": [
-        138,
-        217
-      ],
-      "summary": "Sinh câu trả lời qua chuỗi mô hình Gemini (kèm ảnh hoặc audio), ưu tiên mô hình dự phòng vừa chạy tốt, đẩy mô hình quá tải xuống cuối, khám phá thêm mô hình khi cả danh sách cạn và ném QuotaExhausted khi cả pool hết lượt.",
-      "tags": [
-        "llm-call",
-        "fallback",
-        "quota"
-      ],
-      "complexity": "complex"
-    },
-    {
-      "id": "function:llm.py:GeminiClient._hedged",
-      "type": "function",
-      "name": "GeminiClient._hedged",
-      "filePath": "llm.py",
-      "lineRange": [
-        221,
-        254
-      ],
-      "summary": "Chạy một mô hình và nếu sau HEDGE_AFTER_S vẫn chưa trả lời thì gửi song song cho mô hình dự phòng kế tiếp; dự phòng lỗi được thay ngay, câu trả lời tốt đầu tiên thắng, tối đa hai yêu cầu cùng lúc.",
-      "tags": [
-        "concurrency",
-        "hedging",
-        "latency"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "function:llm.py:GeminiClient._try_model",
-      "type": "function",
-      "name": "GeminiClient._try_model",
-      "filePath": "llm.py",
-      "lineRange": [
-        256,
-        314
-      ],
-      "summary": "Thử một mô hình với retry: chờ đúng thời gian khi bị giới hạn theo phút, đánh dấu hết lượt khi chạm quota ngày, đánh dấu không tồn tại khi 404, chỉ retry một lần với lỗi 503 nhanh rồi đánh dấu quá tải.",
-      "tags": [
-        "retry",
-        "backoff",
-        "error-handling"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "function:llm.py:GeminiClient._discover_alternatives",
-      "type": "function",
-      "name": "GeminiClient._discover_alternatives",
-      "filePath": "llm.py",
-      "lineRange": [
-        334,
-        347
-      ],
-      "summary": "Liệt kê các mô hình Flash, Flash-Lite và Gemma khác chưa thử của khóa, xếp hạng Flash > Flash-Lite > Gemma để làm phương án dự phòng khi mọi mô hình cấu hình đều hết lượt hoặc quá tải.",
-      "tags": [
-        "discovery",
-        "fallback"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:llm.py:ClaudeClient.generate",
-      "type": "function",
-      "name": "ClaudeClient.generate",
-      "filePath": "llm.py",
-      "lineRange": [
-        405,
-        479
-      ],
-      "summary": "Gọi messages.create của Anthropic (hoặc beta với fallback phía máy chủ) kèm output_config effort/schema, chuyển sang mô hình dự phòng khi 404, rate limit hoặc lỗi máy chủ, và đổi lỗi SDK, refusal, max_tokens thành LLMError thân thiện.",
-      "tags": [
-        "llm-call",
-        "claude",
-        "error-handling"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "function:llm.py:OllamaClient.generate",
-      "type": "function",
-      "name": "OllamaClient.generate",
-      "filePath": "llm.py",
-      "lineRange": [
-        530,
-        566
-      ],
-      "summary": "Gửi prompt (kèm ảnh, schema hoặc json mode) tới /api/chat của Ollama, từ chối audio, hướng dẫn ollama pull khi thiếu mô hình và ghi nhận lượt dùng token.",
-      "tags": [
-        "llm-call",
-        "ollama",
-        "http"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "file:tests/test_agent_robustness.py",
-      "type": "file",
-      "name": "test_agent_robustness.py",
-      "filePath": "tests/test_agent_robustness.py",
-      "summary": "Bộ test hồi quy rút ra từ lần chạy thật trên carousel h5p.org: lệnh type không được rơi vào ô khác hoặc link, thao tác cuối phải chờ nội dung tải bằng script, agent không suy luận khi trang báo Loading, mang ghi chú tiến độ qua các bước và dừng khi đi qua lại giữa hai màn hình.",
-      "tags": [
-        "test",
-        "regression",
-        "ai-agent",
-        "browser-automation"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "class:tests/test_agent_robustness.py:Script",
-      "type": "class",
-      "name": "Script",
-      "filePath": "tests/test_agent_robustness.py",
-      "lineRange": [
-        57,
-        66
-      ],
-      "summary": "LLM giả sinh kế hoạch JSON bằng một hàm theo prompt và số lượt gọi, ghi lại mọi prompt và lượt dùng để kiểm tra hành vi vòng lặp agent.",
-      "tags": [
-        "test",
-        "mock",
-        "test-double"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:tests/test_agent_robustness.py:test_back_and_forth_between_two_screens_is_stopped",
-      "type": "function",
-      "name": "test_back_and_forth_between_two_screens_is_stopped",
-      "filePath": "tests/test_agent_robustness.py",
-      "lineRange": [
-        73,
-        85
-      ],
-      "summary": "Kiểm tra agent bấm Next/Previous luân phiên được cảnh báo «going back and forth» rồi bị dừng sớm trước khi hết ngân sách bước.",
-      "tags": [
-        "test",
-        "loop-detection",
-        "ai-agent"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:tests/test_agent_robustness.py:test_progress_note_is_carried_to_the_next_step",
-      "type": "function",
-      "name": "test_progress_note_is_carried_to_the_next_step",
-      "filePath": "tests/test_agent_robustness.py",
-      "lineRange": [
-        88,
-        103
-      ],
-      "summary": "Xác minh ghi chú tiến độ của bước trước được đưa vào prompt bước sau, và bước đầu hiển thị «(nothing finished yet)».",
-      "tags": [
-        "test",
-        "prompt-engineering",
-        "state"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:tests/test_agent_robustness.py:test_agent_does_not_think_while_the_page_says_loading",
-      "type": "function",
-      "name": "test_agent_does_not_think_while_the_page_says_loading",
-      "filePath": "tests/test_agent_robustness.py",
-      "lineRange": [
-        115,
-        124
-      ],
-      "summary": "Bảo đảm agent chờ trang hết «Loading...» rồi mới gửi prompt đầu tiên, để mô hình thấy đúng bài tập mới.",
-      "tags": [
-        "test",
-        "loading",
-        "ai-agent"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "file:tests/test_gemini_quota.py",
-      "type": "file",
-      "name": "test_gemini_quota.py",
-      "filePath": "tests/test_gemini_quota.py",
-      "summary": "Bộ test xử lý quota miễn phí và quá tải của GeminiClient bằng client google-genai giả: hết quota ngày thì chuyển ngay, giới hạn theo phút thì chờ, tự khám phá mô hình khác, mô hình 503 chỉ retry một lần, và chạy đua với mô hình dự phòng khi phản hồi chậm.",
-      "tags": [
-        "test",
-        "quota",
-        "fallback",
-        "gemini",
-        "llm-client"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "class:tests/test_gemini_quota.py:FakeGenai",
-      "type": "class",
-      "name": "FakeGenai",
-      "filePath": "tests/test_gemini_quota.py",
-      "lineRange": [
-        25,
-        43
-      ],
-      "summary": "Client google-genai giả: generate_content chạy theo kịch bản riêng cho từng mô hình (ném lỗi 429/503 hoặc trả văn bản) và list trả về danh sách mô hình cấu hình sẵn.",
-      "tags": [
-        "test",
-        "mock",
-        "test-double"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:tests/test_gemini_quota.py:test_daily_quota_switches_immediately_without_retries",
-      "type": "function",
-      "name": "test_daily_quota_switches_immediately_without_retries",
-      "filePath": "tests/test_gemini_quota.py",
-      "lineRange": [
-        52,
-        66
-      ],
-      "summary": "Kiểm tra hết quota ngày thì chuyển ngay sang mô hình kế tiếp không chờ retry, ghi lý do chuyển, và lần gọi sau bỏ qua mô hình đã cạn mà không hỏi Google.",
-      "tags": [
-        "test",
-        "quota",
-        "fallback"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:tests/test_gemini_quota.py:test_overloaded_model_gets_one_retry_then_is_tried_last",
-      "type": "function",
-      "name": "test_overloaded_model_gets_one_retry_then_is_tried_last",
-      "filePath": "tests/test_gemini_quota.py",
-      "lineRange": [
-        96,
-        107
-      ],
-      "summary": "Kiểm tra mô hình quá tải (503) chỉ được retry một lần rồi chuyển dự phòng, và ở bước sau bị đẩy xuống cuối hàng đợi.",
-      "tags": [
-        "test",
-        "overload",
-        "retry"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:tests/test_gemini_quota.py:test_slow_model_is_raced_against_the_next_one",
-      "type": "function",
-      "name": "test_slow_model_is_raced_against_the_next_one",
-      "filePath": "tests/test_gemini_quota.py",
-      "lineRange": [
-        127,
-        149
-      ],
-      "summary": "Xác minh sau HEDGE_AFTER_S yêu cầu được gửi song song cho mô hình kế tiếp, câu trả lời nhanh đầu tiên thắng và dự phòng không bị hỏi hai lần.",
-      "tags": [
-        "test",
-        "hedging",
-        "concurrency"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:tests/test_gemini_quota.py:test_failed_backup_is_replaced_by_the_next_model_at_once",
-      "type": "function",
-      "name": "test_failed_backup_is_replaced_by_the_next_model_at_once",
-      "filePath": "tests/test_gemini_quota.py",
-      "lineRange": [
-        152,
-        172
-      ],
-      "summary": "Kiểm tra khi mô hình chính treo và dự phòng hết quota ngay, mô hình tiếp theo nhận yêu cầu tức thì thay vì chờ mô hình chính.",
-      "tags": [
-        "test",
-        "hedging",
-        "fallback"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:tests/test_gemini_quota.py:test_slow_503_is_not_retried",
-      "type": "function",
-      "name": "test_slow_503_is_not_retried",
-      "filePath": "tests/test_gemini_quota.py",
-      "lineRange": [
-        175,
-        194
-      ],
-      "summary": "Giả lập đồng hồ để kiểm tra lỗi 503 mất 30 giây mới trả về không được coi là lỗi thoáng qua nên không retry.",
-      "tags": [
-        "test",
-        "retry",
-        "overload"
-      ],
-      "complexity": "simple"
-    },
-    {
       "id": "file:tests/test_long_pages.py",
       "type": "file",
       "name": "test_long_pages.py",
@@ -4628,171 +4157,6 @@
       "complexity": "simple"
     },
     {
-      "id": "file:tests/test_browser.py",
-      "type": "file",
-      "name": "test_browser.py",
-      "filePath": "tests/test_browser.py",
-      "summary": "Bộ test tích hợp cho BrowserManager: nhập liệu thật và tiếng Việt, chọn văn bản, trích text iframe, ai_observe/ai_act, phát hiện và tải audio, quản lý tab/popup, đổi viewport và chặn máy chủ quảng cáo.",
-      "tags": [
-        "test",
-        "integration-test",
-        "browser-automation",
-        "ai-agent"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "function:tests/test_browser.py:test_typing_keys_and_unicode",
-      "type": "function",
-      "name": "test_typing_keys_and_unicode",
-      "filePath": "tests/test_browser.py",
-      "lineRange": [
-        17,
-        26
-      ],
-      "summary": "Kiểm tra lệnh input phát lại click, gõ văn bản, Backspace, Ctrl+A và nhập tiếng Việt có dấu vào ô trống.",
-      "tags": [
-        "test",
-        "input-handling",
-        "unicode"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:tests/test_browser.py:test_double_click_selection_is_readable",
-      "type": "function",
-      "name": "test_double_click_selection_is_readable",
-      "filePath": "tests/test_browser.py",
-      "lineRange": [
-        29,
-        38
-      ],
-      "summary": "Kiểm tra double-click chọn được một từ và get_selection đọc đúng văn bản đã chọn.",
-      "tags": [
-        "test",
-        "selection",
-        "input-handling"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:tests/test_browser.py:test_observe_describes_exercise_elements",
-      "type": "function",
-      "name": "test_observe_describes_exercise_elements",
-      "filePath": "tests/test_browser.py",
-      "lineRange": [
-        49,
-        62
-      ],
-      "summary": "Kiểm tra ai_observe mô tả đúng ô nhập, radio, select, textarea trong iframe, id duy nhất và gỡ lớp phủ Set-of-Marks sau khi chụp.",
-      "tags": [
-        "test",
-        "ai-agent",
-        "observation"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:tests/test_browser.py:test_ai_act_fill_select_click_and_iframe",
-      "type": "function",
-      "name": "test_ai_act_fill_select_click_and_iframe",
-      "filePath": "tests/test_browser.py",
-      "lineRange": [
-        65,
-        81
-      ],
-      "summary": "Kiểm tra ai_act điền ô, chọn radio, chọn option và gõ vào textarea trong iframe đều phản ánh đúng vào DOM.",
-      "tags": [
-        "test",
-        "ai-agent",
-        "action-executor"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:tests/test_browser.py:test_audio_detected_from_network_and_fetched",
-      "type": "function",
-      "name": "test_audio_detected_from_network_and_fetched",
-      "filePath": "tests/test_browser.py",
-      "lineRange": [
-        92,
-        102
-      ],
-      "summary": "Kiểm tra audio chỉ xuất hiện sau khi bấm Play, được phát hiện từ network và tải về qua fetch_media với MIME audio.",
-      "tags": [
-        "test",
-        "media",
-        "network"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:tests/test_browser.py:test_tabs_new_switch_close_and_popup",
-      "type": "function",
-      "name": "test_tabs_new_switch_close_and_popup",
-      "filePath": "tests/test_browser.py",
-      "lineRange": [
-        110,
-        125
-      ],
-      "summary": "Kiểm tra mở/chuyển/đóng tab và popup window.open trở thành tab hoạt động.",
-      "tags": [
-        "test",
-        "tab-management",
-        "popup"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:tests/test_browser.py:test_ad_url_pattern",
-      "type": "function",
-      "name": "test_ad_url_pattern",
-      "filePath": "tests/test_browser.py",
-      "lineRange": [
-        137,
-        146
-      ],
-      "summary": "Kiểm tra biểu thức config.AD_URL_RE chặn đúng các máy chủ quảng cáo (doubleclick, googlesyndication, amazon-adsystem...) mà không chặn nhầm Cambridge One, Rikkei LMS hay Google Tag Manager.",
-      "tags": [
-        "test",
-        "ad-blocking",
-        "regex"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:tests/test_browser.py:test_ad_servers_are_blocked_in_the_browser",
-      "type": "function",
-      "name": "test_ad_servers_are_blocked_in_the_browser",
-      "filePath": "tests/test_browser.py",
-      "lineRange": [
-        149,
-        157
-      ],
-      "summary": "Kiểm tra trong trình duyệt thật: fetch tới origin khác vẫn tải được còn script quảng cáo doubleclick bị route chặn.",
-      "tags": [
-        "test",
-        "ad-blocking",
-        "integration-test"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "document:HANDOVER.md",
-      "type": "document",
-      "name": "HANDOVER.md",
-      "filePath": "HANDOVER.md",
-      "summary": "Tài liệu bàn giao Auto Browser v6.2.0 gồm 8 mục: kiến trúc (server, BrowserManager, AIController, EventBus), cách agent AI làm bài với Gemini/Claude/Ollama, xoay vòng mô hình, Docker và cơ chế cập nhật, engine kéo thả 7 chiến lược, chế độ desktop/stream, cấu trúc file, bảng API, vận hành, kiểm thử và giới hạn đã biết. Bản này thêm mục các sửa lỗi sau khi cho bot tự chạy trên trang thật (chặn quảng cáo, bài H5P trong iframe trên trang nhiều link, chờ trang tải, chống lặp Next/Previous).",
-      "tags": [
-        "documentation",
-        "handover",
-        "architecture",
-        "api-reference",
-        "operations"
-      ],
-      "complexity": "complex"
-    },
-    {
       "id": "file:tests/fixtures/carousel.html",
       "type": "file",
       "name": "carousel.html",
@@ -4857,6 +4221,768 @@
       ],
       "complexity": "complex",
       "languageNotes": "Icon khai báo bằng `<svg data-oi=\"...\">` và được octicons.js điền nội dung lúc chạy; mọi hành vi nằm trong app.js."
+    },
+    {
+      "id": "file:llm.py",
+      "type": "file",
+      "name": "llm.py",
+      "filePath": "llm.py",
+      "summary": "Lớp trừu tượng gọi mô hình ngôn ngữ cho agent: GeminiClient (mặc định, xoay vòng pool Flash → Flash-Lite → Gemma, retry, hedging, ghi nhớ quota/quá tải/mô hình thiếu), ClaudeClient (Anthropic SDK) và OllamaClient (mô hình trên máy), cùng chung giao diện generate()/list_models(). Kèm các helper phân tích lỗi 429, nhận diện lỗi 404 thật và trích JSON từ câu trả lời.",
+      "tags": [
+        "llm-client",
+        "service",
+        "fallback",
+        "quota",
+        "error-handling",
+        "tested"
+      ],
+      "complexity": "complex",
+      "languageNotes": "Ba client dùng duck typing chung một chữ ký generate(); ClaudeClient và OllamaClient mượn trực tiếp phương thức GeminiClient._call bằng gán thuộc tính lớp. Mọi lời gọi SDK chặn chạy trong ThreadPoolExecutor để nút Dừng có thể bỏ ngang."
+    },
+    {
+      "id": "function:llm.py:_model_missing",
+      "type": "function",
+      "name": "_model_missing",
+      "filePath": "llm.py",
+      "summary": "Xác định lỗi có phải 404/NOT_FOUND thật của mô hình hay không: loại trừ trước lỗi quota 429 (chuỗi «retry in 15h23m25.0404…s» từng bị nhầm là 404) và lỗi 503/quá tải, rồi mới khớp mã 404 ở đầu chuỗi, trường \"code\": 404 hoặc các cụm MODEL_MISSING.",
+      "tags": [
+        "validation",
+        "error-handling",
+        "regex",
+        "bug-fix"
+      ],
+      "complexity": "simple",
+      "lineRange": [
+        18,
+        23
+      ]
+    },
+    {
+      "id": "class:llm.py:LLMError",
+      "type": "class",
+      "name": "LLMError",
+      "filePath": "llm.py",
+      "summary": "Ngoại lệ gốc cho mọi lỗi từ mô hình ngôn ngữ, mang thông báo tiếng Việt hiển thị trực tiếp cho người dùng.",
+      "tags": [
+        "exception",
+        "error-handling",
+        "type-definition"
+      ],
+      "complexity": "simple",
+      "lineRange": [
+        26,
+        27
+      ]
+    },
+    {
+      "id": "class:llm.py:QuotaExhausted",
+      "type": "class",
+      "name": "QuotaExhausted",
+      "filePath": "llm.py",
+      "summary": "Ngoại lệ con của LLMError báo mọi mô hình đám mây trong pool đã hết quota miễn phí, giúp agent chuyển sang mô hình chạy trên máy.",
+      "tags": [
+        "exception",
+        "quota",
+        "fallback"
+      ],
+      "complexity": "simple",
+      "lineRange": [
+        30,
+        31
+      ]
+    },
+    {
+      "id": "function:llm.py:_parse_quota",
+      "type": "function",
+      "name": "_parse_quota",
+      "filePath": "llm.py",
+      "summary": "Phân tích lỗi 429/RESOURCE_EXHAUSTED của Gemini để lấy số giây cần chờ (dạng 9h50m5s hoặc retryDelay, mặc định 60s) và xác định đó là quota theo ngày hay theo phút; trả None nếu không phải lỗi quota.",
+      "tags": [
+        "parser",
+        "quota",
+        "regex"
+      ],
+      "complexity": "simple",
+      "lineRange": [
+        34,
+        48
+      ]
+    },
+    {
+      "id": "function:llm.py:parse_json_response",
+      "type": "function",
+      "name": "parse_json_response",
+      "filePath": "llm.py",
+      "summary": "Trích đối tượng JSON đầu tiên từ câu trả lời của mô hình, chịu được khối code fence và văn bản thừa, ném LLMError nếu không có hoặc không hợp lệ.",
+      "tags": [
+        "parser",
+        "serialization",
+        "utility"
+      ],
+      "complexity": "simple",
+      "lineRange": [
+        65,
+        81
+      ]
+    },
+    {
+      "id": "class:llm.py:GeminiClient",
+      "type": "class",
+      "name": "GeminiClient",
+      "filePath": "llm.py",
+      "summary": "Wrapper quanh google-genai với client cache, gọi có thể dừng, retry/backoff, ghi nhớ mô hình hết quota ngày, quá tải hoặc không tồn tại (chỉ 404 thật, qua _model_missing), chạy đua (hedging) với mô hình dự phòng khi phản hồi chậm, tự khám phá Flash/Flash-Lite/Gemma thay thế và ghi nhận lượt dùng token.",
+      "tags": [
+        "llm-client",
+        "gemini",
+        "retry",
+        "quota",
+        "service"
+      ],
+      "complexity": "complex",
+      "lineRange": [
+        84,
+        374
+      ]
+    },
+    {
+      "id": "function:llm.py:GeminiClient._get_client",
+      "type": "function",
+      "name": "GeminiClient._get_client",
+      "filePath": "llm.py",
+      "summary": "Tạo và cache genai.Client theo API key (khóa bằng lock, timeout HTTP CALL_TIMEOUT_S), báo LLMError hướng dẫn mở Cài đặt khi chưa có khóa.",
+      "tags": [
+        "factory",
+        "caching",
+        "gemini"
+      ],
+      "complexity": "simple",
+      "lineRange": [
+        102,
+        114
+      ]
+    },
+    {
+      "id": "function:llm.py:GeminiClient._call",
+      "type": "function",
+      "name": "GeminiClient._call",
+      "filePath": "llm.py",
+      "summary": "Chạy một lời gọi SDK chặn trong luồng phụ và thăm dò mỗi 0,25s để nút Dừng có thể bỏ ngang ngay, ném LLMError khi quá thời hạn.",
+      "tags": [
+        "threading",
+        "timeout",
+        "cancellation"
+      ],
+      "complexity": "simple",
+      "lineRange": [
+        116,
+        127
+      ]
+    },
+    {
+      "id": "function:llm.py:GeminiClient.list_models",
+      "type": "function",
+      "name": "GeminiClient.list_models",
+      "filePath": "llm.py",
+      "summary": "Liệt kê các mô hình Gemini/Gemma hỗ trợ generateContent của khóa, loại bỏ mô hình embedding, TTS, ảnh, live, computer-use... và sắp xếp giảm dần theo tên.",
+      "tags": [
+        "discovery",
+        "gemini",
+        "filtering"
+      ],
+      "complexity": "simple",
+      "lineRange": [
+        129,
+        144
+      ]
+    },
+    {
+      "id": "function:llm.py:GeminiClient.generate",
+      "type": "function",
+      "name": "GeminiClient.generate",
+      "filePath": "llm.py",
+      "summary": "Sinh câu trả lời qua chuỗi mô hình Gemini (kèm ảnh hoặc audio), ưu tiên mô hình dự phòng vừa chạy tốt (sticky), bỏ mô hình đã biết là thiếu, đẩy mô hình quá tải xuống cuối, khám phá thêm mô hình khi cả danh sách cạn và ném QuotaExhausted khi cả pool hết lượt.",
+      "tags": [
+        "llm-call",
+        "fallback",
+        "quota"
+      ],
+      "complexity": "complex",
+      "lineRange": [
+        146,
+        225
+      ]
+    },
+    {
+      "id": "function:llm.py:GeminiClient._hedged",
+      "type": "function",
+      "name": "GeminiClient._hedged",
+      "filePath": "llm.py",
+      "summary": "Chạy một mô hình và nếu sau HEDGE_AFTER_S vẫn chưa trả lời thì gửi song song cho mô hình dự phòng kế tiếp; dự phòng lỗi được thay ngay, câu trả lời tốt đầu tiên thắng, tối đa hai yêu cầu cùng lúc.",
+      "tags": [
+        "concurrency",
+        "hedging",
+        "latency"
+      ],
+      "complexity": "moderate",
+      "lineRange": [
+        229,
+        262
+      ]
+    },
+    {
+      "id": "function:llm.py:GeminiClient._try_model",
+      "type": "function",
+      "name": "GeminiClient._try_model",
+      "filePath": "llm.py",
+      "summary": "Thử một mô hình với retry: dùng _model_missing để chỉ đánh dấu không tồn tại khi là 404 thật, đánh dấu hết lượt khi chạm quota ngày, chờ đúng thời gian khi bị giới hạn theo phút, chỉ retry một lần với lỗi 503 nhanh rồi đánh dấu quá tải.",
+      "tags": [
+        "retry",
+        "backoff",
+        "error-handling"
+      ],
+      "complexity": "moderate",
+      "lineRange": [
+        264,
+        322
+      ]
+    },
+    {
+      "id": "function:llm.py:GeminiClient._discover_alternatives",
+      "type": "function",
+      "name": "GeminiClient._discover_alternatives",
+      "filePath": "llm.py",
+      "summary": "Liệt kê các mô hình Flash, Flash-Lite và Gemma khác chưa thử của khóa, xếp hạng Flash > Flash-Lite > Gemma (ưu tiên bản ổn định, số phiên bản cao) để làm phương án dự phòng khi mọi mô hình cấu hình đều hết lượt hoặc quá tải.",
+      "tags": [
+        "discovery",
+        "fallback",
+        "ranking"
+      ],
+      "complexity": "simple",
+      "lineRange": [
+        342,
+        355
+      ]
+    },
+    {
+      "id": "function:llm.py:GeminiClient._friendly",
+      "type": "function",
+      "name": "GeminiClient._friendly",
+      "filePath": "llm.py",
+      "summary": "Chuyển thông báo lỗi thô của Gemini thành câu tiếng Việt dễ hiểu cho key sai, hết quota, thiếu quyền hoặc không tìm thấy mô hình (dựa trên _model_missing), còn lại cắt 300 ký tự.",
+      "tags": [
+        "error-handling",
+        "localization",
+        "utility"
+      ],
+      "complexity": "simple",
+      "lineRange": [
+        364,
+        374
+      ]
+    },
+    {
+      "id": "class:llm.py:ClaudeClient",
+      "type": "class",
+      "name": "ClaudeClient",
+      "filePath": "llm.py",
+      "summary": "Client cho Anthropic API cùng giao diện với GeminiClient: gửi prompt kèm ảnh, structured output theo json_schema và effort, prompt hệ thống có cache, fallback phía máy chủ cho mô hình hỗ trợ, báo lỗi khi bị từ chối và không nhận audio.",
+      "tags": [
+        "llm-client",
+        "claude",
+        "anthropic"
+      ],
+      "complexity": "moderate",
+      "lineRange": [
+        382,
+        494
+      ]
+    },
+    {
+      "id": "function:llm.py:ClaudeClient.generate",
+      "type": "function",
+      "name": "ClaudeClient.generate",
+      "filePath": "llm.py",
+      "summary": "Gọi messages.create của Anthropic (hoặc beta với fallback phía máy chủ) kèm output_config effort/schema, chuyển sang mô hình dự phòng khi 404, rate limit hoặc lỗi máy chủ, và đổi lỗi SDK, refusal, max_tokens thành LLMError thân thiện.",
+      "tags": [
+        "llm-call",
+        "claude",
+        "error-handling"
+      ],
+      "complexity": "moderate",
+      "lineRange": [
+        413,
+        487
+      ]
+    },
+    {
+      "id": "class:llm.py:OllamaClient",
+      "type": "class",
+      "name": "OllamaClient",
+      "filePath": "llm.py",
+      "summary": "Client HTTP gọi Ollama chạy trên máy (/api/chat, /api/tags, /api/version): kiểm tra khả dụng, liệt kê mô hình và sinh câu trả lời không cần khóa, không giới hạn lượt.",
+      "tags": [
+        "llm-client",
+        "ollama",
+        "local-model",
+        "http"
+      ],
+      "complexity": "moderate",
+      "lineRange": [
+        501,
+        574
+      ]
+    },
+    {
+      "id": "function:llm.py:OllamaClient.generate",
+      "type": "function",
+      "name": "OllamaClient.generate",
+      "filePath": "llm.py",
+      "summary": "Gửi prompt (kèm ảnh, schema hoặc json mode) tới /api/chat của Ollama, từ chối audio, hướng dẫn ollama pull khi thiếu mô hình và ghi nhận lượt dùng token.",
+      "tags": [
+        "llm-call",
+        "ollama",
+        "http"
+      ],
+      "complexity": "simple",
+      "lineRange": [
+        538,
+        574
+      ]
+    },
+    {
+      "id": "file:tests/test_agent_robustness.py",
+      "type": "file",
+      "name": "test_agent_robustness.py",
+      "filePath": "tests/test_agent_robustness.py",
+      "summary": "Bộ test hồi quy rút ra từ lần chạy thật trên carousel h5p.org: gõ phím chỉ được vào đúng ô nhắm tới, agent không bấm Next/Previous qua lại vô hạn, ghi chú tiến độ được mang sang bước sau, agent chờ trang hết «Loading...», điều hướng hash/pushState không làm tab treo trạng thái loading và mục H5P đặt lên vùng thả được tính là đã trả lời.",
+      "tags": [
+        "test",
+        "regression",
+        "ai-agent",
+        "robustness"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tests/test_agent_robustness.py:Script",
+      "type": "class",
+      "name": "Script",
+      "filePath": "tests/test_agent_robustness.py",
+      "summary": "LLM giả sinh kế hoạch JSON bằng một hàm theo prompt và số lượt gọi, ghi lại mọi prompt và lượt dùng để kiểm tra hành vi vòng lặp agent mà không gọi API thật.",
+      "tags": [
+        "test",
+        "mock",
+        "test-double"
+      ],
+      "complexity": "simple",
+      "lineRange": [
+        57,
+        66
+      ]
+    },
+    {
+      "id": "function:tests/test_agent_robustness.py:test_back_and_forth_between_two_screens_is_stopped",
+      "type": "function",
+      "name": "test_back_and_forth_between_two_screens_is_stopped",
+      "filePath": "tests/test_agent_robustness.py",
+      "summary": "Kiểm tra agent bấm Next/Previous luân phiên được cảnh báo «going back and forth» rồi bị dừng sớm (báo «quay lại cùng một màn hình») trước khi hết ngân sách bước.",
+      "tags": [
+        "test",
+        "loop-detection",
+        "ai-agent"
+      ],
+      "complexity": "simple",
+      "lineRange": [
+        73,
+        85
+      ]
+    },
+    {
+      "id": "function:tests/test_agent_robustness.py:test_progress_note_is_carried_to_the_next_step",
+      "type": "function",
+      "name": "test_progress_note_is_carried_to_the_next_step",
+      "filePath": "tests/test_agent_robustness.py",
+      "summary": "Xác minh ghi chú tiến độ của bước trước được đưa vào prompt bước sau, và bước đầu hiển thị «(nothing finished yet)».",
+      "tags": [
+        "test",
+        "prompt-engineering",
+        "state"
+      ],
+      "complexity": "simple",
+      "lineRange": [
+        88,
+        103
+      ]
+    },
+    {
+      "id": "function:tests/test_agent_robustness.py:test_agent_does_not_think_while_the_page_says_loading",
+      "type": "function",
+      "name": "test_agent_does_not_think_while_the_page_says_loading",
+      "filePath": "tests/test_agent_robustness.py",
+      "summary": "Bảo đảm agent chờ trang hết «Loading...» rồi mới gửi prompt đầu tiên, để mô hình thấy đúng bài tập mới.",
+      "tags": [
+        "test",
+        "loading",
+        "ai-agent"
+      ],
+      "complexity": "simple",
+      "lineRange": [
+        115,
+        124
+      ]
+    },
+    {
+      "id": "function:tests/test_agent_robustness.py:test_h5p_item_placed_over_its_zone_counts_as_answered",
+      "type": "function",
+      "name": "test_h5p_item_placed_over_its_zone_counts_as_answered",
+      "filePath": "tests/test_agent_robustness.py",
+      "summary": "Kiểm tra form_status coi mục H5P Drag and Drop nằm ngoài vùng thả trong DOM nhưng được định vị đè lên vùng thả là đã trả lời, giảm số câu chưa làm đi một.",
+      "tags": [
+        "test",
+        "drag-and-drop",
+        "h5p",
+        "form-status"
+      ],
+      "complexity": "simple",
+      "lineRange": [
+        138,
+        152
+      ]
+    },
+    {
+      "id": "file:tests/test_gemini_quota.py",
+      "type": "file",
+      "name": "test_gemini_quota.py",
+      "filePath": "tests/test_gemini_quota.py",
+      "summary": "Bộ test cơ chế quota và dự phòng của GeminiClient với client google-genai giả: hết quota ngày chuyển mô hình ngay, giới hạn theo phút thì chờ, mô hình quá tải chỉ retry một lần, hedging với mô hình chậm, khám phá Flash-Lite/Gemma, và phân biệt lỗi 404 thật với quota 429 có chuỗi «404» trong thời gian chờ.",
+      "tags": [
+        "test",
+        "quota",
+        "fallback",
+        "gemini",
+        "regression"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tests/test_gemini_quota.py:FakeGenai",
+      "type": "class",
+      "name": "FakeGenai",
+      "filePath": "tests/test_gemini_quota.py",
+      "summary": "Client google-genai giả: generate_content chạy theo kịch bản riêng cho từng mô hình (ném lỗi 429/503/404 hoặc trả văn bản) và list trả về danh sách mô hình cấu hình sẵn.",
+      "tags": [
+        "test",
+        "mock",
+        "test-double"
+      ],
+      "complexity": "simple",
+      "lineRange": [
+        25,
+        43
+      ]
+    },
+    {
+      "id": "function:tests/test_gemini_quota.py:test_daily_quota_switches_immediately_without_retries",
+      "type": "function",
+      "name": "test_daily_quota_switches_immediately_without_retries",
+      "filePath": "tests/test_gemini_quota.py",
+      "summary": "Kiểm tra hết quota ngày thì chuyển ngay sang mô hình kế tiếp không chờ retry, ghi lý do chuyển, và lần gọi sau bỏ qua mô hình đã cạn mà không hỏi Google.",
+      "tags": [
+        "test",
+        "quota",
+        "fallback"
+      ],
+      "complexity": "simple",
+      "lineRange": [
+        52,
+        66
+      ]
+    },
+    {
+      "id": "function:tests/test_gemini_quota.py:test_overloaded_model_gets_one_retry_then_is_tried_last",
+      "type": "function",
+      "name": "test_overloaded_model_gets_one_retry_then_is_tried_last",
+      "filePath": "tests/test_gemini_quota.py",
+      "summary": "Kiểm tra mô hình quá tải (503) chỉ được retry một lần rồi chuyển dự phòng, và ở bước sau bị đẩy xuống cuối hàng đợi.",
+      "tags": [
+        "test",
+        "overload",
+        "retry"
+      ],
+      "complexity": "simple",
+      "lineRange": [
+        96,
+        107
+      ]
+    },
+    {
+      "id": "function:tests/test_gemini_quota.py:test_slow_model_is_raced_against_the_next_one",
+      "type": "function",
+      "name": "test_slow_model_is_raced_against_the_next_one",
+      "filePath": "tests/test_gemini_quota.py",
+      "summary": "Xác minh sau HEDGE_AFTER_S yêu cầu được gửi song song cho mô hình kế tiếp, câu trả lời nhanh đầu tiên thắng và dự phòng không bị hỏi hai lần.",
+      "tags": [
+        "test",
+        "hedging",
+        "concurrency"
+      ],
+      "complexity": "simple",
+      "lineRange": [
+        127,
+        149
+      ]
+    },
+    {
+      "id": "function:tests/test_gemini_quota.py:test_failed_backup_is_replaced_by_the_next_model_at_once",
+      "type": "function",
+      "name": "test_failed_backup_is_replaced_by_the_next_model_at_once",
+      "filePath": "tests/test_gemini_quota.py",
+      "summary": "Kiểm tra khi mô hình chính treo và dự phòng hết quota ngay, mô hình tiếp theo nhận yêu cầu tức thì thay vì chờ mô hình chính.",
+      "tags": [
+        "test",
+        "hedging",
+        "fallback"
+      ],
+      "complexity": "simple",
+      "lineRange": [
+        152,
+        172
+      ]
+    },
+    {
+      "id": "function:tests/test_gemini_quota.py:test_slow_503_is_not_retried",
+      "type": "function",
+      "name": "test_slow_503_is_not_retried",
+      "filePath": "tests/test_gemini_quota.py",
+      "summary": "Giả lập đồng hồ để kiểm tra lỗi 503 mất 30 giây mới trả về không được coi là lỗi thoáng qua nên không retry.",
+      "tags": [
+        "test",
+        "retry",
+        "overload"
+      ],
+      "complexity": "simple",
+      "lineRange": [
+        175,
+        194
+      ]
+    },
+    {
+      "id": "function:tests/test_gemini_quota.py:test_daily_quota_whose_retry_time_contains_404_is_not_a_missing_model",
+      "type": "function",
+      "name": "test_daily_quota_whose_retry_time_contains_404_is_not_a_missing_model",
+      "filePath": "tests/test_gemini_quota.py",
+      "summary": "Test hồi quy: lỗi quota ngày có thời gian chờ «15h23m25.0404…s» chứa chuỗi «404» không được đánh dấu mô hình là thiếu, mà phải đánh dấu hết lượt.",
+      "tags": [
+        "test",
+        "regression",
+        "quota",
+        "error-handling"
+      ],
+      "complexity": "simple",
+      "lineRange": [
+        197,
+        205
+      ]
+    },
+    {
+      "id": "file:tests/test_browser.py",
+      "type": "file",
+      "name": "test_browser.py",
+      "filePath": "tests/test_browser.py",
+      "summary": "Bộ test pytest tích hợp cho BrowserManager trên Chromium thật: input chuột/phím và tiếng Việt, bôi đen, trích chữ trong div/iframe, ai_observe/ai_act, bắt và tải audio (bỏ qua playlist HLS), tab/popup, đổi viewport và chặn máy chủ quảng cáo.",
+      "tags": [
+        "test",
+        "integration-test",
+        "browser-automation",
+        "ai-agent",
+        "media"
+      ],
+      "complexity": "moderate",
+      "languageNotes": "Dùng fixture pytest (browser, goto, site) khai báo trong conftest.py; các helper _ev/_center chạy JS qua lệnh eval để đọc trạng thái DOM."
+    },
+    {
+      "id": "function:tests/test_browser.py:test_typing_keys_and_unicode",
+      "type": "function",
+      "name": "test_typing_keys_and_unicode",
+      "filePath": "tests/test_browser.py",
+      "lineRange": [
+        17,
+        26
+      ],
+      "summary": "Kiểm tra lệnh input phát lại click thật, gõ văn bản, Backspace, Ctrl+A rồi nhập tiếng Việt có dấu vào ô trống #g1 và đọc lại đúng giá trị.",
+      "tags": [
+        "test",
+        "input-handling",
+        "unicode"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_browser.py:test_double_click_selection_is_readable",
+      "type": "function",
+      "name": "test_double_click_selection_is_readable",
+      "filePath": "tests/test_browser.py",
+      "lineRange": [
+        29,
+        38
+      ],
+      "summary": "Kiểm tra double-click vào từ đầu tiên của tiêu đề chọn được chữ và lệnh get_selection trả về đúng đoạn văn bản đã chọn.",
+      "tags": [
+        "test",
+        "selection",
+        "input-handling"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_browser.py:test_observe_describes_exercise_elements",
+      "type": "function",
+      "name": "test_observe_describes_exercise_elements",
+      "filePath": "tests/test_browser.py",
+      "lineRange": [
+        49,
+        62
+      ],
+      "summary": "Kiểm tra ai_observe trả ảnh JPEG và mô tả đúng ô nhập (kèm ngữ cảnh trước/sau), radio, select, textarea trong iframe với id duy nhất, đồng thời gỡ lớp phủ Set-of-Marks sau khi chụp.",
+      "tags": [
+        "test",
+        "ai-agent",
+        "observation"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_browser.py:test_ai_act_fill_select_click_and_iframe",
+      "type": "function",
+      "name": "test_ai_act_fill_select_click_and_iframe",
+      "filePath": "tests/test_browser.py",
+      "lineRange": [
+        65,
+        81
+      ],
+      "summary": "Kiểm tra ai_act điền ô chữ, bấm radio, chọn option và gõ vào textarea trong iframe, rồi xác nhận từng giá trị được phản ánh đúng vào DOM.",
+      "tags": [
+        "test",
+        "ai-agent",
+        "action-executor"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_browser.py:test_audio_detected_from_network_and_fetched",
+      "type": "function",
+      "name": "test_audio_detected_from_network_and_fetched",
+      "filePath": "tests/test_browser.py",
+      "lineRange": [
+        92,
+        102
+      ],
+      "summary": "Kiểm tra audio chỉ xuất hiện sau khi bấm Play, được phát hiện qua response mạng và tải về bằng fetch_media với dữ liệu RIFF và MIME audio.",
+      "tags": [
+        "test",
+        "media",
+        "network"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_browser.py:test_stream_playlists_are_not_sent_for_transcription",
+      "type": "function",
+      "name": "test_stream_playlists_are_not_sent_for_transcription",
+      "filePath": "tests/test_browser.py",
+      "lineRange": [
+        105,
+        114
+      ],
+      "summary": "Hồi quy lỗi danh sách phát HLS .m3u8 từng bị gửi cho Gemini như audio (lỗi 400): kiểm tra playlist không xuất hiện trong media của ai_observe và fetch_media từ chối với thông báo HLS.",
+      "tags": [
+        "test",
+        "media",
+        "regression-test",
+        "hls"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_browser.py:test_tabs_new_switch_close_and_popup",
+      "type": "function",
+      "name": "test_tabs_new_switch_close_and_popup",
+      "filePath": "tests/test_browser.py",
+      "lineRange": [
+        122,
+        137
+      ],
+      "summary": "Kiểm tra mở, chuyển, đóng tab và popup tạo bởi window.open trở thành tab đang hoạt động trong vòng 10 giây.",
+      "tags": [
+        "test",
+        "tab-management",
+        "popup"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_browser.py:test_ad_url_pattern",
+      "type": "function",
+      "name": "test_ad_url_pattern",
+      "filePath": "tests/test_browser.py",
+      "lineRange": [
+        149,
+        158
+      ],
+      "summary": "Kiểm tra biểu thức config.AD_URL_RE chặn đúng các máy chủ quảng cáo (doubleclick, googlesyndication, googleadservices, amazon-adsystem, fundingchoices) mà không chặn nhầm Cambridge One, Rikkei LMS, gstatic hay Google Tag Manager.",
+      "tags": [
+        "test",
+        "ad-blocking",
+        "regex"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_browser.py:test_ad_servers_are_blocked_in_the_browser",
+      "type": "function",
+      "name": "test_ad_servers_are_blocked_in_the_browser",
+      "filePath": "tests/test_browser.py",
+      "lineRange": [
+        161,
+        169
+      ],
+      "summary": "Kiểm tra trong trình duyệt thật: fetch tới origin khác vẫn tải được còn script quảng cáo doubleclick bị route chặn.",
+      "tags": [
+        "test",
+        "ad-blocking",
+        "integration-test"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:HANDOVER.md",
+      "type": "document",
+      "name": "HANDOVER.md",
+      "filePath": "HANDOVER.md",
+      "summary": "Tài liệu bàn giao Auto Browser v6.2.0 gồm 8 mục: kiến trúc server/BrowserManager/AIController, vòng lặp agent Quan sát–Suy luận–Thao tác–Kiểm tra, các nhà cung cấp AI (Gemini, Claude, Ollama) với xoay vòng mô hình, Docker/phát hành/tự cập nhật, các bản sửa sau khi chạy bot trên trang thật (chặn quảng cáo, bỏ qua playlist HLS), engine kéo thả 7 chiến lược, cấu trúc file, API, vận hành, kiểm thử và giới hạn đã biết.",
+      "tags": [
+        "documentation",
+        "handover",
+        "architecture",
+        "operations",
+        "testing"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:tests/fixtures/stream.m3u8",
+      "type": "file",
+      "name": "stream.m3u8",
+      "filePath": "tests/fixtures/stream.m3u8",
+      "summary": "Danh sách phát HLS tối giản (một phân đoạn segment0.ts, có EXT-X-ENDLIST) dùng làm fixture để kiểm tra rằng playlist .m3u8 không bị coi là audio và không được gửi cho Gemini chép lời.",
+      "tags": [
+        "test-fixture",
+        "hls",
+        "media",
+        "playlist"
+      ],
+      "complexity": "simple",
+      "languageNotes": "Định dạng M3U8 mở rộng: #EXTM3U, #EXT-X-VERSION, #EXTINF mô tả thời lượng phân đoạn và #EXT-X-ENDLIST đánh dấu playlist VOD đã kết thúc."
     }
   ],
   "edges": [
@@ -7185,223 +7311,6 @@
       "weight": 1
     },
     {
-      "source": "file:llm.py",
-      "target": "class:llm.py:LLMError",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:llm.py",
-      "target": "class:llm.py:LLMError",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:llm.py",
-      "target": "class:llm.py:QuotaExhausted",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:llm.py",
-      "target": "class:llm.py:QuotaExhausted",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "class:llm.py:QuotaExhausted",
-      "target": "class:llm.py:LLMError",
-      "type": "inherits",
-      "direction": "forward",
-      "weight": 0.9
-    },
-    {
-      "source": "file:llm.py",
-      "target": "function:llm.py:_parse_quota",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:llm.py",
-      "target": "function:llm.py:_parse_quota",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:llm.py",
-      "target": "function:llm.py:parse_json_response",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:llm.py",
-      "target": "function:llm.py:parse_json_response",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:llm.py",
-      "target": "class:llm.py:GeminiClient",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:llm.py",
-      "target": "class:llm.py:GeminiClient",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:llm.py",
-      "target": "class:llm.py:ClaudeClient",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:llm.py",
-      "target": "class:llm.py:ClaudeClient",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:llm.py",
-      "target": "class:llm.py:OllamaClient",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:llm.py",
-      "target": "class:llm.py:OllamaClient",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:llm.py",
-      "target": "function:llm.py:GeminiClient._call",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:llm.py",
-      "target": "function:llm.py:GeminiClient.list_models",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:llm.py",
-      "target": "function:llm.py:GeminiClient.generate",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:llm.py",
-      "target": "function:llm.py:GeminiClient._hedged",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:llm.py",
-      "target": "function:llm.py:GeminiClient._try_model",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:llm.py",
-      "target": "function:llm.py:GeminiClient._discover_alternatives",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:llm.py",
-      "target": "function:llm.py:ClaudeClient.generate",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:llm.py",
-      "target": "function:llm.py:OllamaClient.generate",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "function:llm.py:GeminiClient.generate",
-      "target": "function:llm.py:GeminiClient._hedged",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:llm.py:GeminiClient.generate",
-      "target": "function:llm.py:GeminiClient._discover_alternatives",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:llm.py:GeminiClient._hedged",
-      "target": "function:llm.py:GeminiClient._try_model",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:llm.py:GeminiClient._try_model",
-      "target": "function:llm.py:_parse_quota",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:llm.py:GeminiClient._try_model",
-      "target": "function:llm.py:GeminiClient._call",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:llm.py:GeminiClient._discover_alternatives",
-      "target": "function:llm.py:GeminiClient.list_models",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:llm.py:ClaudeClient.generate",
-      "target": "function:llm.py:GeminiClient._call",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:llm.py:OllamaClient.generate",
-      "target": "function:llm.py:GeminiClient._call",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
       "source": "function:ai_controller.py:AIController.run_command",
       "target": "function:ai_controller.py:AIController._execute_pipeline",
       "type": "calls",
@@ -7479,20 +7388,6 @@
       "weight": 0.8
     },
     {
-      "source": "function:ai_controller.py:AIController._agent_loop",
-      "target": "function:llm.py:parse_json_response",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:ai_controller.py:AIController._ensure_transcripts",
-      "target": "function:llm.py:GeminiClient.generate",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
       "source": "function:ai_controller.py:AIController.save_config",
       "target": "function:ai_controller.py:AIController.get_config",
       "type": "calls",
@@ -7507,146 +7402,6 @@
       "weight": 0.8
     },
     {
-      "source": "file:tests/test_agent_robustness.py",
-      "target": "class:tests/test_agent_robustness.py:Script",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:tests/test_agent_robustness.py",
-      "target": "class:tests/test_agent_robustness.py:Script",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:tests/test_agent_robustness.py",
-      "target": "function:tests/test_agent_robustness.py:test_back_and_forth_between_two_screens_is_stopped",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:tests/test_agent_robustness.py",
-      "target": "function:tests/test_agent_robustness.py:test_back_and_forth_between_two_screens_is_stopped",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:tests/test_agent_robustness.py",
-      "target": "function:tests/test_agent_robustness.py:test_progress_note_is_carried_to_the_next_step",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:tests/test_agent_robustness.py",
-      "target": "function:tests/test_agent_robustness.py:test_progress_note_is_carried_to_the_next_step",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:tests/test_agent_robustness.py",
-      "target": "function:tests/test_agent_robustness.py:test_agent_does_not_think_while_the_page_says_loading",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:tests/test_agent_robustness.py",
-      "target": "function:tests/test_agent_robustness.py:test_agent_does_not_think_while_the_page_says_loading",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:tests/test_gemini_quota.py",
-      "target": "class:tests/test_gemini_quota.py:FakeGenai",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:tests/test_gemini_quota.py",
-      "target": "class:tests/test_gemini_quota.py:FakeGenai",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:tests/test_gemini_quota.py",
-      "target": "function:tests/test_gemini_quota.py:test_daily_quota_switches_immediately_without_retries",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:tests/test_gemini_quota.py",
-      "target": "function:tests/test_gemini_quota.py:test_daily_quota_switches_immediately_without_retries",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:tests/test_gemini_quota.py",
-      "target": "function:tests/test_gemini_quota.py:test_overloaded_model_gets_one_retry_then_is_tried_last",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:tests/test_gemini_quota.py",
-      "target": "function:tests/test_gemini_quota.py:test_overloaded_model_gets_one_retry_then_is_tried_last",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:tests/test_gemini_quota.py",
-      "target": "function:tests/test_gemini_quota.py:test_slow_model_is_raced_against_the_next_one",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:tests/test_gemini_quota.py",
-      "target": "function:tests/test_gemini_quota.py:test_slow_model_is_raced_against_the_next_one",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:tests/test_gemini_quota.py",
-      "target": "function:tests/test_gemini_quota.py:test_failed_backup_is_replaced_by_the_next_model_at_once",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:tests/test_gemini_quota.py",
-      "target": "function:tests/test_gemini_quota.py:test_failed_backup_is_replaced_by_the_next_model_at_once",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:tests/test_gemini_quota.py",
-      "target": "function:tests/test_gemini_quota.py:test_slow_503_is_not_retried",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:tests/test_gemini_quota.py",
-      "target": "function:tests/test_gemini_quota.py:test_slow_503_is_not_retried",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
       "source": "file:tests/test_long_pages.py",
       "target": "class:tests/test_long_pages.py:Script",
       "type": "contains",
@@ -7769,13 +7524,6 @@
       "source": "file:tests/test_navigation.py",
       "target": "function:tests/test_navigation.py:test_link_in_a_task_is_opened_before_the_first_llm_call",
       "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:tests/test_agent_robustness.py:test_back_and_forth_between_two_screens_is_stopped",
-      "target": "function:ai_controller.py:AIController.run_command",
-      "type": "calls",
       "direction": "forward",
       "weight": 0.8
     },
@@ -7801,27 +7549,6 @@
       "weight": 0.8
     },
     {
-      "source": "function:tests/test_gemini_quota.py:test_daily_quota_switches_immediately_without_retries",
-      "target": "function:llm.py:GeminiClient.generate",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:tests/test_gemini_quota.py:test_slow_model_is_raced_against_the_next_one",
-      "target": "function:llm.py:GeminiClient.generate",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:ai_controller.py",
-      "target": "file:tests/test_agent_robustness.py",
-      "type": "tested_by",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
       "source": "file:ai_controller.py",
       "target": "file:tests/test_long_pages.py",
       "type": "tested_by",
@@ -7836,13 +7563,6 @@
       "weight": 0.5
     },
     {
-      "source": "file:llm.py",
-      "target": "file:tests/test_gemini_quota.py",
-      "type": "tested_by",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
       "source": "file:config.py",
       "target": "function:config.py:_saved",
       "type": "contains",
@@ -7869,13 +7589,6 @@
       "type": "exports",
       "direction": "forward",
       "weight": 0.8
-    },
-    {
-      "source": "file:config.py",
-      "target": "file:tests/test_browser.py",
-      "type": "tested_by",
-      "direction": "forward",
-      "weight": 0.5
     },
     {
       "source": "file:browser_manager.py",
@@ -8522,8 +8235,505 @@
       "weight": 0.6
     },
     {
-      "source": "file:browser_manager.py",
-      "target": "file:tests/test_browser.py",
+      "source": "file:tests/fixtures/h5p_like.html",
+      "target": "file:tests/test_long_pages.py",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:tests/fixtures/player.html",
+      "target": "file:tests/fixtures/carousel.html",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:tests/fixtures/player.html",
+      "target": "file:tests/conftest.py",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:tests/fixtures/carousel.html",
+      "target": "file:tests/conftest.py",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:tests/fixtures/h5p_like.html",
+      "target": "file:tests/conftest.py",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:static/index.html",
+      "target": "file:static/app.js",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:static/index.html",
+      "target": "file:static/style.css",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:static/index.html",
+      "target": "file:tests/test_ui.py",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:static/index.html",
+      "target": "file:tests/test_server.py",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:llm.py",
+      "target": "function:llm.py:_model_missing",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:llm.py",
+      "target": "class:llm.py:LLMError",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:llm.py",
+      "target": "class:llm.py:QuotaExhausted",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:llm.py",
+      "target": "function:llm.py:_parse_quota",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:llm.py",
+      "target": "function:llm.py:parse_json_response",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:llm.py",
+      "target": "class:llm.py:GeminiClient",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:llm.py",
+      "target": "function:llm.py:GeminiClient._get_client",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:llm.py",
+      "target": "function:llm.py:GeminiClient._call",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:llm.py",
+      "target": "function:llm.py:GeminiClient.list_models",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:llm.py",
+      "target": "function:llm.py:GeminiClient.generate",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:llm.py",
+      "target": "function:llm.py:GeminiClient._hedged",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:llm.py",
+      "target": "function:llm.py:GeminiClient._try_model",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:llm.py",
+      "target": "function:llm.py:GeminiClient._discover_alternatives",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:llm.py",
+      "target": "function:llm.py:GeminiClient._friendly",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:llm.py",
+      "target": "class:llm.py:ClaudeClient",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:llm.py",
+      "target": "function:llm.py:ClaudeClient.generate",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:llm.py",
+      "target": "class:llm.py:OllamaClient",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:llm.py",
+      "target": "function:llm.py:OllamaClient.generate",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:llm.py",
+      "target": "class:llm.py:LLMError",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:llm.py",
+      "target": "class:llm.py:QuotaExhausted",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:llm.py",
+      "target": "class:llm.py:GeminiClient",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:llm.py",
+      "target": "class:llm.py:ClaudeClient",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:llm.py",
+      "target": "class:llm.py:OllamaClient",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:llm.py",
+      "target": "function:llm.py:parse_json_response",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "class:llm.py:QuotaExhausted",
+      "target": "class:llm.py:LLMError",
+      "type": "inherits",
+      "direction": "forward",
+      "weight": 0.9
+    },
+    {
+      "source": "function:llm.py:_model_missing",
+      "target": "function:llm.py:_parse_quota",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:llm.py:GeminiClient._try_model",
+      "target": "function:llm.py:_model_missing",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:llm.py:GeminiClient._try_model",
+      "target": "function:llm.py:_parse_quota",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:llm.py:GeminiClient._friendly",
+      "target": "function:llm.py:_model_missing",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:llm.py:GeminiClient.generate",
+      "target": "function:llm.py:GeminiClient._hedged",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:llm.py:GeminiClient.generate",
+      "target": "function:llm.py:GeminiClient._discover_alternatives",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:llm.py:GeminiClient.generate",
+      "target": "function:llm.py:GeminiClient._get_client",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:llm.py:GeminiClient._hedged",
+      "target": "function:llm.py:GeminiClient._try_model",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:llm.py:GeminiClient._try_model",
+      "target": "function:llm.py:GeminiClient._call",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:llm.py:GeminiClient._try_model",
+      "target": "function:llm.py:GeminiClient._friendly",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:llm.py:GeminiClient._discover_alternatives",
+      "target": "function:llm.py:GeminiClient.list_models",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_agent_robustness.py",
+      "target": "class:tests/test_agent_robustness.py:Script",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_agent_robustness.py",
+      "target": "function:tests/test_agent_robustness.py:test_back_and_forth_between_two_screens_is_stopped",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_agent_robustness.py",
+      "target": "function:tests/test_agent_robustness.py:test_progress_note_is_carried_to_the_next_step",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_agent_robustness.py",
+      "target": "function:tests/test_agent_robustness.py:test_agent_does_not_think_while_the_page_says_loading",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_agent_robustness.py",
+      "target": "function:tests/test_agent_robustness.py:test_h5p_item_placed_over_its_zone_counts_as_answered",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "function:tests/test_agent_robustness.py:test_back_and_forth_between_two_screens_is_stopped",
+      "target": "class:ai_controller.py:AIController",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:tests/test_agent_robustness.py:test_progress_note_is_carried_to_the_next_step",
+      "target": "class:ai_controller.py:AIController",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:tests/test_agent_robustness.py:test_agent_does_not_think_while_the_page_says_loading",
+      "target": "class:ai_controller.py:AIController",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:ai_controller.py",
+      "target": "file:tests/test_agent_robustness.py",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:tests/test_gemini_quota.py",
+      "target": "class:tests/test_gemini_quota.py:FakeGenai",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_gemini_quota.py",
+      "target": "function:tests/test_gemini_quota.py:test_daily_quota_switches_immediately_without_retries",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_gemini_quota.py",
+      "target": "function:tests/test_gemini_quota.py:test_overloaded_model_gets_one_retry_then_is_tried_last",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_gemini_quota.py",
+      "target": "function:tests/test_gemini_quota.py:test_slow_model_is_raced_against_the_next_one",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_gemini_quota.py",
+      "target": "function:tests/test_gemini_quota.py:test_failed_backup_is_replaced_by_the_next_model_at_once",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_gemini_quota.py",
+      "target": "function:tests/test_gemini_quota.py:test_slow_503_is_not_retried",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_gemini_quota.py",
+      "target": "function:tests/test_gemini_quota.py:test_daily_quota_whose_retry_time_contains_404_is_not_a_missing_model",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:llm.py",
+      "target": "file:tests/test_gemini_quota.py",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "function:tests/test_gemini_quota.py:test_daily_quota_switches_immediately_without_retries",
+      "target": "function:llm.py:GeminiClient.generate",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:tests/test_gemini_quota.py:test_overloaded_model_gets_one_retry_then_is_tried_last",
+      "target": "function:llm.py:GeminiClient.generate",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:tests/test_gemini_quota.py:test_slow_model_is_raced_against_the_next_one",
+      "target": "function:llm.py:GeminiClient.generate",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:tests/test_gemini_quota.py:test_failed_backup_is_replaced_by_the_next_model_at_once",
+      "target": "function:llm.py:GeminiClient.generate",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:tests/test_gemini_quota.py:test_slow_503_is_not_retried",
+      "target": "function:llm.py:GeminiClient.generate",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:tests/test_gemini_quota.py:test_daily_quota_whose_retry_time_contains_404_is_not_a_missing_model",
+      "target": "function:llm.py:GeminiClient.generate",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:tests/test_gemini_quota.py:test_daily_quota_whose_retry_time_contains_404_is_not_a_missing_model",
+      "target": "function:llm.py:_model_missing",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_gemini_quota.py",
+      "target": "file:tests/test_model_pool.py",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:llm.py",
+      "target": "file:tests/test_claude.py",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:llm.py",
+      "target": "file:tests/test_model_pool.py",
       "type": "tested_by",
       "direction": "forward",
       "weight": 0.5
@@ -8543,13 +8753,6 @@
       "weight": 0.8
     },
     {
-      "source": "function:tests/test_browser.py:test_typing_keys_and_unicode",
-      "target": "function:browser_manager.py:BrowserManager._cmd_input",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
       "source": "file:tests/test_browser.py",
       "target": "function:tests/test_browser.py:test_double_click_selection_is_readable",
       "type": "contains",
@@ -8560,6 +8763,111 @@
       "source": "file:tests/test_browser.py",
       "target": "function:tests/test_browser.py:test_double_click_selection_is_readable",
       "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_browser.py",
+      "target": "function:tests/test_browser.py:test_observe_describes_exercise_elements",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_browser.py",
+      "target": "function:tests/test_browser.py:test_observe_describes_exercise_elements",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_browser.py",
+      "target": "function:tests/test_browser.py:test_ai_act_fill_select_click_and_iframe",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_browser.py",
+      "target": "function:tests/test_browser.py:test_ai_act_fill_select_click_and_iframe",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_browser.py",
+      "target": "function:tests/test_browser.py:test_audio_detected_from_network_and_fetched",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_browser.py",
+      "target": "function:tests/test_browser.py:test_audio_detected_from_network_and_fetched",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_browser.py",
+      "target": "function:tests/test_browser.py:test_stream_playlists_are_not_sent_for_transcription",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_browser.py",
+      "target": "function:tests/test_browser.py:test_stream_playlists_are_not_sent_for_transcription",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_browser.py",
+      "target": "function:tests/test_browser.py:test_tabs_new_switch_close_and_popup",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_browser.py",
+      "target": "function:tests/test_browser.py:test_tabs_new_switch_close_and_popup",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_browser.py",
+      "target": "function:tests/test_browser.py:test_ad_url_pattern",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_browser.py",
+      "target": "function:tests/test_browser.py:test_ad_url_pattern",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_browser.py",
+      "target": "function:tests/test_browser.py:test_ad_servers_are_blocked_in_the_browser",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_browser.py",
+      "target": "function:tests/test_browser.py:test_ad_servers_are_blocked_in_the_browser",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:tests/test_browser.py:test_typing_keys_and_unicode",
+      "target": "function:browser_manager.py:BrowserManager._cmd_input",
+      "type": "calls",
       "direction": "forward",
       "weight": 0.8
     },
@@ -8571,127 +8879,8 @@
       "weight": 0.8
     },
     {
-      "source": "file:tests/test_browser.py",
-      "target": "function:tests/test_browser.py:test_observe_describes_exercise_elements",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:tests/test_browser.py",
-      "target": "function:tests/test_browser.py:test_observe_describes_exercise_elements",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
       "source": "function:tests/test_browser.py:test_observe_describes_exercise_elements",
       "target": "function:browser_manager.py:BrowserManager._cmd_ai_observe",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:tests/test_browser.py",
-      "target": "function:tests/test_browser.py:test_ai_act_fill_select_click_and_iframe",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:tests/test_browser.py",
-      "target": "function:tests/test_browser.py:test_ai_act_fill_select_click_and_iframe",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:tests/test_browser.py:test_ai_act_fill_select_click_and_iframe",
-      "target": "function:browser_manager.py:BrowserManager._cmd_ai_act",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:tests/test_browser.py",
-      "target": "function:tests/test_browser.py:test_audio_detected_from_network_and_fetched",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:tests/test_browser.py",
-      "target": "function:tests/test_browser.py:test_audio_detected_from_network_and_fetched",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:tests/test_browser.py:test_audio_detected_from_network_and_fetched",
-      "target": "function:browser_manager.py:BrowserManager._cmd_fetch_media",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:tests/test_browser.py",
-      "target": "function:tests/test_browser.py:test_tabs_new_switch_close_and_popup",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:tests/test_browser.py",
-      "target": "function:tests/test_browser.py:test_tabs_new_switch_close_and_popup",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:tests/test_browser.py:test_tabs_new_switch_close_and_popup",
-      "target": "function:browser_manager.py:BrowserManager._cmd_new_tab",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:tests/test_browser.py",
-      "target": "function:tests/test_browser.py:test_ad_url_pattern",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:tests/test_browser.py",
-      "target": "function:tests/test_browser.py:test_ad_url_pattern",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:tests/test_browser.py",
-      "target": "function:tests/test_browser.py:test_ad_servers_are_blocked_in_the_browser",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:tests/test_browser.py",
-      "target": "function:tests/test_browser.py:test_ad_servers_are_blocked_in_the_browser",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:tests/test_browser.py:test_ad_servers_are_blocked_in_the_browser",
-      "target": "function:browser_manager.py:BrowserManager._run",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:tests/test_browser.py:test_tabs_new_switch_close_and_popup",
-      "target": "function:browser_manager.py:BrowserManager._cmd_close_tab",
       "type": "calls",
       "direction": "forward",
       "weight": 0.8
@@ -8704,11 +8893,95 @@
       "weight": 0.8
     },
     {
+      "source": "function:tests/test_browser.py:test_ai_act_fill_select_click_and_iframe",
+      "target": "function:browser_manager.py:BrowserManager._cmd_ai_act",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:tests/test_browser.py:test_audio_detected_from_network_and_fetched",
+      "target": "function:browser_manager.py:BrowserManager._cmd_fetch_media",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:tests/test_browser.py:test_stream_playlists_are_not_sent_for_transcription",
+      "target": "function:browser_manager.py:BrowserManager._cmd_fetch_media",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:tests/test_browser.py:test_stream_playlists_are_not_sent_for_transcription",
+      "target": "function:browser_manager.py:BrowserManager._cmd_ai_observe",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:tests/test_browser.py:test_tabs_new_switch_close_and_popup",
+      "target": "function:browser_manager.py:BrowserManager._cmd_new_tab",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:tests/test_browser.py:test_tabs_new_switch_close_and_popup",
+      "target": "function:browser_manager.py:BrowserManager._cmd_close_tab",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:tests/test_browser.py:test_ad_servers_are_blocked_in_the_browser",
+      "target": "function:browser_manager.py:BrowserManager._run",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
       "source": "file:tests/test_browser.py",
       "target": "file:config.py",
       "type": "depends_on",
       "direction": "forward",
       "weight": 0.6
+    },
+    {
+      "source": "file:tests/test_browser.py",
+      "target": "file:tests/fixtures/stream.m3u8",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:tests/test_browser.py",
+      "target": "file:tests/fixtures/quiz.html",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:tests/test_browser.py",
+      "target": "file:tests/fixtures/listening.html",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:browser_manager.py",
+      "target": "file:tests/test_browser.py",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:config.py",
+      "target": "file:tests/test_browser.py",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
     },
     {
       "source": "document:HANDOVER.md",
@@ -8964,6 +9237,13 @@
     },
     {
       "source": "document:HANDOVER.md",
+      "target": "file:tests/fixtures/listening.html",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:HANDOVER.md",
       "target": "file:static/style.css",
       "type": "documents",
       "direction": "forward",
@@ -9005,79 +9285,9 @@
       "weight": 0.5
     },
     {
-      "source": "file:tests/fixtures/carousel.html",
-      "target": "file:tests/test_agent_robustness.py",
-      "type": "tested_by",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "file:tests/fixtures/player.html",
-      "target": "file:tests/test_agent_robustness.py",
-      "type": "tested_by",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "file:tests/fixtures/h5p_like.html",
-      "target": "file:tests/test_long_pages.py",
-      "type": "tested_by",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "file:tests/fixtures/player.html",
-      "target": "file:tests/fixtures/carousel.html",
-      "type": "depends_on",
-      "direction": "forward",
-      "weight": 0.6
-    },
-    {
-      "source": "file:tests/fixtures/player.html",
-      "target": "file:tests/conftest.py",
+      "source": "file:tests/fixtures/stream.m3u8",
+      "target": "file:tests/test_browser.py",
       "type": "related",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "file:tests/fixtures/carousel.html",
-      "target": "file:tests/conftest.py",
-      "type": "related",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "file:tests/fixtures/h5p_like.html",
-      "target": "file:tests/conftest.py",
-      "type": "related",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "file:static/index.html",
-      "target": "file:static/app.js",
-      "type": "depends_on",
-      "direction": "forward",
-      "weight": 0.6
-    },
-    {
-      "source": "file:static/index.html",
-      "target": "file:static/style.css",
-      "type": "depends_on",
-      "direction": "forward",
-      "weight": 0.6
-    },
-    {
-      "source": "file:static/index.html",
-      "target": "file:tests/test_ui.py",
-      "type": "tested_by",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "file:static/index.html",
-      "target": "file:tests/test_server.py",
-      "type": "tested_by",
       "direction": "forward",
       "weight": 0.5
     },
@@ -9522,7 +9732,8 @@
         "file:tests/test_agent_robustness.py",
         "file:tests/fixtures/carousel.html",
         "file:tests/fixtures/h5p_like.html",
-        "file:tests/fixtures/player.html"
+        "file:tests/fixtures/player.html",
+        "file:tests/fixtures/stream.m3u8"
       ]
     },
     {

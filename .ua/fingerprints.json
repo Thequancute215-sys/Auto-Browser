@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
-  "gitCommitHash": "d6b92467671e1b500fa03e0d5bd6577e07aa9007",
-  "generatedAt": "2026-10-22T15:37:48.672Z",
+  "gitCommitHash": "cef9664f0a5def1ef9e694559eee802301024a3f",
+  "generatedAt": "2026-10-22T16:00:09.739Z",
   "files": {
     ".claude/settings.json": {
       "filePath": ".claude/settings.json",
@@ -75,12 +75,12 @@
     },
     "HANDOVER.md": {
       "filePath": "HANDOVER.md",
-      "contentHash": "236d11359d0fb2a7373721c0e319b4623d0dd910a6979017e3fb1cf6c7970ef7",
+      "contentHash": "b5ed0b56b3bc60cb979dec5cdc2d1cd9f5a5e2547e2d688f73422ec6cd1c3b7a",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 249,
+      "totalLines": 254,
       "hasStructuralAnalysis": false
     },
     "INSTALL.md": {
@@ -324,7 +324,7 @@
     },
     "browser_manager.py": {
       "filePath": "browser_manager.py",
-      "contentHash": "77f2d89e6ceb919442b83ddca7c2cac46663515bb2481f9a3b4fbb3df7da68c1",
+      "contentHash": "320e4d9717afbbe9c756cf0a2599567175c997f6be7471fe3d7fc4286816e5f0",
       "functions": [
         {
           "name": "_short_err",
@@ -422,7 +422,7 @@
           ],
           "properties": [],
           "exported": true,
-          "lineCount": 1312
+          "lineCount": 1329
         }
       ],
       "imports": [
@@ -515,7 +515,7 @@
         "_short_err",
         "BrowserManager"
       ],
-      "totalLines": 1340,
+      "totalLines": 1359,
       "hasStructuralAnalysis": true
     },
     "cdp_fast.py": {
@@ -862,8 +862,17 @@
     },
     "llm.py": {
       "filePath": "llm.py",
-      "contentHash": "7c503bec696cd162fe9392892f508ff901e6ed5c3d75e5e1f817681b4ebc7ad7",
+      "contentHash": "8f72d300e35776666a828788868e72e563be246ae11cb0d7a94c80bac90c589f",
       "functions": [
+        {
+          "name": "_model_missing",
+          "params": [
+            "err"
+          ],
+          "returnType": "bool",
+          "exported": true,
+          "lineCount": 6
+        },
         {
           "name": "_parse_quota",
           "params": [
@@ -1014,6 +1023,7 @@
         }
       ],
       "exports": [
+        "_model_missing",
         "LLMError",
         "QuotaExhausted",
         "_parse_quota",
@@ -1024,17 +1034,17 @@
         "ClaudeClient",
         "OllamaClient"
       ],
-      "totalLines": 567,
+      "totalLines": 575,
       "hasStructuralAnalysis": true
     },
     "page_scripts.py": {
       "filePath": "page_scripts.py",
-      "contentHash": "fa4b0ce1fa4ae43de4be1152a9bf6dbf712885ac25241f929fb757f9bdcf55b1",
+      "contentHash": "d8e5233efcb906334e568e83cfc2c08fa9a4479c127e2f31283170a2d966e5dc",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 541,
+      "totalLines": 550,
       "hasStructuralAnalysis": true
     },
     "pytest.ini": {
@@ -2394,7 +2404,7 @@
     },
     "tests/test_browser.py": {
       "filePath": "tests/test_browser.py",
-      "contentHash": "d471ad28c95d2a6e4c8c859d3916905075221648532d5acdf4e5a5d63e8c14fe",
+      "contentHash": "8ba15cbb7765d2cdfd81c4f12797cf955ea40acd9ce04503d0727456da8894e0",
       "functions": [
         {
           "name": "_ev",
@@ -2478,6 +2488,16 @@
           "lineCount": 11
         },
         {
+          "name": "test_stream_playlists_are_not_sent_for_transcription",
+          "params": [
+            "browser",
+            "goto",
+            "site"
+          ],
+          "exported": true,
+          "lineCount": 10
+        },
+        {
           "name": "test_fetch_media_refuses_non_audio_local_files",
           "params": [
             "browser"
@@ -2545,13 +2565,14 @@
         "test_ai_act_fill_select_click_and_iframe",
         "test_stale_element_is_reported",
         "test_audio_detected_from_network_and_fetched",
+        "test_stream_playlists_are_not_sent_for_transcription",
         "test_fetch_media_refuses_non_audio_local_files",
         "test_tabs_new_switch_close_and_popup",
         "test_viewport_change_restarts_stream",
         "test_ad_url_pattern",
         "test_ad_servers_are_blocked_in_the_browser"
       ],
-      "totalLines": 158,
+      "totalLines": 170,
       "hasStructuralAnalysis": true
     },
     "tests/test_claude.py": {
@@ -2950,7 +2971,7 @@
     },
     "tests/test_gemini_quota.py": {
       "filePath": "tests/test_gemini_quota.py",
-      "contentHash": "f1c1072db284fc65c79ceebbef2a5a7713889e21f5afa2feeafa1b756aa66cba",
+      "contentHash": "c0a4acc3fb1b01b1323a6c9d0dfa1d44dfa8a8c0e89a152cdcc020b9fe156a4c",
       "functions": [
         {
           "name": "test_parse_quota",
@@ -3031,6 +3052,18 @@
           ],
           "exported": true,
           "lineCount": 20
+        },
+        {
+          "name": "test_daily_quota_whose_retry_time_contains_404_is_not_a_missing_model",
+          "params": [],
+          "exported": true,
+          "lineCount": 9
+        },
+        {
+          "name": "test_real_404_is_a_missing_model",
+          "params": [],
+          "exported": true,
+          "lineCount": 6
         }
       ],
       "classes": [
@@ -3093,9 +3126,11 @@
         "test_all_overloaded_without_alternatives_says_so",
         "test_slow_model_is_raced_against_the_next_one",
         "test_failed_backup_is_replaced_by_the_next_model_at_once",
-        "test_slow_503_is_not_retried"
+        "test_slow_503_is_not_retried",
+        "test_daily_quota_whose_retry_time_contains_404_is_not_a_missing_model",
+        "test_real_404_is_a_missing_model"
       ],
-      "totalLines": 195,
+      "totalLines": 214,
       "hasStructuralAnalysis": true
     },
     "tests/test_llm_e2e.py": {
@@ -4736,7 +4771,7 @@
     },
     "tests/test_agent_robustness.py": {
       "filePath": "tests/test_agent_robustness.py",
-      "contentHash": "cf73b4a3951137278b7475e5c63e53c9db5a8c3030db66f99bc2df1140cee84e",
+      "contentHash": "186947c298c7f37a56eed45d22b9a8dffe2c767361d2910e6fe5da49ff4559ec",
       "functions": [
         {
           "name": "_ev",
@@ -4847,6 +4882,24 @@
           ],
           "exported": true,
           "lineCount": 10
+        },
+        {
+          "name": "test_hash_and_pushstate_changes_do_not_leave_the_tab_loading",
+          "params": [
+            "browser",
+            "goto"
+          ],
+          "exported": true,
+          "lineCount": 9
+        },
+        {
+          "name": "test_h5p_item_placed_over_its_zone_counts_as_answered",
+          "params": [
+            "browser",
+            "goto"
+          ],
+          "exported": true,
+          "lineCount": 15
         }
       ],
       "classes": [
@@ -4888,10 +4941,22 @@
         "test_back_and_forth_between_two_screens_is_stopped",
         "test_progress_note_is_carried_to_the_next_step",
         "test_last_action_of_a_step_waits_for_content_loaded_by_script",
-        "test_agent_does_not_think_while_the_page_says_loading"
+        "test_agent_does_not_think_while_the_page_says_loading",
+        "test_hash_and_pushstate_changes_do_not_leave_the_tab_loading",
+        "test_h5p_item_placed_over_its_zone_counts_as_answered"
       ],
-      "totalLines": 125,
+      "totalLines": 153,
       "hasStructuralAnalysis": true
+    },
+    "tests/fixtures/stream.m3u8": {
+      "filePath": "tests/fixtures/stream.m3u8",
+      "contentHash": "d5969c378bacf1f5a0237b919dc34532a2a9a76d80080a2f7e509028bd246a64",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 6,
+      "hasStructuralAnalysis": false
     }
   }
 }
