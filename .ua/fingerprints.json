@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
-  "gitCommitHash": "cfcbba0044873bb5535e3f8990dc20765822dfc2",
-  "generatedAt": "2026-10-22T20:06:14.020Z",
+  "gitCommitHash": "72f1af4460e0f96a984ebb686884fa5d848d5e7e",
+  "generatedAt": "2026-10-23T20:52:28.160Z",
   "files": {
     ".claude/settings.json": {
       "filePath": ".claude/settings.json",
@@ -324,7 +324,7 @@
     },
     "browser_manager.py": {
       "filePath": "browser_manager.py",
-      "contentHash": "06e22b7b54f00d4859636fbaefe7653a852f9899e364dd19eb87d6a2aa0f98ae",
+      "contentHash": "bab6b7114246c7d40de18c04919cb493e765bb14c9e0b144e5efae9b6276565b",
       "functions": [
         {
           "name": "_short_err",
@@ -422,7 +422,7 @@
           ],
           "properties": [],
           "exported": true,
-          "lineCount": 1343
+          "lineCount": 1350
         }
       ],
       "imports": [
@@ -515,7 +515,7 @@
         "_short_err",
         "BrowserManager"
       ],
-      "totalLines": 1373,
+      "totalLines": 1380,
       "hasStructuralAnalysis": true
     },
     "cdp_fast.py": {
@@ -591,7 +591,7 @@
     },
     "config.py": {
       "filePath": "config.py",
-      "contentHash": "6675b3fc163d129aea044a461485d6e09c9474b8f2b3bb262a842d74edfbc6f4",
+      "contentHash": "3a4d90f0b046ab19b0e61c4890de03ae704be62b55bf74ca5d5e7bc9a93ff0c8",
       "functions": [
         {
           "name": "_saved",
@@ -629,7 +629,7 @@
         "_saved",
         "_saved_start_url"
       ],
-      "totalLines": 111,
+      "totalLines": 117,
       "hasStructuralAnalysis": true
     },
     "desktop_app.py": {
@@ -3586,7 +3586,7 @@
     },
     "tests/test_navigation.py": {
       "filePath": "tests/test_navigation.py",
-      "contentHash": "14a53f4352f1792b91925027ae4e816a2aee2864787ae3b35d156725af99f817",
+      "contentHash": "c64f4822a4d1d7c3c702277247ca291122036f2fc37cc87ec9d2f1b98e131e08",
       "functions": [
         {
           "name": "_ev",
@@ -3705,6 +3705,16 @@
           ],
           "exported": true,
           "lineCount": 23
+        },
+        {
+          "name": "test_agent_navigate_blocks_non_web_schemes",
+          "params": [
+            "browser",
+            "goto",
+            "site"
+          ],
+          "exported": true,
+          "lineCount": 14
         }
       ],
       "classes": [],
@@ -3734,9 +3744,10 @@
         "test_not_found_is_explained",
         "test_task_with_extra_steps_goes_to_the_agent",
         "test_offscreen_links_reach_the_agent",
-        "test_link_in_a_task_is_opened_before_the_first_llm_call"
+        "test_link_in_a_task_is_opened_before_the_first_llm_call",
+        "test_agent_navigate_blocks_non_web_schemes"
       ],
-      "totalLines": 103,
+      "totalLines": 119,
       "hasStructuralAnalysis": true
     },
     "tests/test_server.py": {
@@ -3968,7 +3979,7 @@
     },
     "tests/test_updater.py": {
       "filePath": "tests/test_updater.py",
-      "contentHash": "5b429e4c26028f54e82933badd1bbae47f293e23a1106f3a69b4e9e12b9e47dc",
+      "contentHash": "f55b7e23e698c406a1d9873312b95284cf7ed96c46de53acddd39abc25dc07c7",
       "functions": [
         {
           "name": "test_version_comparison",
@@ -4046,6 +4057,15 @@
           ],
           "exported": true,
           "lineCount": 6
+        },
+        {
+          "name": "test_apply_refuses_download_without_digest",
+          "params": [
+            "fake_net",
+            "monkeypatch"
+          ],
+          "exported": true,
+          "lineCount": 7
         }
       ],
       "classes": [
@@ -4102,9 +4122,10 @@
         "test_apply_verifies_checksum_and_runs_silent_installer",
         "test_apply_refuses_tampered_download",
         "test_docker_and_source_get_instructions",
-        "test_token_is_sent_only_when_configured"
+        "test_token_is_sent_only_when_configured",
+        "test_apply_refuses_download_without_digest"
       ],
-      "totalLines": 102,
+      "totalLines": 111,
       "hasStructuralAnalysis": true
     },
     "tools/bench_chromium_modes.py": {
@@ -4618,7 +4639,7 @@
     },
     "updater.py": {
       "filePath": "updater.py",
-      "contentHash": "0922764819cb6094805f6a86f911e94a0602320d27df5777a213102b08e5e9e8",
+      "contentHash": "352835f3ffc9245ad096c1d125de4dd9edfaeb5ab2fba7845d7acd65b5290561",
       "functions": [
         {
           "name": "runtime_mode",
@@ -4658,7 +4679,7 @@
           ],
           "properties": [],
           "exported": true,
-          "lineCount": 80
+          "lineCount": 87
         }
       ],
       "imports": [
@@ -4742,7 +4763,7 @@
         "is_newer",
         "Updater"
       ],
-      "totalLines": 126,
+      "totalLines": 133,
       "hasStructuralAnalysis": true
     },
     "version.py": {

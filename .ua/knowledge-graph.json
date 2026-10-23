@@ -26,8 +26,8 @@
       "GitHub Actions"
     ],
     "description": "Trình duyệt viết bằng Python/Playwright có trợ lý AI (Google Gemini/Gemma, Claude hoặc mô hình chạy cục bộ qua Ollama) tự đọc đề, làm bài (điền từ, trắc nghiệm, kéo thả, bài nghe) và kiểm tra lại kết quả trên Cambridge One, Rikkei LMS và các trang học trực tuyến khác. Dự án gồm giao diện web vanilla JS theo phong cách GitHub Primer, launcher desktop cho Windows kèm bộ cài Inno Setup, image Docker và cơ chế tự cập nhật.",
-    "analyzedAt": "2026-10-22T20:06:13.919Z",
-    "gitCommitHash": "cfcbba0044873bb5535e3f8990dc20765822dfc2"
+    "analyzedAt": "2026-10-23T20:52:27.754Z",
+    "gitCommitHash": "72f1af4460e0f96a984ebb686884fa5d848d5e7e"
   },
   "nodes": [
     {
@@ -246,176 +246,6 @@
         "entry-point",
         "bootstrap",
         "lifecycle"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "file:tests/test_updater.py",
-      "type": "file",
-      "name": "test_updater.py",
-      "filePath": "tests/test_updater.py",
-      "summary": "Bộ test pytest cho logic tự cập nhật: so sánh phiên bản, phát hiện release mới, giải thích lỗi repo riêng tư, xác minh SHA-256 trước khi chạy bộ cài im lặng, hướng dẫn cho Docker/mã nguồn và việc gửi token.",
-      "tags": [
-        "test",
-        "pytest",
-        "updater",
-        "bảo-mật",
-        "mocking"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "function:tests/test_updater.py:test_version_comparison",
-      "type": "function",
-      "name": "test_version_comparison",
-      "filePath": "tests/test_updater.py",
-      "lineRange": [
-        11,
-        15
-      ],
-      "summary": "Kiểm tra `is_newer` so sánh đúng phiên bản dạng số (kể cả tiền tố v và 6.10 > 6.9).",
-      "tags": [
-        "test",
-        "updater",
-        "version"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "class:tests/test_updater.py:FakeResp",
-      "type": "class",
-      "name": "FakeResp",
-      "filePath": "tests/test_updater.py",
-      "lineRange": [
-        18,
-        23
-      ],
-      "summary": "BytesIO giả lập phản hồi urllib có hỗ trợ context manager.",
-      "tags": [
-        "test",
-        "mocking",
-        "fixture"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:tests/test_updater.py:fake_net",
-      "type": "function",
-      "name": "fake_net",
-      "filePath": "tests/test_updater.py",
-      "lineRange": [
-        34,
-        45
-      ],
-      "summary": "Fixture monkeypatch `Updater._get` và `subprocess.Popen` để giả lập GitHub API, ghi lại token gửi đi và lệnh chạy bộ cài.",
-      "tags": [
-        "test",
-        "fixture",
-        "mocking"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:tests/test_updater.py:test_check_reports_newer_release",
-      "type": "function",
-      "name": "test_check_reports_newer_release",
-      "filePath": "tests/test_updater.py",
-      "lineRange": [
-        48,
-        52
-      ],
-      "summary": "Xác nhận `check` báo có bản mới cùng thông tin asset và SHA-256.",
-      "tags": [
-        "test",
-        "updater",
-        "release"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:tests/test_updater.py:test_private_repo_error_is_explained",
-      "type": "function",
-      "name": "test_private_repo_error_is_explained",
-      "filePath": "tests/test_updater.py",
-      "lineRange": [
-        55,
-        63
-      ],
-      "summary": "Xác nhận lỗi HTTP 404 được giải thích là kho GitHub riêng tư cần token.",
-      "tags": [
-        "test",
-        "updater",
-        "error-handling"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:tests/test_updater.py:test_apply_verifies_checksum_and_runs_silent_installer",
-      "type": "function",
-      "name": "test_apply_verifies_checksum_and_runs_silent_installer",
-      "filePath": "tests/test_updater.py",
-      "lineRange": [
-        66,
-        75
-      ],
-      "summary": "Xác nhận `apply` ở chế độ desktop tải file, khớp checksum rồi chạy bộ cài với cờ /VERYSILENT, /RELAUNCH, /CLOSEAPPLICATIONS.",
-      "tags": [
-        "test",
-        "updater",
-        "installer",
-        "checksum"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:tests/test_updater.py:test_apply_refuses_tampered_download",
-      "type": "function",
-      "name": "test_apply_refuses_tampered_download",
-      "filePath": "tests/test_updater.py",
-      "lineRange": [
-        78,
-        84
-      ],
-      "summary": "Xác nhận file tải về sai SHA-256 bị từ chối và không bao giờ được thực thi.",
-      "tags": [
-        "test",
-        "updater",
-        "bảo-mật",
-        "checksum"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:tests/test_updater.py:test_docker_and_source_get_instructions",
-      "type": "function",
-      "name": "test_docker_and_source_get_instructions",
-      "filePath": "tests/test_updater.py",
-      "lineRange": [
-        87,
-        93
-      ],
-      "summary": "Xác nhận chế độ docker và source chỉ nhận hướng dẫn cập nhật thủ công, không chạy bộ cài.",
-      "tags": [
-        "test",
-        "updater",
-        "docker"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:tests/test_updater.py:test_token_is_sent_only_when_configured",
-      "type": "function",
-      "name": "test_token_is_sent_only_when_configured",
-      "filePath": "tests/test_updater.py",
-      "lineRange": [
-        96,
-        101
-      ],
-      "summary": "Xác nhận token xác thực chỉ được gửi khi `token_getter` trả về giá trị.",
-      "tags": [
-        "test",
-        "updater",
-        "auth"
       ],
       "complexity": "simple"
     },
@@ -3150,37 +2980,6 @@
       "complexity": "simple"
     },
     {
-      "id": "file:tests/test_navigation.py",
-      "type": "file",
-      "name": "test_navigation.py",
-      "filePath": "tests/test_navigation.py",
-      "summary": "Bộ test lệnh điều hướng «vào mục X» không cần gọi AI: mở bài ở cuối sidebar, phân biệt Lesson 1 với Lesson 10, bỏ qua dấu và hoa thường, liệt kê ứng viên khi mơ hồ, chuyển lệnh nhiều bước cho agent và mở link trong lệnh trước lượt gọi LLM đầu tiên.",
-      "tags": [
-        "test",
-        "navigation",
-        "vietnamese-nlp",
-        "command-parser"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "function:tests/test_navigation.py:test_link_in_a_task_is_opened_before_the_first_llm_call",
-      "type": "function",
-      "name": "test_link_in_a_task_is_opened_before_the_first_llm_call",
-      "filePath": "tests/test_navigation.py",
-      "lineRange": [
-        80,
-        102
-      ],
-      "summary": "Kiểm tra lệnh «Vào <link> rồi làm bài» khiến ứng dụng tự mở link trước, để prompt đầu tiên gửi mô hình đã thấy trang bài tập.",
-      "tags": [
-        "test",
-        "navigation",
-        "optimization"
-      ],
-      "complexity": "simple"
-    },
-    {
       "id": "file:config.py",
       "type": "file",
       "name": "config.py",
@@ -5120,6 +4919,418 @@
         "phát-hành"
       ],
       "complexity": "simple"
+    },
+    {
+      "id": "file:tests/test_navigation.py",
+      "type": "file",
+      "name": "test_navigation.py",
+      "filePath": "tests/test_navigation.py",
+      "summary": "Bộ test kiểm tra lệnh điều hướng 'vào mục X' được giải quyết cục bộ không tốn lượt gọi AI (khớp tên bỏ dấu/hoa-thường, xử lý trùng lặp, không tìm thấy), và kiểm thử bảo mật chặn agent điều hướng tới các scheme file:/data:/javascript:.",
+      "tags": [
+        "test",
+        "pytest",
+        "điều-hướng",
+        "agent",
+        "security"
+      ],
+      "complexity": "moderate",
+      "languageNotes": "Dùng pytest fixtures (browser, bus, goto, site) và @pytest.mark.parametrize; một test lồng lớp giả FirstLook để thay thế LLM client, tránh gọi API thật."
+    },
+    {
+      "id": "function:tests/test_navigation.py:ai_nokey",
+      "type": "function",
+      "name": "ai_nokey",
+      "filePath": "tests/test_navigation.py",
+      "lineRange": [
+        12,
+        15
+      ],
+      "summary": "Fixture tạo AIController rồi xóa sạch API key, dùng để kiểm thử các lệnh điều hướng nhanh chạy cục bộ mà không gọi LLM.",
+      "tags": [
+        "fixture",
+        "test",
+        "agent"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_navigation.py:_run",
+      "type": "function",
+      "name": "_run",
+      "filePath": "tests/test_navigation.py",
+      "lineRange": [
+        18,
+        21
+      ],
+      "summary": "Helper gửi một lệnh cho AIController, chờ luồng tác vụ kết thúc rồi trả về danh sách tin nhắn trạng thái để kiểm tra kết quả.",
+      "tags": [
+        "helper",
+        "test",
+        "agent"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_navigation.py:test_opens_lesson_far_down_the_sidebar",
+      "type": "function",
+      "name": "test_opens_lesson_far_down_the_sidebar",
+      "filePath": "tests/test_navigation.py",
+      "lineRange": [
+        24,
+        28
+      ],
+      "summary": "Kiểm tra lệnh 'vào mục Lesson 27' mở đúng bài học dù nằm xa dưới sidebar và báo không tốn lượt gọi AI.",
+      "tags": [
+        "test",
+        "điều-hướng",
+        "agent"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_navigation.py:test_lesson_1_is_not_confused_with_lesson_10",
+      "type": "function",
+      "name": "test_lesson_1_is_not_confused_with_lesson_10",
+      "filePath": "tests/test_navigation.py",
+      "lineRange": [
+        31,
+        34
+      ],
+      "summary": "Đảm bảo khớp tên 'Lesson 1' không bị nhầm với 'Lesson 10'.",
+      "tags": [
+        "test",
+        "điều-hướng",
+        "matching"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_navigation.py:test_diacritics_and_case_do_not_matter",
+      "type": "function",
+      "name": "test_diacritics_and_case_do_not_matter",
+      "filePath": "tests/test_navigation.py",
+      "lineRange": [
+        38,
+        43
+      ],
+      "summary": "Kiểm tra lệnh điều hướng bỏ qua dấu tiếng Việt và chữ hoa/thường, cuộn đúng tiêu đề nằm xa phía dưới vào khung nhìn.",
+      "tags": [
+        "test",
+        "điều-hướng",
+        "unicode"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_navigation.py:test_unaccented_open_command",
+      "type": "function",
+      "name": "test_unaccented_open_command",
+      "filePath": "tests/test_navigation.py",
+      "lineRange": [
+        46,
+        49
+      ],
+      "summary": "Kiểm tra lệnh không dấu 'vao muc lesson 12' vẫn mở đúng bài học.",
+      "tags": [
+        "test",
+        "điều-hướng",
+        "unicode"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_navigation.py:test_ambiguous_query_lists_candidates",
+      "type": "function",
+      "name": "test_ambiguous_query_lists_candidates",
+      "filePath": "tests/test_navigation.py",
+      "lineRange": [
+        52,
+        56
+      ],
+      "summary": "Khi truy vấn khớp nhiều mục ('Hoạch định' có sáu bài), hệ thống liệt kê các ứng viên thay vì mở bừa một mục.",
+      "tags": [
+        "test",
+        "điều-hướng",
+        "matching"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_navigation.py:test_not_found_is_explained",
+      "type": "function",
+      "name": "test_not_found_is_explained",
+      "filePath": "tests/test_navigation.py",
+      "lineRange": [
+        59,
+        62
+      ],
+      "summary": "Kiểm tra hệ thống báo rõ ràng khi không tìm thấy mục được yêu cầu.",
+      "tags": [
+        "test",
+        "điều-hướng",
+        "error-handling"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_navigation.py:test_task_with_extra_steps_goes_to_the_agent",
+      "type": "function",
+      "name": "test_task_with_extra_steps_goes_to_the_agent",
+      "filePath": "tests/test_navigation.py",
+      "lineRange": [
+        65,
+        69
+      ],
+      "summary": "Tác vụ nhiều bước ('vào Lesson 3 rồi làm bài tập') được chuyển cho agent LLM nên cần API key, thay vì giải cục bộ.",
+      "tags": [
+        "test",
+        "agent",
+        "điều-hướng"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_navigation.py:test_offscreen_links_reach_the_agent",
+      "type": "function",
+      "name": "test_offscreen_links_reach_the_agent",
+      "filePath": "tests/test_navigation.py",
+      "lineRange": [
+        72,
+        77
+      ],
+      "summary": "Đảm bảo các liên kết bị cuộn khuất trong sidebar vẫn được ai_observe liệt kê cho agent kèm cờ offscreen.",
+      "tags": [
+        "test",
+        "agent",
+        "dom"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_navigation.py:test_link_in_a_task_is_opened_before_the_first_llm_call",
+      "type": "function",
+      "name": "test_link_in_a_task_is_opened_before_the_first_llm_call",
+      "filePath": "tests/test_navigation.py",
+      "lineRange": [
+        80,
+        102
+      ],
+      "summary": "Với tác vụ 'Vào <link> rồi làm bài', ứng dụng tự mở liên kết trước (không tốn lượt gọi AI) để lần gọi LLM đầu tiên đã thấy sẵn trang bài tập; dùng lớp giả FirstLook thay cho LLM thật.",
+      "tags": [
+        "test",
+        "agent",
+        "llm"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_navigation.py:test_agent_navigate_blocks_non_web_schemes",
+      "type": "function",
+      "name": "test_agent_navigate_blocks_non_web_schemes",
+      "filePath": "tests/test_navigation.py",
+      "lineRange": [
+        105,
+        118
+      ],
+      "summary": "Kiểm thử bảo mật: hành động 'navigate' do model chọn bị từ chối với scheme file:/data:/javascript: để trang độc hại không đọc được file cục bộ như ai_config.json, trong khi điều hướng web thường vẫn hoạt động.",
+      "tags": [
+        "test",
+        "security",
+        "agent"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:tests/test_updater.py",
+      "type": "file",
+      "name": "test_updater.py",
+      "filePath": "tests/test_updater.py",
+      "summary": "Bộ test pytest cho module tự cập nhật (updater.py): kiểm tra so sánh phiên bản, phát hiện bản phát hành mới hơn, xác minh checksum SHA-256, chạy trình cài đặt im lặng, giải thích lỗi repo riêng tư và việc chỉ gửi token khi được cấu hình.",
+      "tags": [
+        "test",
+        "updater",
+        "pytest",
+        "checksum",
+        "monkeypatch"
+      ],
+      "complexity": "moderate",
+      "languageNotes": "Dùng fixture pytest và monkeypatch để giả lập mạng (urllib) nên test chạy được mà không cần truy cập Internet thật."
+    },
+    {
+      "id": "function:tests/test_updater.py:test_version_comparison",
+      "type": "function",
+      "name": "test_version_comparison",
+      "filePath": "tests/test_updater.py",
+      "lineRange": [
+        11,
+        15
+      ],
+      "summary": "Kiểm tra hàm is_newer so sánh đúng các chuỗi phiên bản để xác định bản nào mới hơn.",
+      "tags": [
+        "test",
+        "version",
+        "so-sánh"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:tests/test_updater.py:FakeResp",
+      "type": "class",
+      "name": "FakeResp",
+      "filePath": "tests/test_updater.py",
+      "lineRange": [
+        18,
+        23
+      ],
+      "summary": "Lớp giả lập đối tượng HTTP response dạng context manager, dùng thay cho urllib trong các test cập nhật.",
+      "tags": [
+        "test",
+        "mock",
+        "context-manager"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_updater.py:fake_net",
+      "type": "function",
+      "name": "fake_net",
+      "filePath": "tests/test_updater.py",
+      "lineRange": [
+        34,
+        45
+      ],
+      "summary": "Fixture pytest vá (monkeypatch) lớp mạng của updater để trả về release giả và ghi lại các HTTP header đã gửi.",
+      "tags": [
+        "fixture",
+        "mock",
+        "test",
+        "monkeypatch"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_updater.py:test_check_reports_newer_release",
+      "type": "function",
+      "name": "test_check_reports_newer_release",
+      "filePath": "tests/test_updater.py",
+      "lineRange": [
+        48,
+        52
+      ],
+      "summary": "Kiểm tra Updater.check báo cáo có bản phát hành mới hơn khi GitHub trả về tag cao hơn phiên bản hiện tại.",
+      "tags": [
+        "test",
+        "updater",
+        "release"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_updater.py:test_private_repo_error_is_explained",
+      "type": "function",
+      "name": "test_private_repo_error_is_explained",
+      "filePath": "tests/test_updater.py",
+      "lineRange": [
+        55,
+        63
+      ],
+      "summary": "Kiểm tra khi GitHub trả lỗi HTTP (repo riêng tư), Updater.check đưa ra thông báo lỗi dễ hiểu cho người dùng.",
+      "tags": [
+        "test",
+        "updater",
+        "error-handling"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_updater.py:test_apply_verifies_checksum_and_runs_silent_installer",
+      "type": "function",
+      "name": "test_apply_verifies_checksum_and_runs_silent_installer",
+      "filePath": "tests/test_updater.py",
+      "lineRange": [
+        66,
+        75
+      ],
+      "summary": "Kiểm tra Updater.apply xác minh checksum SHA-256 của bản tải rồi chạy trình cài đặt im lặng và thoát ứng dụng đúng cách.",
+      "tags": [
+        "test",
+        "updater",
+        "checksum",
+        "installer"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_updater.py:test_apply_refuses_tampered_download",
+      "type": "function",
+      "name": "test_apply_refuses_tampered_download",
+      "filePath": "tests/test_updater.py",
+      "lineRange": [
+        78,
+        84
+      ],
+      "summary": "Kiểm tra Updater.apply từ chối cài đặt khi checksum của file tải về không khớp (bản tải bị sửa đổi).",
+      "tags": [
+        "test",
+        "updater",
+        "security",
+        "checksum"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_updater.py:test_docker_and_source_get_instructions",
+      "type": "function",
+      "name": "test_docker_and_source_get_instructions",
+      "filePath": "tests/test_updater.py",
+      "lineRange": [
+        87,
+        93
+      ],
+      "summary": "Kiểm tra với bản chạy bằng Docker hoặc mã nguồn, Updater.apply trả về hướng dẫn cập nhật thủ công thay vì tự cài.",
+      "tags": [
+        "test",
+        "updater",
+        "docker",
+        "instructions"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_updater.py:test_token_is_sent_only_when_configured",
+      "type": "function",
+      "name": "test_token_is_sent_only_when_configured",
+      "filePath": "tests/test_updater.py",
+      "lineRange": [
+        96,
+        101
+      ],
+      "summary": "Kiểm tra Updater chỉ gắn header Authorization chứa GitHub token khi token được cấu hình, không gửi khi rỗng.",
+      "tags": [
+        "test",
+        "updater",
+        "security",
+        "token"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_updater.py:test_apply_refuses_download_without_digest",
+      "type": "function",
+      "name": "test_apply_refuses_download_without_digest",
+      "filePath": "tests/test_updater.py",
+      "lineRange": [
+        104,
+        110
+      ],
+      "summary": "Kiểm tra Updater.apply từ chối cài đặt khi bản phát hành không kèm digest (SHA-256) để xác minh, trả về thông báo lỗi tương ứng.",
+      "tags": [
+        "test",
+        "updater",
+        "security",
+        "checksum"
+      ],
+      "complexity": "simple"
     }
   ],
   "edges": [
@@ -5311,188 +5522,6 @@
       "type": "calls",
       "direction": "forward",
       "weight": 0.8
-    },
-    {
-      "source": "file:tests/test_updater.py",
-      "target": "function:tests/test_updater.py:test_version_comparison",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:tests/test_updater.py",
-      "target": "function:tests/test_updater.py:test_version_comparison",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:tests/test_updater.py",
-      "target": "class:tests/test_updater.py:FakeResp",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:tests/test_updater.py",
-      "target": "class:tests/test_updater.py:FakeResp",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:tests/test_updater.py",
-      "target": "function:tests/test_updater.py:fake_net",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:tests/test_updater.py",
-      "target": "function:tests/test_updater.py:fake_net",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:tests/test_updater.py",
-      "target": "function:tests/test_updater.py:test_check_reports_newer_release",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:tests/test_updater.py",
-      "target": "function:tests/test_updater.py:test_check_reports_newer_release",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:tests/test_updater.py",
-      "target": "function:tests/test_updater.py:test_private_repo_error_is_explained",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:tests/test_updater.py",
-      "target": "function:tests/test_updater.py:test_private_repo_error_is_explained",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:tests/test_updater.py",
-      "target": "function:tests/test_updater.py:test_apply_verifies_checksum_and_runs_silent_installer",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:tests/test_updater.py",
-      "target": "function:tests/test_updater.py:test_apply_verifies_checksum_and_runs_silent_installer",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:tests/test_updater.py",
-      "target": "function:tests/test_updater.py:test_apply_refuses_tampered_download",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:tests/test_updater.py",
-      "target": "function:tests/test_updater.py:test_apply_refuses_tampered_download",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:tests/test_updater.py",
-      "target": "function:tests/test_updater.py:test_docker_and_source_get_instructions",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:tests/test_updater.py",
-      "target": "function:tests/test_updater.py:test_docker_and_source_get_instructions",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:tests/test_updater.py",
-      "target": "function:tests/test_updater.py:test_token_is_sent_only_when_configured",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:tests/test_updater.py",
-      "target": "function:tests/test_updater.py:test_token_is_sent_only_when_configured",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:tests/test_updater.py:test_check_reports_newer_release",
-      "target": "class:updater.py:Updater",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:tests/test_updater.py:test_private_repo_error_is_explained",
-      "target": "class:updater.py:Updater",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:tests/test_updater.py:test_apply_verifies_checksum_and_runs_silent_installer",
-      "target": "class:updater.py:Updater",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:tests/test_updater.py:test_apply_refuses_tampered_download",
-      "target": "class:updater.py:Updater",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:tests/test_updater.py:test_docker_and_source_get_instructions",
-      "target": "class:updater.py:Updater",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:tests/test_updater.py:test_token_is_sent_only_when_configured",
-      "target": "class:updater.py:Updater",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:tests/test_updater.py:test_version_comparison",
-      "target": "function:updater.py:is_newer",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:updater.py",
-      "target": "file:tests/test_updater.py",
-      "type": "tested_by",
-      "direction": "forward",
-      "weight": 0.5
     },
     {
       "source": "file:tools/build_exe.py",
@@ -7518,20 +7547,6 @@
       "weight": 0.8
     },
     {
-      "source": "file:tests/test_navigation.py",
-      "target": "function:tests/test_navigation.py:test_link_in_a_task_is_opened_before_the_first_llm_call",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:tests/test_navigation.py",
-      "target": "function:tests/test_navigation.py:test_link_in_a_task_is_opened_before_the_first_llm_call",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
       "source": "function:tests/test_long_pages.py:test_guard_never_blocks_an_answer_choice",
       "target": "function:ai_controller.py:AIController._submit_guard",
       "type": "calls",
@@ -7546,22 +7561,8 @@
       "weight": 0.8
     },
     {
-      "source": "function:tests/test_navigation.py:test_link_in_a_task_is_opened_before_the_first_llm_call",
-      "target": "function:ai_controller.py:AIController.run_command",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
       "source": "file:ai_controller.py",
       "target": "file:tests/test_long_pages.py",
-      "type": "tested_by",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "file:ai_controller.py",
-      "target": "file:tests/test_navigation.py",
       "type": "tested_by",
       "direction": "forward",
       "weight": 0.5
@@ -9894,30 +9895,6 @@
       "recoveredFromImportMap": true
     },
     {
-      "source": "file:browser_manager.py",
-      "target": "file:cdp_fast.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:browser_manager.py",
-      "target": "file:config.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:browser_manager.py",
-      "target": "file:page_scripts.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
       "source": "file:server.py",
       "target": "file:ai_controller.py",
       "type": "imports",
@@ -10110,14 +10087,6 @@
       "recoveredFromImportMap": true
     },
     {
-      "source": "file:tests/test_navigation.py",
-      "target": "file:ai_controller.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
       "source": "file:tests/test_server.py",
       "target": "file:tests/conftest.py",
       "type": "imports",
@@ -10128,14 +10097,6 @@
     {
       "source": "file:tests/test_ui.py",
       "target": "file:tests/conftest.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_updater.py",
-      "target": "file:updater.py",
       "type": "imports",
       "direction": "forward",
       "weight": 0.7,
@@ -10160,6 +10121,354 @@
     {
       "source": "file:tools/build_exe.py",
       "target": "file:version.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_navigation.py",
+      "target": "function:tests/test_navigation.py:ai_nokey",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_navigation.py",
+      "target": "function:tests/test_navigation.py:_run",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_navigation.py",
+      "target": "function:tests/test_navigation.py:test_opens_lesson_far_down_the_sidebar",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_navigation.py",
+      "target": "function:tests/test_navigation.py:test_lesson_1_is_not_confused_with_lesson_10",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_navigation.py",
+      "target": "function:tests/test_navigation.py:test_diacritics_and_case_do_not_matter",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_navigation.py",
+      "target": "function:tests/test_navigation.py:test_unaccented_open_command",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_navigation.py",
+      "target": "function:tests/test_navigation.py:test_ambiguous_query_lists_candidates",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_navigation.py",
+      "target": "function:tests/test_navigation.py:test_not_found_is_explained",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_navigation.py",
+      "target": "function:tests/test_navigation.py:test_task_with_extra_steps_goes_to_the_agent",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_navigation.py",
+      "target": "function:tests/test_navigation.py:test_offscreen_links_reach_the_agent",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_navigation.py",
+      "target": "function:tests/test_navigation.py:test_link_in_a_task_is_opened_before_the_first_llm_call",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_navigation.py",
+      "target": "function:tests/test_navigation.py:test_agent_navigate_blocks_non_web_schemes",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "function:tests/test_navigation.py:ai_nokey",
+      "target": "class:ai_controller.py:AIController",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:tests/test_navigation.py:test_link_in_a_task_is_opened_before_the_first_llm_call",
+      "target": "class:ai_controller.py:AIController",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:ai_controller.py",
+      "target": "file:tests/test_navigation.py",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:tests/test_updater.py",
+      "target": "function:tests/test_updater.py:test_version_comparison",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_updater.py",
+      "target": "class:tests/test_updater.py:FakeResp",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_updater.py",
+      "target": "function:tests/test_updater.py:fake_net",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_updater.py",
+      "target": "function:tests/test_updater.py:test_check_reports_newer_release",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_updater.py",
+      "target": "function:tests/test_updater.py:test_private_repo_error_is_explained",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_updater.py",
+      "target": "function:tests/test_updater.py:test_apply_verifies_checksum_and_runs_silent_installer",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_updater.py",
+      "target": "function:tests/test_updater.py:test_apply_refuses_tampered_download",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_updater.py",
+      "target": "function:tests/test_updater.py:test_docker_and_source_get_instructions",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_updater.py",
+      "target": "function:tests/test_updater.py:test_token_is_sent_only_when_configured",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_updater.py",
+      "target": "function:tests/test_updater.py:test_apply_refuses_download_without_digest",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_updater.py",
+      "target": "function:tests/test_updater.py:test_version_comparison",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_updater.py",
+      "target": "class:tests/test_updater.py:FakeResp",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_updater.py",
+      "target": "function:tests/test_updater.py:fake_net",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_updater.py",
+      "target": "function:tests/test_updater.py:test_check_reports_newer_release",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_updater.py",
+      "target": "function:tests/test_updater.py:test_private_repo_error_is_explained",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_updater.py",
+      "target": "function:tests/test_updater.py:test_apply_verifies_checksum_and_runs_silent_installer",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_updater.py",
+      "target": "function:tests/test_updater.py:test_apply_refuses_tampered_download",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_updater.py",
+      "target": "function:tests/test_updater.py:test_docker_and_source_get_instructions",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_updater.py",
+      "target": "function:tests/test_updater.py:test_token_is_sent_only_when_configured",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_updater.py",
+      "target": "function:tests/test_updater.py:test_apply_refuses_download_without_digest",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:tests/test_updater.py:test_version_comparison",
+      "target": "function:updater.py:is_newer",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:tests/test_updater.py:test_check_reports_newer_release",
+      "target": "class:updater.py:Updater",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:tests/test_updater.py:test_private_repo_error_is_explained",
+      "target": "class:updater.py:Updater",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:tests/test_updater.py:test_apply_verifies_checksum_and_runs_silent_installer",
+      "target": "class:updater.py:Updater",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:tests/test_updater.py:test_apply_refuses_tampered_download",
+      "target": "class:updater.py:Updater",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:tests/test_updater.py:test_docker_and_source_get_instructions",
+      "target": "class:updater.py:Updater",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:tests/test_updater.py:test_token_is_sent_only_when_configured",
+      "target": "class:updater.py:Updater",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:tests/test_updater.py:test_apply_refuses_download_without_digest",
+      "target": "class:updater.py:Updater",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:updater.py",
+      "target": "file:tests/test_updater.py",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:browser_manager.py",
+      "target": "file:cdp_fast.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:browser_manager.py",
+      "target": "file:config.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:browser_manager.py",
+      "target": "file:page_scripts.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_navigation.py",
+      "target": "file:ai_controller.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_updater.py",
+      "target": "file:updater.py",
       "type": "imports",
       "direction": "forward",
       "weight": 0.7,
