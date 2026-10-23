@@ -1350,7 +1350,14 @@ class BrowserManager:
             self.log(f"AI bấm phím {key}")
 
         elif kind == "navigate":
-            self._cmd_goto({"url": a.get("url", "")})
+            url = str(a.get("url", "")).strip()
+            # The agent browses the web only. A navigate target chosen by the model can be steered
+            # by injected page content, so never let it reach file:/data:/javascript:/etc. and read
+            # local files such as ai_config.json. Bare hosts/queries are left to _normalize_url.
+            m = re.match(r"^([a-zA-Z][a-zA-Z0-9+.-]*):", url)
+            if m and m.group(1).lower() not in ("http", "https"):
+                return {"status": "error", "message": f"Chỉ điều hướng được tới http/https, không mở: {url[:80]}"}
+            self._cmd_goto({"url": url})
 
         elif kind == "wait":
             page.wait_for_timeout(max(100, min(5000, int(a.get("ms") or 1000))))

@@ -103,7 +103,14 @@ class Updater:
                     break
                 sha.update(chunk)
                 f.write(chunk)
-        if asset.get("sha256") and sha.hexdigest().lower() != asset["sha256"].lower():
+        # Fail closed: never run the installer without a matching SHA-256. GitHub reports a
+        # digest for release assets; if it is missing we refuse rather than install blindly.
+        expected = (asset.get("sha256") or "").lower()
+        if not expected:
+            os.remove(path)
+            self.state = {"phase": "error", "message": "Bản phát hành thiếu mã kiểm tra (digest), đã hủy để an toàn."}
+            return {"status": "error", "message": self.state["message"]}
+        if sha.hexdigest().lower() != expected:
             os.remove(path)
             self.state = {"phase": "error", "message": "File tải về không khớp mã kiểm tra, đã hủy."}
             return {"status": "error", "message": self.state["message"]}

@@ -104,7 +104,13 @@ CHROMIUM_ARGS = [
     "--metrics-recording-only",
     "--no-first-run",
     "--mute-audio",
-    "--no-sandbox",
     "--password-store=basic",
     "--use-mock-keychain",
 ]
+
+# Keep Chromium's sandbox ON for the desktop/stream build: the agent browses arbitrary,
+# possibly hostile sites with the user's logins, so the renderer sandbox is the main
+# containment for a malicious page. In Docker (non-root pwuser, no user namespaces) the
+# sandbox cannot start, so it is disabled only there.
+if IN_DOCKER:
+    CHROMIUM_ARGS.append("--no-sandbox")

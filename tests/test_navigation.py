@@ -100,3 +100,19 @@ def test_link_in_a_task_is_opened_before_the_first_llm_call(browser, bus, goto, 
     assert seen and "quiz.html" in browser.get_state()["active_url"]
     assert "quiz.html" in seen[0] or "Choose" in seen[0] or "went" in seen[0], "the first call sees the exercise page"
     assert any("không tốn lượt gọi AI" in m["text"] for m in ai.get_status()["messages"])
+
+
+def test_agent_navigate_blocks_non_web_schemes(browser, goto, site):
+    """Security: a model-chosen 'navigate' (steerable by injected page content) must not
+    reach file:/data:/javascript: — that would let a hostile page read local files such as
+    ai_config.json via page.goto. The local /api/goto path (fixtures) stays unrestricted."""
+    goto("quiz.html")
+    for bad in ("file:///C:/Windows/win.ini", "data:text/html,<b>x</b>", "javascript:fetch('/x')"):
+        res = browser.execute("ai_act", {"action": "navigate", "url": bad})
+        assert res.get("status") == "error", f"{bad} must be refused"
+    # the browser must not have left the page the agent was on
+    assert browser.get_state()["active_url"].endswith("quiz.html")
+    # a normal web navigation still works through the agent action
+    res = browser.execute("ai_act", {"action": "navigate", "url": f"{site}/course.html"})
+    assert res.get("status") != "error"
+    assert browser.get_state()["active_url"].endswith("course.html")

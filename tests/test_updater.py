@@ -99,3 +99,12 @@ def test_token_is_sent_only_when_configured(fake_net, monkeypatch):
     upd.Updater(token_getter=lambda: "").check(force=True)
     upd.Updater(token_getter=lambda: "ghp_x").check(force=True)
     assert [t for _, t in fake_net["headers"]] == ["", "ghp_x"]
+
+
+def test_apply_refuses_download_without_digest(fake_net, monkeypatch):
+    monkeypatch.setattr(upd, "runtime_mode", lambda: "desktop")
+    monkeypatch.setattr(upd, "__version__", "6.2.0")
+    fake_net["release"] = _release("v6.3.0", digest="")
+    res = upd.Updater().apply()
+    assert res["status"] == "error" and "digest" in res["message"].lower()
+    assert fake_net["launched"] is None, "an installer with no digest must never be executed"
