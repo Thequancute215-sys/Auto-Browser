@@ -329,7 +329,32 @@ window.addEventListener('mouseup', (e) => {
   if (d.button === 'left' && (d.moved || d.count >= 2)) afterSelection();
 });
 
-canvas.addEventListener('contextmenu', (e) => e.preventDefault());
+// Right-click on selected text: "Phân tích AI" (the answer shows in a small box at the page's bottom-left) or copy.
+// The real window (desktop app) gets the same item in Chromium's own menu, from browser_ext/.
+const ctxMenu = $('ctxMenu');
+canvas.addEventListener('contextmenu', async (e) => {
+  e.preventDefault();
+  ctxMenu.hidden = true;
+  await inputQ.whenIdle();
+  let text = '';
+  try { text = ((await api('/api/selection')).text || '').trim(); } catch { return; }
+  if (!text) return;
+  S.ctxText = text;
+  ctxMenu.hidden = false;
+  const r = ctxMenu.getBoundingClientRect();
+  ctxMenu.style.left = `${Math.max(4, Math.min(e.clientX, innerWidth - r.width - 8))}px`;
+  ctxMenu.style.top = `${Math.max(4, Math.min(e.clientY, innerHeight - r.height - 8))}px`;
+});
+$('ctxAnalyze').addEventListener('click', () => {
+  ctxMenu.hidden = true;
+  api('/api/ai/analyze', { text: S.ctxText }).catch(() => toast('Không gửi được yêu cầu phân tích', 'error'));
+});
+$('ctxCopy').addEventListener('click', async () => {
+  ctxMenu.hidden = true;
+  if (await copyText(S.ctxText)) toast(`📋 Đã sao chép: "${preview(S.ctxText)}"`, 'success');
+});
+window.addEventListener('mousedown', (e) => { if (!ctxMenu.hidden && !ctxMenu.contains(e.target)) ctxMenu.hidden = true; }, true);
+window.addEventListener('keydown', (e) => { if (e.key === 'Escape') ctxMenu.hidden = true; });
 
 screen.addEventListener('wheel', (e) => {
   e.preventDefault();
@@ -823,6 +848,8 @@ function openSettings() {
   $('claudeModelInput').value = c.claude_model || 'claude-opus-5-5';
   $('setAutoUpdate').checked = c.auto_update !== false;
   $('setBlockAds').checked = c.block_ads !== false;
+  $('answerTransparency').value = c.answer_transparency ?? 15;
+  showAnswerTransparency();
   $('startUrlInput').value = c.start_url || '';
   $('updateTokenInput').value = '';
   $('updateTokenInput').placeholder = c.has_update_token ? 'Đã lưu token. Nhập token mới để thay' : 'github_pat_... (quyền chỉ đọc Contents)';
@@ -850,6 +877,9 @@ function openSettings() {
   if (c.has_claude_key && !$('claudeModelList').children.length) loadModels(true, 'claude');
 }
 function closeSettings() { modal.hidden = true; }
+
+function showAnswerTransparency() { $('answerTransparencyValue').textContent = `${$('answerTransparency').value}%`; }
+$('answerTransparency').addEventListener('input', showAnswerTransparency);
 
 function renderLocalStatus(st) {
   const el = $('localStatus');
@@ -891,6 +921,7 @@ function collectSettings() {
     local_fallback: $('setLocalFallback').checked,
     auto_update: $('setAutoUpdate').checked,
     block_ads: $('setBlockAds').checked,
+    answer_transparency: +$('answerTransparency').value,
     start_url: $('startUrlInput').value.trim(),
   };
   const updToken = $('updateTokenInput').value.trim();

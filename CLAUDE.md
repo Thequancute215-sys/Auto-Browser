@@ -57,6 +57,7 @@ Nếu `claude` không có trong PATH, dùng file `claude.exe` trong `%USERPROFIL
 - `updater.py`: kiểm tra GitHub Releases, tải bộ cài, xác minh SHA-256 rồi cài đè im lặng (desktop); hướng dẫn cập nhật cho Docker và bản mã nguồn. `version.py` giữ phiên bản và tên repo.
 - Ba provider AI: `gemini` (mặc định, xoay vòng Flash → Flash-Lite → Gemma khi hết quota), `claude`, `local` (Ollama). Khi cả pool đám mây hết lượt, `QuotaExhausted` khiến agent chuyển sang mô hình trên máy nếu `local_fallback` bật.
 - `desktop_app.py`: launcher của exe, chạy chế độ `window`: một cửa sổ Chromium thật, cộng bảng AI (`/?view=panel`) mở bằng Chromium của Playwright với `--app` và profile riêng. **Không mở bảng bằng Edge** (Edge có thể nhét bảng vào Edge cá nhân của người dùng).
+- `browser_ext/`: extension MV3 chỉ nạp ở chế độ `window`. Nó thêm mục "Phân tích AI" vào menu chuột phải khi có chữ được bôi đen. Cú bấm vào hàng đợi trong service worker; `_poll_ext_clicks` lấy hàng đợi đó rồi gọi `AIController.analyze_selection`, và đáp án hiện trong `ANSWER_OVERLAY`. Không đưa hàm kích hoạt ra main world của trang (trang độc hại có thể gọi nó và đốt quota).
 - `static/`: giao diện vanilla JS dựa trên **GitHub Primer**. `vendor/primer.css` (v22, gồm token sáng/tối) và `vendor/octicons.js` được lưu sẵn trong repo, không phụ thuộc CDN.
 
 ## Quy tắc bắt buộc

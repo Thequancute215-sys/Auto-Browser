@@ -35,6 +35,7 @@ DEFAULT_SETTINGS = {
     "auto_update": True,       # app desktop: tự cài bản mới (không phải gỡ / tải lại)
     "block_ads": True,         # chặn máy chủ quảng cáo trong trình duyệt (áp dụng khi mở lại app); xem config.BLOCK_ADS
     "update_token": "",        # GitHub token chỉ đọc, chỉ cần khi kho GitHub đang để riêng tư
+    "answer_transparency": 15,  # % trong suốt của khung đáp án "Phân tích AI" (chuột phải), 0–80
 }
 SECRET_KEYS = ("api_key", "claude_api_key", "update_token")
 PROVIDERS = ("gemini", "claude", "local")
@@ -75,6 +76,14 @@ TRANSCRIBE_PROMPT = """Transcribe this audio from an English-learning exercise v
 - Keep the original language; do not translate or summarise.
 - If there are several speakers, prefix lines with "A:", "B:" (or names if they are said).
 - Mark unclear words as [unclear]. Output plain text only."""
+
+# Right-click "Phân tích AI": the answer goes into a small box, so it must be short.
+ANALYZE_SYSTEM = """You help a Vietnamese student with the question they highlighted on a web page (often an English exercise).
+Reply in Vietnamese, plain text, no markdown, at most 3 short lines:
+- Line 1: "Đáp án: <the answer>" (the option letter and/or the exact word or phrase to fill in; keep English answers in English).
+- Then one or two short sentences explaining why.
+If the highlighted text is not a question, give its meaning (translate it to Vietnamese) or a one-line explanation instead, without the "Đáp án:" prefix.
+Use the surrounding text only to find the options or the missing context; answer only the highlighted question."""
 
 SITE_SHORTCUTS = {
     "cambridge": config.DEFAULT_URL,
@@ -162,6 +171,7 @@ class AIController:
         self._stop_event = threading.Event()
         self.current_task_thread: Optional[threading.Thread] = None
         self.run_state = {"step": 0, "max_steps": 0, "phase": "idle", "task": "", "detail": ""}
+        self._analyze_seq = 0  # only the latest right-click analysis may write the answer box
 
         self.add_message(
             "ai",
@@ -306,6 +316,11 @@ class AIController:
                 self.settings["max_steps"] = max(1, min(100, int(payload["max_steps"])))
             except (TypeError, ValueError):
                 pass
+        if "answer_transparency" in payload:
+            try:
+                self.settings["answer_transparency"] = max(0, min(80, int(payload["answer_transparency"])))
+            except (TypeError, ValueError):
+                pass
         if "fallback_models" in payload and isinstance(payload["fallback_models"], list):
             self.settings["fallback_models"] = [str(m).strip() for m in payload["fallback_models"] if str(m).strip()][:6]
         self._persist()
@@ -343,6 +358,57 @@ class AIController:
                                  effort="low")
         used = self.llm.last_model_used or self.model
         return f"{text.strip()[:60]} (mô hình: {used})"
+
+    # ------------------------------------------------------------------ right-click "Phân tích AI"
+
+    def analyze_selection(self, text: str = "") -> None:
+        """Answers the highlighted question in a small box at the bottom-left of the page. Runs in its own
+        thread (it waits for the model) and does not depend on the agent loop. `text` is the menu's copy of
+        the selection, used when the page no longer reports one."""
+        with self.lock:
+            self._analyze_seq += 1
+            seq = self._analyze_seq
+        try:
+            opacity = round(1 - int(self.settings.get("answer_transparency", 15)) / 100, 2)
+        except (TypeError, ValueError):
+            opacity = 0.85
+
+        def show(state, body):
+            if seq == self._analyze_seq:  # a newer right-click has replaced this one
+                self.browser.execute("answer_overlay", {"state": state, "body": body, "opacity": opacity}, timeout=10)
+
+        show("loading", "Đang phân tích")  # feedback first: reading the selection costs a round trip
+        sel = self.browser.execute("selection_context", {}, timeout=10)
+        question = (sel.get("text") or text or "").strip()[:2000]
+        if not question:
+            show("error", "Chưa bôi đen chữ nào. Bôi đen câu hỏi rồi bấm chuột phải → Phân tích AI.")
+            return
+        if not self.api_key:
+            show("error", "Chưa có API Key. Mở ⚙️ Cài đặt trong bảng AI để nhập.")
+            return
+        prompt = f"Highlighted text:\n{question}"
+        context = (sel.get("context") or "").strip()
+        if context and context != question:
+            prompt += f"\n\nSurrounding text on the page:\n{context}"
+        llm, key, model, fallbacks = self.llm, self.api_key, self.model, self.fallbacks()
+        answer = ""
+        for attempt in range(2):
+            try:
+                answer = llm.generate(key, model, prompt, system=ANALYZE_SYSTEM, fallbacks=fallbacks,
+                                      max_output_tokens=4096, effort="low",
+                                      on_retry=lambda m: show("loading", f"{m}\nĐang phân tích"))
+                break
+            except QuotaExhausted as e:
+                if attempt == 0 and self._can_use_local(self.settings) and llm is not self.ollama:
+                    llm, key, fallbacks = self.ollama, "local", []
+                    model = self.settings.get("local_model") or DEFAULT_SETTINGS["local_model"]
+                    continue
+                show("error", str(e))
+                return
+            except Exception as e:  # LLMError, or anything unexpected: never leave the box stuck on "loading"
+                show("error", str(e) if isinstance(e, LLMError) else f"Lỗi: {e}"[:300])
+                return
+        show("answer", (answer or "").strip() or "AI không trả lời được câu này.")
 
     # ------------------------------------------------------------------ messages & status
 

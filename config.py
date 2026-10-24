@@ -31,6 +31,8 @@ AI_SCREENSHOT_QUALITY = 80   # JPEG quality của ảnh gửi cho Gemini
 # Paths
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 STATIC_DIR = os.path.join(BASE_DIR, "static")
+# Chromium extension that adds "Phân tích AI" to the right-click menu (window mode only)
+EXTENSION_DIR = os.path.join(BASE_DIR, "browser_ext")
 PROFILE_DIR = os.environ.get("AIB_PROFILE_DIR") or os.path.join(os.path.expanduser("~"), ".ai_browser_profile")
 # Dọn các tiến trình chrome-headless-shell còn sót từ lần chạy trước (tắt bằng AIB_KILL_STALE=0)
 KILL_STALE_BROWSERS = os.environ.get("AIB_KILL_STALE", "1") == "1"

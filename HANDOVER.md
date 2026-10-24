@@ -138,6 +138,11 @@ Tùy chọn (thanh bên hoặc ⚙️ Cài đặt, lưu trong `ai_config.json`):
 - Số bước tối đa, model chính và chuỗi model dự phòng.
 - Chip "🚀 Làm liên tục" bật Tự nộp + Tự qua bài **chỉ cho lần chạy đó**.
 
+**Phân tích AI (chuột phải):** bôi đen câu hỏi, bấm chuột phải rồi chọn **Phân tích AI**. Đáp án và 1–2 câu giải thích hiện trong một khung nhỏ, mờ, ở góc dưới bên trái trang (`page_scripts.ANSWER_OVERLAY`). Khung nằm trong shadow root nên CSS của trang không làm hỏng nó, và agent cũng không nhìn thấy nó. Đóng bằng nút × hoặc Esc. Độ trong suốt chỉnh ở Cài đặt (`answer_transparency`, 0–80 %).
+- Chế độ cửa sổ dùng menu chuột phải gốc của Chromium, qua extension `browser_ext/` (chỉ xin quyền `contextMenus`). Extension được nạp bằng `--load-extension`, và `--disable-extensions` được bỏ chỉ trong chế độ này. Cú bấm được đưa vào một hàng đợi trong service worker; `BrowserManager._poll_ext_clicks` lấy hàng đợi này qua Playwright, cứ 150 ms một lần. Trang web không với tới service worker, nên không tự kích hoạt phân tích được (và không đốt quota của người dùng).
+- Chế độ stream: `app.js` hiện menu riêng (Phân tích AI / Sao chép) khi có chữ đang bôi đen, rồi gọi `POST /api/ai/analyze`.
+- `AIController.analyze_selection` đọc vùng chọn cùng khối chữ bao quanh nó (`SELECTION_CONTEXT`, để lấy được các phương án nằm ngoài vùng bôi đen), rồi gọi provider đang chọn với `effort: low` (hết quota thì chuyển sang AI trên máy). Mỗi lần thử lại hay chuyển mô hình đều hiện lên khung. Chỉ lần bấm mới nhất được ghi vào khung.
+
 Lệnh đơn giản không tốn lượt gọi AI: một URL bất kỳ, `mở youtube|cambridge|rikkei|<tên miền>`, `cuộn xuống 600`, `tìm kiếm <từ khóa>`, `tab mới`, `đóng tab`, `quay lại`, `tải lại`.
 
 ### 3c. Ứng dụng desktop và độ mượt
@@ -182,6 +187,7 @@ events.py               EventBus (pub/sub cho SSE)
 config.py               Cổng, viewport, chất lượng JPEG, cờ Chromium, URL mặc định, biến môi trường
 ai_browser.py           CLI điều khiển từ dòng lệnh
 static/                 index.html, style.css, app.js
+browser_ext/            Extension Chromium (chế độ window): mục "Phân tích AI" trong menu chuột phải
 static/vendor/          primer.css (GitHub Primer CSS v22) + octicons.js (Primer Octicons v19)
 tests/                  pytest: test_dnd, test_browser, test_agent, test_server, test_ui, test_llm_e2e
 tests/fixtures/         Trang thử: quiz.html, listening.html (+ .wav), dnd/*.html (11 cơ chế kéo thả)
@@ -215,6 +221,7 @@ Giao diện dùng **Primer CSS v22** và **Primer Octicons**, lưu sẵn trong `
 | POST | `/api/tab/new|switch|close` · `/api/viewport` · `/api/scroll_ratio` | Tab · kích thước màn hình · kéo thanh cuộn |
 | POST | `/api/ai/command` | `{"command": "...", "overrides": {...}}` |
 | POST | `/api/ai/stop` · `/api/ai/clear` · `/api/ai/config` | Dừng · xóa chat · lưu cài đặt (`"test": true` để kiểm tra kết nối) |
+| POST | `/api/ai/analyze` | `{"text"}`: Phân tích AI cho chữ đang bôi đen, đáp án hiện trong trang (góc dưới trái) |
 | POST | `/api/ai_command` | Chỉ các lệnh `eval`, `extract_text`, `page_text`, `get_selection` (dành cho CLI/script) |
 | POST | `/api/click` · `/api/type` · `/api/scroll` · `/api/select_text` | Giữ lại để tương thích với script cũ |
 

@@ -56,6 +56,9 @@ class BrowserManager:
         # "window" mode: the user works in a real Chromium window; nothing is streamed.
         self.window_mode = config.BROWSER_MODE == "window"
         self.window_closed = False
+        # Called (in a new thread) with the selected text when the user picks "Phân tích AI" in the
+        # right-click menu of the real window; set by server.py to AIController.analyze_selection.
+        self.on_analyze = None
 
         # Published state
         self.viewport = dict(config.VIEWPORT)
@@ -85,6 +88,7 @@ class BrowserManager:
         self._typed_buffer = ""
         self._dnd_pref = {}  # host -> drag strategy that worked last time
         self._media = deque(maxlen=30)  # audio responses seen on the pages
+        self._ext_worker = None  # service worker of browser_ext/ (window mode)
 
         os.makedirs(config.PROFILE_DIR, exist_ok=True)
         self.worker_thread = threading.Thread(target=self._worker_main, name="playwright-worker", daemon=True)
@@ -201,6 +205,10 @@ class BrowserManager:
             if config.WINDOW_RECT:
                 x, y, w, h = (int(v) for v in config.WINDOW_RECT.split(","))
                 args += [f"--window-position={x},{y}", f"--window-size={w},{h}"]
+            if os.path.isfile(os.path.join(config.EXTENSION_DIR, "manifest.json")):
+                # Right-click "Phân tích AI" (browser_ext/). Only this extension may run.
+                args = [a for a in args if a != "--disable-extensions"]
+                args += [f"--disable-extensions-except={config.EXTENSION_DIR}", f"--load-extension={config.EXTENSION_DIR}"]
             kwargs.update(headless=False, no_viewport=True, args=args)
             kwargs.pop("viewport")
             kwargs.pop("user_agent")  # the real Chromium UA matches the real browser
@@ -240,6 +248,10 @@ class BrowserManager:
                 # The pattern is matched inside the Playwright driver: other requests never reach Python.
                 self.context.route(config.AD_URL_RE, lambda route: route.abort("blockedbyclient"))
             self.context.on("page", self._on_context_page)
+            if self.window_mode:
+                self.context.on("serviceworker", self._on_service_worker)
+                for sw in self.context.service_workers:
+                    self._on_service_worker(sw)
             first = self.context.pages[0] if self.context.pages else self.context.new_page()
             self._register_page(first)
             self._attach(first)
@@ -253,6 +265,7 @@ class BrowserManager:
             self.log(f"Trình duyệt sẵn sàng (screencast: {'bật' if self.screencast_ok else 'dự phòng ảnh chụp'})")
 
             last_tabs = 0.0
+            last_ext_poll = 0.0
             last_fallback = 0.0
             last_scroll_t = 0.0
             last_scroll_frame = -1
@@ -286,6 +299,9 @@ class BrowserManager:
                 if now - last_tabs > 1.0:
                     self._sync_tabs()
                     last_tabs = now
+                if self._ext_worker is not None and now - last_ext_poll > 0.15:
+                    self._poll_ext_clicks()
+                    last_ext_poll = now
                 if self.frame_id != last_scroll_frame and now - last_scroll_t > 0.3:
                     self._update_scroll()
                     last_scroll_frame = self.frame_id
@@ -395,6 +411,24 @@ class BrowserManager:
         # New tab or popup (target=_blank, window.open): follow it like a real browser does.
         self._register_page(page)
         self._pending_page = page
+
+    def _on_service_worker(self, worker):
+        if worker.url.startswith("chrome-extension://") and worker.url.endswith("/background.js"):
+            self._ext_worker = worker
+            worker.on("close", lambda _=None, w=worker: self._ext_worker is w and setattr(self, "_ext_worker", None))
+
+    def _poll_ext_clicks(self):
+        """Drains the right-click "Phân tích AI" queue of browser_ext/background.js."""
+        try:
+            clicks = self._ext_worker.evaluate("self.__aibTake ? self.__aibTake() : []")
+        except Exception:
+            # A stopped worker fires "close" (cleared above) and the next click starts a new one
+            # ("serviceworker" event); a passing error must not disable the menu for the session.
+            return
+        for c in clicks or []:
+            if self.on_analyze:
+                threading.Thread(target=self.on_analyze, args=(str(c.get("text") or ""),),
+                                 name="analyze-selection", daemon=True).start()
 
     def _on_dialog(self, dialog):
         msg = (dialog.message or "")[:160]
@@ -944,6 +978,22 @@ class BrowserManager:
             if t and len(t) > len(best):
                 best = t
         return {"text": best.strip()}
+
+    def _cmd_selection_context(self, p):
+        """The selected text plus the block around it (the question's options), from whichever frame holds it."""
+        best = {"text": "", "context": ""}
+        for r in self._all_frames_eval(js.SELECTION_CONTEXT):
+            if r and len(r.get("text") or "") > len(best["text"]):
+                best = {"text": r["text"].strip(), "context": (r.get("context") or "").strip()}
+        return best
+
+    def _cmd_answer_overlay(self, p):
+        """Small frosted box at the bottom-left of the page with the right-click analysis (loading / answer / error)."""
+        self.page.main_frame.evaluate(js.ANSWER_OVERLAY, {
+            "state": p.get("state", "answer"), "body": str(p.get("body", ""))[:4000],
+            "opacity": max(0.2, min(1.0, float(p.get("opacity", 0.85)))),
+        })
+        return {}
 
     def _cmd_select_text(self, p):
         sx, sy = p.get("startX", 0), p.get("startY", 0)

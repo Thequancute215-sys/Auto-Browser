@@ -1,0 +1,8 @@
+{
+  "manifest_version": 3,
+  "name": "Auto Browser",
+  "description": "Thêm mục \"Phân tích AI\" vào menu chuột phải khi bôi đen chữ.",
+  "version": "1.0",
+  "permissions": ["contextMenus"],
+  "background": { "service_worker": "background.js" }
+}

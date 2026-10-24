@@ -106,6 +106,7 @@ from updater import Updater  # noqa: E402
 bus = EventBus()
 browser = BrowserManager(bus)
 ai = AIController(browser, bus)
+browser.on_analyze = ai.analyze_selection  # right-click "Phân tích AI" in the real window
 updater = Updater(token_getter=lambda: ai.settings.get("update_token") or os.environ.get("AIB_UPDATE_TOKEN", ""))
 QUIT_REQUESTED = threading.Event()  # set by an in-app update; desktop_app.py exits when it is set
 
@@ -347,6 +348,11 @@ class AppRequestHandler(BaseHTTPRequestHandler):
             self._send_json({"status": "ok"})
         elif path == "/api/ai/clear":
             ai.clear_messages()
+            self._send_json({"status": "ok"})
+        elif path == "/api/ai/analyze":
+            # Right-click "Phân tích AI" in the web UI; the answer shows up in the page itself.
+            threading.Thread(target=ai.analyze_selection, args=(str(payload.get("text", ""))[:4000],),
+                             name="analyze-selection", daemon=True).start()
             self._send_json({"status": "ok"})
         elif path == "/api/ai/config":
             ai.save_config(payload)

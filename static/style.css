@@ -327,6 +327,18 @@ svg.octicon { fill: currentColor; vertical-align: text-bottom; flex: none; overf
 .toasts .Toast { margin: 0; max-width: min(560px, 92vw); pointer-events: auto; animation: toast-in .25s cubic-bezier(.2,.9,.3,1.2); }
 .toasts .Toast.out { opacity: 0; transform: translateY(6px); transition: opacity .2s, transform .2s; }
 .toasts .Toast-content { word-break: break-word; }
+
+/* Right-click menu on selected text (stream mode) */
+.ctx-menu { position: fixed; z-index: 2100; min-width: 168px; padding: var(--base-size-4); display: flex; flex-direction: column;
+  background: var(--overlay-bgColor); border: 1px solid var(--borderColor-default); border-radius: var(--borderRadius-medium);
+  box-shadow: var(--shadow-floating-small); }
+.ctx-menu[hidden] { display: none; }
+.ctx-menu button { display: flex; align-items: center; gap: var(--base-size-8); padding: var(--base-size-6) var(--base-size-8);
+  border: 0; border-radius: var(--borderRadius-small); background: transparent; color: var(--fgColor-default); font-size: 13px;
+  text-align: left; cursor: pointer; }
+.ctx-menu button:hover, .ctx-menu button:focus-visible { background: var(--bgColor-neutral-muted); outline: none; }
+.ctx-menu button svg { color: var(--fgColor-muted); }
+.range { width: 100%; accent-color: var(--bgColor-accent-emphasis); }
 @keyframes toast-in { from { opacity: 0; transform: translateY(12px) scale(.97); } }
 
 /* ---------------------------------------------------------------- Overlay dialog (Primer spec) */

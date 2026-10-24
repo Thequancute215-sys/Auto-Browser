@@ -83,3 +83,35 @@ def test_run_without_key_shows_warning(ui):
     ui.wait_for_selector(".msg.warning", timeout=10000)
     assert "API Key" in ui.locator(".msg.warning").last.inner_text()
     assert not ui.errors, ui.errors
+
+
+def test_right_click_selection_offers_ai_analysis(ui, server):
+    pos = _remote(server, """(() => { const q = [...document.querySelectorAll('.q')].find(d => d.textContent.includes('Where'));
+      const r = document.createRange(); r.setStart(q.firstChild, 0); r.setEnd(q.firstChild, q.firstChild.textContent.indexOf('?') + 1);
+      getSelection().removeAllRanges(); getSelection().addRange(r); const b = r.getBoundingClientRect();
+      return [b.x + b.width / 2, b.y + b.height / 2]; })()""")
+    box = ui.locator("#screenCanvas").bounding_box()
+    ui.mouse.click(box["x"] + pos[0] / 1280 * box["width"], box["y"] + pos[1] / 800 * box["height"], button="right")
+    ui.wait_for_selector("#ctxMenu:not([hidden])", timeout=5000)
+    ui.click("#ctxAnalyze")
+    assert ui.locator("#ctxMenu").is_hidden()
+    # The test server has no API key: the answer box in the page says so instead of staying silent.
+    text = None
+    for _ in range(40):
+        text = _remote(server, "(() => { const h = document.getElementById('__aib_answer'); return h && h.shadowRoot.querySelector('.body').innerText; })()")
+        if text and "API Key" in text:
+            break
+        ui.wait_for_timeout(100)
+    assert text and "API Key" in text
+    _remote(server, "(document.getElementById('__aib_answer').remove(), getSelection().removeAllRanges())")
+    ui.mouse.click(box["x"] + 5, box["y"] + 5, button="right")  # nothing selected: no menu
+    ui.wait_for_timeout(500)
+    assert ui.locator("#ctxMenu").is_hidden()
+
+
+def test_answer_transparency_slider(ui):
+    ui.click("#btnSettings")
+    assert ui.locator("#answerTransparencyValue").inner_text() == "15%"
+    ui.locator("#answerTransparency").evaluate("el => { el.value = 40; el.dispatchEvent(new Event('input')); }")
+    assert ui.locator("#answerTransparencyValue").inner_text() == "40%"
+    ui.keyboard.press("Escape")

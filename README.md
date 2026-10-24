@@ -23,6 +23,7 @@ Cập nhật không bao giờ cần gỡ app: bản Windows tự cập nhật, b
 - **Bài nghe:** tự bấm Play, chép lời audio rồi làm bài.
 - **Xoay vòng mô hình:** khi một mô hình hết lượt miễn phí, app tự chuyển sang mô hình khác, rồi sang AI trên máy.
 - Chế độ **Gợi ý**: chỉ hiện đáp án kèm giải thích.
+- **Phân tích AI bằng chuột phải:** bôi đen một câu hỏi, bấm chuột phải rồi chọn *Phân tích AI*. Đáp án hiện trong một khung nhỏ, mờ ở góc dưới bên trái (chỉnh độ trong suốt trong Cài đặt).
 
 ## Phát triển
 

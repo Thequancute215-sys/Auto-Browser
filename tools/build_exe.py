@@ -32,6 +32,7 @@ def build_app():
         "--clean",
         "--icon", str(ROOT / "assets" / "icon.ico"),
         "--add-data", f"{ROOT / 'static'}{os.pathsep}static",
+        "--add-data", f"{ROOT / 'browser_ext'}{os.pathsep}browser_ext",  # right-click "Phân tích AI"
         "--collect-all", "playwright",      # Python package + bundled Node driver
         "--hidden-import", "websocket",
         "--collect-submodules", "anthropic",   # Claude provider (imported lazily)

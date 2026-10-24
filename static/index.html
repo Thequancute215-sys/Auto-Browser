@@ -164,6 +164,10 @@
 
 <!-- Toasts (Primer Toast) -->
 <div class="toasts" id="toasts" aria-live="polite"></div>
+<div class="ctx-menu" id="ctxMenu" role="menu" hidden>
+  <button type="button" role="menuitem" id="ctxAnalyze"><svg data-oi="sparkle-fill"></svg> Phân tích AI</button>
+  <button type="button" role="menuitem" id="ctxCopy"><svg data-oi="copy"></svg> Sao chép</button>
+</div>
 
 <!-- Settings dialog -->
 <div class="Overlay-backdrop" id="settingsModal" hidden>
@@ -259,6 +263,11 @@
         <label class="check"><input type="checkbox" id="setNext"> Tự chuyển sang bài tiếp theo sau khi hoàn thành</label>
         <label class="check"><input type="checkbox" id="setListen"> Bài nghe: tải audio của trang, nhờ Gemini chép lời rồi làm bài</label>
         <label class="check"><input type="checkbox" id="setBlockAds"> Chặn quảng cáo (tránh quảng cáo bật lên khiến AI bấm nhầm; có hiệu lực khi mở lại app)</label>
+        <div class="form-group">
+          <label class="form-label" for="answerTransparency">Độ trong suốt của khung «Phân tích AI» <span class="color-fg-muted text-normal" id="answerTransparencyValue"></span></label>
+          <input type="range" id="answerTransparency" class="range" min="0" max="80" step="5">
+          <p class="note">Bôi đen câu hỏi trên trang → chuột phải → <b>Phân tích AI</b>: đáp án hiện trong khung nhỏ ở góc dưới bên trái.</p>
+        </div>
         <div class="form-group">
           <label class="form-label" for="startUrlInput">Trang mở khi khởi động <span class="color-fg-muted text-normal">: vd link lớp học của bạn, để trống = trang chủ Cambridge One</span></label>
           <input type="url" id="startUrlInput" class="form-control input-block" placeholder="https://www.cambridgeone.org/home" spellcheck="false">

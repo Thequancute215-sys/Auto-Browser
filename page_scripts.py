@@ -283,6 +283,94 @@ FRAME_SELECTION = r"""
 }
 """
 
+# Right-click "Phân tích AI": the selection and the block around it (a highlighted question rarely
+# includes its options). Climbs from the selection until the block holds clearly more than the selection.
+SELECTION_CONTEXT = r"""
+() => {
+  let text = '', node = null;
+  const a = document.activeElement;
+  if (a && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA') && typeof a.selectionStart === 'number' && a.selectionEnd > a.selectionStart) {
+    text = a.value.substring(a.selectionStart, a.selectionEnd);
+    node = a;
+  } else {
+    const s = window.getSelection();
+    if (s && s.rangeCount) { text = s.toString(); node = s.getRangeAt(0).commonAncestorContainer; }
+  }
+  if (!text.trim()) return { text: '', context: '' };
+  let el = node && node.nodeType === 1 ? node : node && node.parentElement;
+  let ctx = (el && el.innerText) || text;
+  while (el && el.parentElement && el !== document.body && ctx.length < text.length + 150) {
+    const up = el.parentElement.innerText || '';
+    if (up.length > 1500) break;
+    el = el.parentElement;
+    ctx = up;
+  }
+  return { text, context: ctx.slice(0, 1500) };
+}
+"""
+
+# The answer box of "Phân tích AI": small, frosted, bottom-left, above the page (top frame only).
+# Lives in a shadow root so the page's CSS cannot restyle it and the agent's observation skips it.
+ANSWER_OVERLAY = r"""
+(o) => {
+  const ID = '__aib_answer';
+  let host = document.getElementById(ID);
+  if (o.state === 'hide') { if (host) host.remove(); return true; }
+  if (!host) {
+    host = document.createElement('div');
+    host.id = ID;
+    host.style.cssText = 'all:initial;position:fixed;left:12px;bottom:12px;z-index:2147483647;transition:opacity .15s';
+    const root = host.attachShadow({ mode: 'open' });
+    root.innerHTML = `<style>
+      .box { box-sizing: border-box; width: max-content; min-width: 160px; max-width: min(300px, calc(100vw - 24px));
+        max-height: 170px; display: flex; flex-direction: column; border-radius: 10px; overflow: hidden;
+        background: rgba(22, 27, 34, .72); color: #f0f6fc; border: 1px solid rgba(240, 246, 252, .14);
+        box-shadow: 0 6px 24px rgba(1, 4, 9, .35); backdrop-filter: blur(14px) saturate(1.3);
+        -webkit-backdrop-filter: blur(14px) saturate(1.3);
+        font: 13px/1.45 -apple-system, "Segoe UI", system-ui, sans-serif; }
+      .head { display: flex; align-items: center; gap: 6px; padding: 5px 6px 5px 10px; font-size: 11px;
+        font-weight: 600; letter-spacing: .02em; color: rgba(240, 246, 252, .7); }
+      .head span { flex: 1; }
+      .x { all: unset; cursor: pointer; width: 18px; height: 18px; border-radius: 5px; text-align: center;
+        line-height: 18px; font-size: 14px; color: rgba(240, 246, 252, .7); }
+      .x:hover { background: rgba(240, 246, 252, .14); color: #fff; }
+      .body { padding: 0 10px 8px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; }
+      .ans { font-weight: 600; color: #fff; }
+      .error .body { color: #ffa198; }
+      .loading .body { color: rgba(240, 246, 252, .75); }
+      .loading .body::after { content: ''; display: inline-block; width: 1.2em; text-align: left;
+        animation: dots 1.2s steps(4) infinite; }
+      @keyframes dots { 0% { content: ''; } 25% { content: '.'; } 50% { content: '..'; } 75% { content: '...'; } }
+    </style><div class="box"><div class="head"><span>✨ Phân tích AI</span><button class="x" title="Đóng (Esc)">×</button></div><div class="body"></div></div>`;
+    root.querySelector('.x').addEventListener('click', () => host.remove());
+    (document.body || document.documentElement).appendChild(host);
+  }
+  if (!window.__aibAnswerEsc) {
+    window.__aibAnswerEsc = true;
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') { const h = document.getElementById(ID); if (h) h.remove(); }
+    }, true);
+  }
+  const box = host.shadowRoot.querySelector('.box'), body = host.shadowRoot.querySelector('.body');
+  box.className = 'box ' + o.state;
+  host.style.opacity = String(o.opacity);
+  body.textContent = '';
+  const text = String(o.body || '').replace(/\*\*/g, '').trim();
+  if (o.state === 'answer') {
+    const nl = text.indexOf('\n');
+    const first = document.createElement('div');
+    first.className = 'ans';
+    first.textContent = nl < 0 ? text : text.slice(0, nl);
+    body.appendChild(first);
+    if (nl >= 0) body.appendChild(document.createTextNode(text.slice(nl + 1).trim()));
+  } else {
+    body.textContent = text;
+  }
+  body.scrollTop = 0;
+  return true;
+}
+"""
+
 SCROLL_INFO = r"""
 () => {
   const doc = document.scrollingElement || document.documentElement;
