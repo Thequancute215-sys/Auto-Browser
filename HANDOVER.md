@@ -1,4 +1,4 @@
-# Tài liệu bàn giao: Auto Browser (v6.2.1)
+# Tài liệu bàn giao: Auto Browser (v6.2.2)
 
 Dành cho người dùng và công cụ phát triển kế thừa (Claude Code / Cursor / VSCode).
 
